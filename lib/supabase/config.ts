@@ -1,28 +1,26 @@
-/**
- * Verifica se as variáveis de ambiente do Supabase estão configuradas
- */
-export function checkSupabaseConfig() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+export const supabaseConfig = {
+  url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+};
 
-  const missing: string[] = []
-  
-  if (!url) missing.push('NEXT_PUBLIC_SUPABASE_URL')
-  if (!anonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-  if (!serviceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY')
-
-  if (missing.length > 0 && process.env.NODE_ENV === 'development') {
-    console.warn('⚠️  Supabase environment variables missing:', missing.join(', '))
-    console.warn('   Configure them in .env.local or Vercel settings')
-  }
-
-  return {
-    isConfigured: missing.length === 0,
-    missing,
-    url: url || '',
-    anonKey: anonKey || '',
-    serviceRoleKey: serviceRoleKey || '',
-  }
+// Validate required environment variables
+if (!supabaseConfig.url) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
 }
 
+if (!supabaseConfig.anonKey) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
+}
+
+export const appConfig = {
+  name: 'nTraining',
+  description: 'Professional training platform powered by ness.',
+  url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+};
+
+export const authConfig = {
+  redirectAfterLogin: '/dashboard',
+  redirectAfterLogout: '/',
+  redirectAfterSignup: '/onboarding',
+};
