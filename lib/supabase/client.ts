@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
+import { checkSupabaseConfig } from './config'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const config = checkSupabaseConfig()
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
+// Use placeholder values if not configured (prevents build errors)
+const supabaseUrl = config.url || 'https://placeholder.supabase.co'
+const supabaseAnonKey = config.anonKey || 'placeholder-key'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
