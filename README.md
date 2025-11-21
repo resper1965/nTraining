@@ -1,4 +1,5 @@
 # nTraining
+<<<<<<< HEAD
 
 Professional training platform powered by ness.
 
@@ -59,3 +60,6 @@ nTraining/
 
 Private project - ness.
 
+=======
+Plataforma de treinamento de Seguranca da Informacao
+>>>>>>> 0455566e0bcf525e285a1eb32149ba25cb19e6fa
