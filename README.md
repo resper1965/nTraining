@@ -1,7 +1,8 @@
 # nTraining
-<<<<<<< HEAD
 
 Professional training platform powered by ness.
+
+Plataforma de treinamento de Segurança da Informação.
 
 ## Tech Stack
 
@@ -11,6 +12,7 @@ Professional training platform powered by ness.
 - **UI Components**: shadcn/ui
 - **Design System**: ness branding
 - **Fonts**: Inter (primary), Montserrat (display)
+- **Database**: Supabase (PostgreSQL)
 
 ## Design System
 
@@ -38,12 +40,36 @@ Professional training platform powered by ness.
 npm install
 ```
 
-2. Run the development server:
+2. Configure environment variables:
+```bash
+cp .env.example .env.local
+```
+
+Add your Supabase credentials:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Environment Variables
+
+### Required Variables
+
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key (server-side only)
+
+### Vercel Deployment
+
+Configure these variables in your Vercel project settings:
+- Project: `ntraining-platform` (or your project name)
+- Settings → Environment Variables
 
 ## Project Structure
 
@@ -59,7 +85,3 @@ nTraining/
 ## License
 
 Private project - ness.
-
-=======
-Plataforma de treinamento de Seguranca da Informacao
->>>>>>> 0455566e0bcf525e285a1eb32149ba25cb19e6fa
