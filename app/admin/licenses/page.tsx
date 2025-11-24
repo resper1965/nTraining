@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminLicensesPage() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-3xl font-medium text-white mb-2">
           Licenças
