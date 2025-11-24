@@ -5,10 +5,11 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 export default async function Home() {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
   // Redirect to dashboard if logged in
   if (user) {
@@ -96,4 +97,36 @@ export default async function Home() {
       </div>
     </main>
   )
+  } catch (error) {
+    // If there's an error (e.g., missing env vars), show the page anyway
+    // Users can still see the landing page
+    console.error('Home page error:', error)
+    return (
+      <main className="min-h-screen bg-slate-950">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center mb-16">
+            <h1 className="font-display text-6xl font-medium text-white mb-4 leading-tight">
+              n<span className="text-[#00ade8]">.</span>training
+            </h1>
+            <p className="text-slate-400 text-lg leading-relaxed max-w-2xl mx-auto mb-8">
+              Professional training platform powered by{' '}
+              <span className="text-white font-medium">
+                ness<span className="text-primary">.</span>
+              </span>
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Link href="/auth/login">
+                <Button size="lg">Sign In</Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button variant="outline" size="lg">
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
 }

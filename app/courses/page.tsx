@@ -11,19 +11,20 @@ export default async function CoursesPage({
 }: {
   searchParams: { level?: string; area?: string; search?: string }
 }) {
-  await requireAuth()
+  try {
+    await requireAuth()
 
-  const filters = {
-    level: searchParams.level as CourseLevel | undefined,
-    area: searchParams.area || undefined,
-    search: searchParams.search || undefined,
-    status: 'published' as const,
-  }
+    const filters = {
+      level: searchParams.level as CourseLevel | undefined,
+      area: searchParams.area || undefined,
+      search: searchParams.search || undefined,
+      status: 'published' as const,
+    }
 
-  const [courses, areas] = await Promise.all([
-    getCoursesWithProgress(filters),
-    getCourseAreas(),
-  ])
+    const [courses, areas] = await Promise.all([
+      getCoursesWithProgress(filters),
+      getCourseAreas(),
+    ])
 
   return (
     <main className="min-h-screen bg-slate-950">
@@ -73,5 +74,22 @@ export default async function CoursesPage({
       </div>
     </main>
   )
+  } catch (error) {
+    console.error('Courses page error:', error)
+    return (
+      <main className="min-h-screen bg-slate-950">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h1 className="font-display text-2xl font-medium text-white mb-4">
+              Error loading courses
+            </h1>
+            <p className="text-slate-400">
+              {error instanceof Error ? error.message : 'An unexpected error occurred'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
 }
 

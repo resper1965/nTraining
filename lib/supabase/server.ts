@@ -74,10 +74,14 @@ export async function requireAuth(): Promise<User> {
   const user = await getCurrentUser();
 
   if (!user) {
-    throw new Error('Unauthorized');
+    // Redirect to login instead of throwing error
+    // redirect() throws internally and never returns
+    const { redirect } = await import('next/navigation');
+    redirect('/auth/login');
   }
 
-  return user;
+  // TypeScript doesn't know redirect() never returns, so we assert here
+  return user as User;
 }
 
 // Helper to require specific role

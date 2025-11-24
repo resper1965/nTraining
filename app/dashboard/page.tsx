@@ -16,18 +16,19 @@ import Link from 'next/link'
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const user = await requireAuth()
-  const progress = await getUserProgress()
-  const courses = await getCoursesWithProgress({ status: 'published' })
+  try {
+    const user = await requireAuth()
+    const progress = await getUserProgress()
+    const courses = await getCoursesWithProgress({ status: 'published' })
 
-  const inProgressCourses = progress?.filter(
-    (p: any) => p.status === 'in_progress'
-  ) || []
-  const completedCourses = progress?.filter(
-    (p: any) => p.status === 'completed'
-  ) || []
+    const inProgressCourses = progress?.filter(
+      (p: any) => p.status === 'in_progress'
+    ) || []
+    const completedCourses = progress?.filter(
+      (p: any) => p.status === 'completed'
+    ) || []
 
-  return (
+    return (
     <main className="min-h-screen bg-slate-950">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -176,5 +177,27 @@ export default async function DashboardPage() {
       </div>
     </main>
   )
+  } catch (error) {
+    console.error('Dashboard error:', error)
+    return (
+      <main className="min-h-screen bg-slate-950">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h1 className="font-display text-2xl font-medium text-white mb-4">
+              Error loading dashboard
+            </h1>
+            <p className="text-slate-400 mb-4">
+              {error instanceof Error ? error.message : 'An unexpected error occurred'}
+            </p>
+            <form action={signOut}>
+              <Button type="submit" variant="outline">
+                Sign Out
+              </Button>
+            </form>
+          </div>
+        </div>
+      </main>
+    )
+  }
 }
 
