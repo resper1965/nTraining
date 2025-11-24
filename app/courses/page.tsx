@@ -1,5 +1,4 @@
 import { getCoursesWithProgress, getCourseAreas } from '@/app/actions/courses'
-import { requireAuth } from '@/lib/supabase/server'
 import { CourseCard } from '@/components/course-card'
 import { CourseFilters } from '@/components/course-filters'
 import type { CourseLevel } from '@/lib/types/database'
@@ -12,7 +11,6 @@ export default async function CoursesPage({
   searchParams: { level?: string; area?: string; search?: string }
 }) {
   try {
-    await requireAuth()
 
     const filters = {
       level: searchParams.level as CourseLevel | undefined,
