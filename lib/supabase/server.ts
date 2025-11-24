@@ -40,6 +40,35 @@ export function createClient() {
   ) as any; // Temporary type assertion until database.types.ts is complete
 }
 
+// Helper to get current user on server (via Supabase Auth)
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const supabase = createClient();
+
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return null;
+    }
+
+    // Get extended user data
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (userError || !userData) {
+      return null;
+    }
+
+    return userData as User | null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+}
+
 // Helper to get user by ID from database
 export async function getUserById(userId: string): Promise<User | null> {
   try {
@@ -62,29 +91,18 @@ export async function getUserById(userId: string): Promise<User | null> {
   }
 }
 
-// Helper to get current user from context (cookie or query param)
-export async function getCurrentUser(): Promise<User | null> {
-  try {
-    const cookieStore = cookies();
-    const userId = cookieStore.get('user_id')?.value;
+// Helper to require authentication
+export async function requireAuth(): Promise<User> {
+  const user = await getCurrentUser();
 
-    if (!userId) {
-      return null;
-    }
-
-    return await getUserById(userId);
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
+  if (!user) {
+    // Redirect to login instead of throwing error
+    const { redirect } = await import('next/navigation');
+    redirect('/auth/login');
   }
-}
 
-// Helper to require user (returns null if not found, doesn't redirect)
-export async function requireUser(userId?: string): Promise<User | null> {
-  if (userId) {
-    return await getUserById(userId);
-  }
-  return await getCurrentUser();
+  // TypeScript doesn't know redirect() never returns, so we assert here
+  return user as User;
 }
 
 // Helper to check if user is superadmin
@@ -97,24 +115,22 @@ export async function isSuperAdmin(): Promise<boolean> {
   }
 }
 
-// Helper to require superadmin (returns null if not superadmin)
-export async function requireSuperAdmin(userId?: string): Promise<User | null> {
-  const user = await requireUser(userId);
+// Helper to require superadmin
+export async function requireSuperAdmin(): Promise<User> {
+  const user = await requireAuth();
   
-  if (!user || !user.is_superadmin) {
-    return null;
+  if (!user.is_superadmin) {
+    const { redirect } = await import('next/navigation');
+    redirect('/unauthorized');
+    throw new Error('Redirecting to unauthorized');
   }
   
   return user;
 }
 
-// Helper to require specific role (returns null if doesn't have role)
-export async function requireRole(role: 'platform_admin' | 'org_manager' | 'student', userId?: string): Promise<User | null> {
-  const user = await requireUser(userId);
-
-  if (!user) {
-    return null;
-  }
+// Helper to require specific role
+export async function requireRole(role: 'platform_admin' | 'org_manager' | 'student') {
+  const user = await requireAuth();
 
   // Superadmins bypass role checks
   if (user.is_superadmin) {
@@ -128,7 +144,7 @@ export async function requireRole(role: 'platform_admin' | 'org_manager' | 'stud
   };
 
   if (roleHierarchy[user.role] < roleHierarchy[role]) {
-    return null;
+    throw new Error('Forbidden: Insufficient permissions');
   }
 
   return user;

@@ -5,78 +5,6 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 // ============================================================================
-// SIGN UP
-// ============================================================================
-
-export async function signUp(formData: FormData) {
-  const supabase = createClient()
-
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const fullName = formData.get('fullName') as string
-  const organizationSlug = formData.get('organizationSlug') as string | null
-
-  // Validate input
-  if (!email || !password) {
-    redirect('/auth/signup?error=Email and password are required')
-  }
-
-  if (password.length < 8) {
-    redirect('/auth/signup?error=Password must be at least 8 characters')
-  }
-
-  // Sign up user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-      },
-    },
-  })
-
-  if (authError) {
-    redirect(`/auth/signup?error=${encodeURIComponent(authError.message)}`)
-  }
-
-  if (!authData.user) {
-    redirect('/auth/signup?error=Failed to create user')
-  }
-
-  // Get or create organization if slug provided
-  let organizationId: string | null = null
-  if (organizationSlug) {
-    const { data: org } = await supabase
-      .from('organizations')
-      .select('id')
-      .eq('slug', organizationSlug)
-      .single()
-
-    if (org) {
-      organizationId = org.id
-    }
-  }
-
-  // Create user record in users table
-  const { error: userError } = await supabase.from('users').insert({
-    id: authData.user.id,
-    email,
-    full_name: fullName,
-    role: 'student',
-    organization_id: organizationId,
-    is_active: true,
-  })
-
-  if (userError) {
-    redirect(`/auth/signup?error=${encodeURIComponent(`Failed to create user profile: ${userError.message}`)}`)
-  }
-
-  revalidatePath('/')
-  redirect('/auth/login?message=Check your email to verify your account')
-}
-
-// ============================================================================
 // SIGN IN
 // ============================================================================
 
@@ -124,30 +52,78 @@ export async function signOut() {
   const supabase = createClient()
   await supabase.auth.signOut()
   revalidatePath('/')
-  redirect('/auth/login')
+  redirect('/')
 }
 
 // ============================================================================
-// RESET PASSWORD
+// CREATE USER (Admin only - creates user directly in database)
 // ============================================================================
 
-export async function resetPassword(formData: FormData) {
-  const supabase = createClient()
+export async function createUser(formData: FormData) {
+  'use server'
+  
+  // Usar service role key para criar usuário via admin API
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  const email = formData.get('email') as string
-
-  if (!email) {
-    redirect('/auth/forgot-password?error=Email is required')
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Configuração do servidor incompleta. Verifique SUPABASE_SERVICE_ROLE_KEY.')
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password`,
+  // Criar cliente com service role para operações admin
+  const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+  const supabaseAdmin = createServiceClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+  
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  const fullName = formData.get('fullName') as string
+  const role = formData.get('role') as string || 'student'
+  const organizationId = formData.get('organizationId') as string | null
+
+  if (!email || !password) {
+    throw new Error('Email e senha são obrigatórios')
+  }
+
+  if (password.length < 8) {
+    throw new Error('Senha deve ter pelo menos 8 caracteres')
+  }
+
+  // Criar usuário no Supabase Auth usando admin API
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true, // Auto-confirmar email
+    user_metadata: {
+      full_name: fullName,
+    },
   })
 
-  if (error) {
-    redirect(`/auth/forgot-password?error=${encodeURIComponent(error.message)}`)
+  if (authError || !authData.user) {
+    throw new Error(`Erro ao criar usuário: ${authError?.message || 'Erro desconhecido'}`)
   }
 
-  redirect('/auth/login?message=Check your email for password reset instructions')
+  // Criar registro na tabela users
+  const { error: userError } = await supabaseAdmin.from('users').insert({
+    id: authData.user.id,
+    email,
+    full_name: fullName,
+    role: role as 'platform_admin' | 'org_manager' | 'student',
+    organization_id: organizationId || null,
+    is_active: true,
+  })
+
+  if (userError) {
+    // Se falhar ao criar na tabela users, tenta deletar do auth
+    await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+    throw new Error(`Erro ao criar perfil do usuário: ${userError.message}`)
+  }
+
+  revalidatePath('/admin/users')
+  return { success: true, userId: authData.user.id }
 }
 

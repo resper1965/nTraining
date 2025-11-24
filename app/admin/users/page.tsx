@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import type { User } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -30,13 +32,18 @@ export default async function AdminUsersPage() {
     <main className="min-h-screen bg-slate-950">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="font-display text-4xl font-medium text-white mb-2">
-            User Management
-          </h1>
-          <p className="text-slate-400">
-            Manage platform users and their roles
-          </p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="font-display text-4xl font-medium text-white mb-2">
+              Gerenciamento de Usuários
+            </h1>
+            <p className="text-slate-400">
+              Gerencie usuários da plataforma e seus papéis
+            </p>
+          </div>
+          <Link href="/admin/users/new">
+            <Button>Novo Usuário</Button>
+          </Link>
         </div>
 
         {/* Users Table */}

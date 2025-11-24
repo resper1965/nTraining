@@ -1,4 +1,4 @@
-import { getCurrentUser, getUserById } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/supabase/server'
 import { getUserProgress } from '@/app/actions/progress'
 import { getCoursesWithProgress } from '@/app/actions/courses'
 import { Button } from '@/components/ui/button'
@@ -9,34 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { signOut } from '@/app/actions/auth'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: { userId?: string }
-}) {
+export default async function DashboardPage() {
   try {
-    const user = await getCurrentUser() || (searchParams.userId ? await getUserById(searchParams.userId) : null)
-    
-    if (!user) {
-      return (
-        <main className="min-h-screen bg-slate-950">
-          <div className="container mx-auto px-4 py-8">
-            <div className="text-center py-12">
-              <h1 className="font-display text-2xl font-medium text-white mb-4">
-                Usuário não identificado
-              </h1>
-              <p className="text-slate-400 mb-4">
-                Acesse via link de convite ou informe o ID do usuário
-              </p>
-            </div>
-          </div>
-        </main>
-      )
-    }
+    const user = await requireAuth()
     const progress = await getUserProgress()
     const courses = await getCoursesWithProgress({ status: 'published' })
 
@@ -60,6 +40,11 @@ export default async function DashboardPage({
               Continue your learning journey
             </p>
           </div>
+          <form action={signOut}>
+            <Button type="submit" variant="outline">
+              Sair
+            </Button>
+          </form>
         </div>
 
         {/* Stats */}

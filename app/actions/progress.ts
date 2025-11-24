@@ -1,7 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
-import { requireAuth } from '@/lib/supabase/server';
+import { createClient, requireAuth } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type { UserLessonProgress, UserCourseProgress } from '@/lib/types/database';
 

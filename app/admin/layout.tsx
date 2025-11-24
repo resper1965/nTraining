@@ -1,33 +1,16 @@
-import { getCurrentUser, requireRole, getUserById } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { signOut } from '@/app/actions/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLayout({
   children,
-  searchParams,
 }: {
   children: React.ReactNode
-  searchParams?: { userId?: string }
 }) {
-  const user = await getCurrentUser() || (searchParams?.userId ? await getUserById(searchParams.userId) : null)
-  const hasAdminAccess = user ? await requireRole('platform_admin', user.id) : null
-  
-  if (!hasAdminAccess) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="font-display text-2xl font-medium text-white mb-4">
-            Acesso negado
-          </h1>
-          <p className="text-slate-400">
-            Você não tem permissão para acessar esta área
-          </p>
-        </div>
-      </div>
-    )
-  }
+  await requireRole('platform_admin')
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -63,9 +46,14 @@ export default async function AdminLayout({
             <div className="flex items-center gap-4">
               <Link href="/dashboard">
                 <Button variant="outline" size="sm">
-                  Back to Dashboard
+                  Voltar ao Dashboard
                 </Button>
               </Link>
+              <form action={signOut}>
+                <Button type="submit" variant="outline" size="sm">
+                  Sair
+                </Button>
+              </form>
             </div>
           </div>
         </div>

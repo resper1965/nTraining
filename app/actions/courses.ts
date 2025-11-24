@@ -1,6 +1,7 @@
 'use server';
 
-import { createClient, getCurrentUser, requireRole } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { requireAuth, requireRole } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type {
     Course,
@@ -14,9 +15,9 @@ import type {
 // GET COURSES
 // ============================================================================
 
-export async function getCourses(filters?: CourseFilters, userId?: string) {
+export async function getCourses(filters?: CourseFilters) {
     const supabase = createClient();
-    const user = userId ? await getUserById(userId) : await getCurrentUser();
+    const user = await requireAuth();
 
     let query = supabase
         .from('courses')
