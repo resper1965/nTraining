@@ -130,15 +130,21 @@ export async function updateTenant(tenantId: string, data: Partial<TenantFormDat
   await requireSuperAdmin()
   const supabase = createClient()
 
+  // Remove formatação do CNPJ antes de salvar (apenas números)
+  const cnpjNumbers = data.cnpj ? data.cnpj.replace(/\D/g, '') : undefined
+
+  const updateData: any = {}
+  if (data.name !== undefined) updateData.name = data.name
+  if (data.slug !== undefined) updateData.slug = data.slug
+  if (cnpjNumbers !== undefined) updateData.cnpj = cnpjNumbers || null
+  if (data.razao_social !== undefined) updateData.razao_social = data.razao_social || null
+  if (data.industry !== undefined) updateData.industry = data.industry
+  if (data.employee_count !== undefined) updateData.employee_count = data.employee_count
+  if (data.max_users !== undefined) updateData.max_users = data.max_users
+
   const { data: tenant, error } = await supabase
     .from('organizations')
-    .update({
-      name: data.name,
-      slug: data.slug,
-      industry: data.industry,
-      employee_count: data.employee_count,
-      max_users: data.max_users,
-    })
+    .update(updateData)
     .eq('id', tenantId)
     .select()
     .single()
