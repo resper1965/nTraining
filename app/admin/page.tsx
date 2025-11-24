@@ -1,0 +1,220 @@
+import { requireSuperAdmin } from '@/lib/supabase/server'
+import { getDashboardMetrics, getRecentActivities } from '@/app/actions/admin'
+import { StatsCard } from '@/components/admin/stats-card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Building2,
+  Users,
+  BookOpen,
+  Award,
+  Ticket,
+  TrendingUp,
+  Activity,
+} from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+
+export const dynamic = 'force-dynamic'
+
+export default async function AdminDashboardPage() {
+  await requireSuperAdmin()
+  
+  const [metrics, activities] = await Promise.all([
+    getDashboardMetrics(),
+    getRecentActivities(5),
+  ])
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="font-display text-3xl font-medium text-white mb-2">
+          Dashboard Administrativo
+        </h1>
+        <p className="text-slate-400">
+          Visão geral da plataforma n.training
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title="Organizações"
+          value={metrics.organizations.total}
+          description={`${metrics.organizations.active} ativas`}
+          icon={Building2}
+          trend={
+            metrics.organizations.newThisMonth > 0
+              ? {
+                  value: Math.round(
+                    (metrics.organizations.newThisMonth / metrics.organizations.total) * 100
+                  ),
+                  isPositive: true,
+                }
+              : undefined
+          }
+          href="/admin/organizations"
+        />
+
+        <StatsCard
+          title="Usuários"
+          value={metrics.users.total}
+          description={`${metrics.users.active} ativos`}
+          icon={Users}
+          trend={
+            metrics.users.newThisMonth > 0
+              ? {
+                  value: Math.round(
+                    (metrics.users.newThisMonth / metrics.users.total) * 100
+                  ),
+                  isPositive: true,
+                }
+              : undefined
+          }
+          href="/admin/users"
+        />
+
+        <StatsCard
+          title="Cursos"
+          value={metrics.courses.total}
+          description={`${metrics.courses.published} publicados`}
+          icon={BookOpen}
+          trend={
+            metrics.courses.newThisMonth > 0
+              ? {
+                  value: Math.round(
+                    (metrics.courses.newThisMonth / metrics.courses.total) * 100
+                  ),
+                  isPositive: true,
+                }
+              : undefined
+          }
+          href="/admin/courses"
+        />
+
+        <StatsCard
+          title="Certificados"
+          value={metrics.certificates.total}
+          description={`${metrics.certificates.issuedThisMonth} este mês`}
+          icon={Award}
+          href="/admin/reports/certificates"
+        />
+      </div>
+
+      {/* Secondary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatsCard
+          title="Licenças Utilizadas"
+          value={`${metrics.licenses.used} / ${metrics.licenses.total}`}
+          description={`${metrics.licenses.utilizationRate}% de utilização`}
+          icon={Ticket}
+          href="/admin/licenses"
+        />
+
+        <StatsCard
+          title="Cursos em Progresso"
+          value={metrics.progress.coursesInProgress}
+          description={`${metrics.progress.completionRate}% taxa de conclusão`}
+          icon={TrendingUp}
+          href="/admin/reports"
+        />
+
+        <StatsCard
+          title="Novos Este Mês"
+          value={
+            metrics.organizations.newThisMonth +
+            metrics.users.newThisMonth +
+            metrics.courses.newThisMonth
+          }
+          description="Total de novos recursos"
+          icon={Activity}
+        />
+      </div>
+
+      {/* Recent Activities */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="font-display text-lg text-white">
+                Atividades Recentes
+              </CardTitle>
+              <Link href="/admin/activity">
+                <Button variant="ghost" size="sm" className="text-slate-400">
+                  Ver todas
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {activities.length > 0 ? (
+              <div className="space-y-4">
+                {activities.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white">{activity.description}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {new Date(activity.created_at).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-slate-400 text-sm">Nenhuma atividade recente</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <CardTitle className="font-display text-lg text-white">
+              Ações Rápidas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href="/admin/organizations/new">
+                <Button variant="outline" className="w-full justify-start">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Nova Organização
+                </Button>
+              </Link>
+              <Link href="/admin/courses/new">
+                <Button variant="outline" className="w-full justify-start">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Novo Curso
+                </Button>
+              </Link>
+              <Link href="/admin/users/new">
+                <Button variant="outline" className="w-full justify-start">
+                  <Users className="h-4 w-4 mr-2" />
+                  Novo Usuário
+                </Button>
+              </Link>
+              <Link href="/admin/reports">
+                <Button variant="outline" className="w-full justify-start">
+                  <Activity className="h-4 w-4 mr-2" />
+                  Ver Relatórios
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+

@@ -1,5 +1,6 @@
-import { requireRole } from '@/lib/supabase/server'
-import Link from 'next/link'
+import { requireSuperAdmin } from '@/lib/supabase/server'
+import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { signOut } from '@/app/actions/auth'
 
@@ -10,56 +11,42 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  await requireRole('platform_admin')
+  await requireSuperAdmin()
+  const user = await getCurrentUser()
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Admin Header */}
-      <header className="border-b border-slate-800 bg-slate-900">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <Link href="/admin" className="font-display text-xl font-medium text-white">
-                Admin<span className="text-primary">.</span>
-              </Link>
-                  <nav className="flex items-center gap-4">
-                    <Link
-                      href="/admin/tenants"
-                      className="text-sm text-slate-400 hover:text-white transition-colors"
-                    >
-                      Tenants
-                    </Link>
-                    <Link
-                      href="/admin/courses"
-                      className="text-sm text-slate-400 hover:text-white transition-colors"
-                    >
-                      Courses
-                    </Link>
-                    <Link
-                      href="/admin/users"
-                      className="text-sm text-slate-400 hover:text-white transition-colors"
-                    >
-                      Users
-                    </Link>
-                  </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="outline" size="sm">
-                  Voltar ao Dashboard
-                </Button>
-              </Link>
-              <form action={signOut}>
-                <Button type="submit" variant="outline" size="sm">
-                  Sair
-                </Button>
-              </form>
+    <div className="min-h-screen bg-slate-950 flex">
+      <AdminSidebar />
+      
+      <div className="flex-1 flex flex-col">
+        {/* Admin Header */}
+        <header className="border-b border-slate-800 bg-slate-900">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="font-display text-lg font-medium text-white">
+                  Painel Administrativo
+                </h1>
+                <p className="text-sm text-slate-400">
+                  {user?.full_name || user?.email}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <form action={signOut}>
+                  <Button type="submit" variant="outline" size="sm">
+                    Sair
+                  </Button>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {children}
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
