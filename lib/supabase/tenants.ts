@@ -10,6 +10,8 @@ import type { Organization } from '@/lib/types/database'
 export interface TenantFormData {
   name: string
   slug: string
+  cnpj?: string
+  razao_social?: string
   industry?: string
   employee_count?: number
   max_users?: number
@@ -97,11 +99,16 @@ export async function createTenant(data: TenantFormData) {
   await requireSuperAdmin()
   const supabase = createClient()
 
+  // Remove formatação do CNPJ antes de salvar (apenas números)
+  const cnpjNumbers = data.cnpj ? data.cnpj.replace(/\D/g, '') : null
+
   const { data: tenant, error } = await supabase
     .from('organizations')
     .insert({
       name: data.name,
       slug: data.slug,
+      cnpj: cnpjNumbers || null,
+      razao_social: data.razao_social || null,
       industry: data.industry,
       employee_count: data.employee_count,
       max_users: data.max_users || 50,

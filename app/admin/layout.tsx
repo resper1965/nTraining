@@ -22,20 +22,26 @@ export default async function AdminLayout({
               <Link href="/admin" className="font-display text-xl font-medium text-white">
                 Admin<span className="text-primary">.</span>
               </Link>
-              <nav className="flex items-center gap-4">
-                <Link
-                  href="/admin/courses"
-                  className="text-sm text-slate-400 hover:text-white transition-colors"
-                >
-                  Courses
-                </Link>
-                <Link
-                  href="/admin/users"
-                  className="text-sm text-slate-400 hover:text-white transition-colors"
-                >
-                  Users
-                </Link>
-              </nav>
+                  <nav className="flex items-center gap-4">
+                    <Link
+                      href="/admin/tenants"
+                      className="text-sm text-slate-400 hover:text-white transition-colors"
+                    >
+                      Tenants
+                    </Link>
+                    <Link
+                      href="/admin/courses"
+                      className="text-sm text-slate-400 hover:text-white transition-colors"
+                    >
+                      Courses
+                    </Link>
+                    <Link
+                      href="/admin/users"
+                      className="text-sm text-slate-400 hover:text-white transition-colors"
+                    >
+                      Users
+                    </Link>
+                  </nav>
             </div>
             <div className="flex items-center gap-4">
               <Link href="/dashboard">

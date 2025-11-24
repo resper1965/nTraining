@@ -5,3 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Re-export CNPJ utilities for convenience
+export { formatCNPJ, unformatCNPJ, isValidCNPJFormat } from './utils/cnpj'
+
