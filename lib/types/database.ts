@@ -54,6 +54,79 @@ export interface TenantUser {
     joined_at: string;
 }
 
+// ============================================================================
+// Organization Courses System Types
+// ============================================================================
+
+export type CourseAccessType = 'licensed' | 'unlimited' | 'trial';
+export type AssignmentType = 'manual' | 'auto' | 'mandatory';
+
+export interface OrganizationCourseAccess {
+    id: string;
+    organization_id: string;
+    course_id: string;
+    access_type: CourseAccessType;
+    total_licenses: number | null;
+    used_licenses: number;
+    valid_from: string;
+    valid_until: string | null;
+    is_mandatory: boolean;
+    auto_enroll: boolean;
+    allow_certificate: boolean;
+    custom_title: string | null;
+    custom_description: string | null;
+    custom_thumbnail_url: string | null;
+    custom_settings: Record<string, any>;
+    assigned_by: string | null;
+    assigned_at: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CourseCustomization {
+    id: string;
+    organization_id: string;
+    course_id: string;
+    custom_modules: any | null; // JSONB
+    custom_lessons: any | null; // JSONB
+    custom_branding: Record<string, any>;
+    completion_requirements: Record<string, any>;
+    certificate_template_id: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface OrganizationCourseAssignment {
+    id: string;
+    organization_id: string;
+    course_id: string;
+    user_id: string;
+    assignment_type: AssignmentType;
+    is_mandatory: boolean;
+    deadline: string | null;
+    notify_on_deadline: boolean;
+    assigned_by: string | null;
+    assigned_at: string;
+    started_at: string | null;
+    completed_at: string | null;
+}
+
+export interface CertificateTemplate {
+    id: string;
+    organization_id: string | null;
+    name: string;
+    description: string | null;
+    design_config: Record<string, any>;
+    template_html: string | null;
+    template_css: string | null;
+    fields: any[]; // JSONB array
+    is_active: boolean;
+    is_default: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Course {
     id: string;
     title: string;
@@ -68,6 +141,12 @@ export interface Course {
     created_by: string | null;
     organization_id: string | null;
     is_public: boolean;
+    course_type?: 'global' | 'organization' | 'customized'; // Novo campo
+    base_course_id?: string | null; // Novo campo
+    is_certifiable?: boolean; // Novo campo
+    min_completion_percentage?: number; // Novo campo
+    requires_quiz?: boolean; // Novo campo
+    min_quiz_score?: number; // Novo campo
     created_at: string;
     updated_at: string;
     published_at: string | null;
