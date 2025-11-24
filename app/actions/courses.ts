@@ -338,6 +338,32 @@ export async function enrollInCourse(courseId: string) {
     const supabase = createClient();
     const user = await requireAuth();
 
+    // Verificar se curso está disponível para a organização do usuário
+    if (user.organization_id) {
+        const { data: access, error: accessError } = await supabase
+            .from('organization_course_access')
+            .select('*')
+            .eq('organization_id', user.organization_id)
+            .eq('course_id', courseId)
+            .single();
+
+        if (accessError || !access) {
+            throw new Error('Curso não disponível para sua organização');
+        }
+
+        // Verificar validade
+        if (access.valid_until && new Date(access.valid_until) < new Date()) {
+            throw new Error('Acesso ao curso expirado');
+        }
+
+        // Verificar licenças disponíveis (se não for ilimitado)
+        if (access.access_type === 'licensed' && access.total_licenses !== null) {
+            if (access.used_licenses >= access.total_licenses) {
+                throw new Error('Sem licenças disponíveis. Entre em contato com o administrador.');
+            }
+        }
+    }
+
     // Check if already enrolled
     const { data: existing } = await supabase
         .from('user_course_progress')
@@ -364,6 +390,22 @@ export async function enrollInCourse(courseId: string) {
 
     if (error) {
         throw new Error(`Failed to enroll in course: ${error.message}`);
+    }
+
+    // Criar atribuição se não existir
+    if (user.organization_id) {
+        await supabase
+            .from('organization_course_assignments')
+            .upsert(
+                {
+                    organization_id: user.organization_id,
+                    course_id: courseId,
+                    user_id: user.id,
+                    assignment_type: 'manual',
+                    is_mandatory: false,
+                },
+                { onConflict: 'organization_id,course_id,user_id' }
+            );
     }
 
     revalidatePath('/courses');
