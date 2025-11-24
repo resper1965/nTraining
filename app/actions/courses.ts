@@ -19,44 +19,103 @@ export async function getCourses(filters?: CourseFilters) {
     const supabase = createClient();
     const user = await requireAuth();
 
-    let query = supabase
-        .from('courses')
-        .select('*')
-        .order('created_at', { ascending: false });
+    // Se superadmin, pode ver todos os cursos
+    if (user.is_superadmin) {
+        let query = supabase
+            .from('courses')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-    // Apply filters
+        // Apply filters
+        if (filters?.area) {
+            query = query.eq('area', filters.area);
+        }
+
+        if (filters?.level) {
+            query = query.eq('level', filters.level);
+        }
+
+        if (filters?.status) {
+            query = query.eq('status', filters.status);
+        } else {
+            query = query.eq('status', 'published');
+        }
+
+        if (filters?.is_public !== undefined) {
+            query = query.eq('is_public', filters.is_public);
+        }
+
+        if (filters?.search) {
+            query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            throw new Error(`Failed to fetch courses: ${error.message}`);
+        }
+
+        return data as Course[];
+    }
+
+    // Para usuários normais, buscar apenas cursos disponíveis para sua organização
+    if (!user.organization_id) {
+        return []; // Sem organização, sem cursos
+    }
+
+    // Buscar cursos disponíveis para a organização via organization_course_access
+    let accessQuery = supabase
+        .from('organization_course_access')
+        .select(`
+            *,
+            courses (
+                *
+            )
+        `)
+        .eq('organization_id', user.organization_id)
+        .or('valid_until.is.null,valid_until.gt.now()'); // Apenas cursos válidos
+
+    // Se há filtro de status, aplicar no curso
+    if (filters?.status) {
+        accessQuery = accessQuery.eq('courses.status', filters.status);
+    } else {
+        accessQuery = accessQuery.eq('courses.status', 'published');
+    }
+
+    const { data: accessData, error: accessError } = await accessQuery;
+
+    if (accessError) {
+        throw new Error(`Failed to fetch organization courses: ${accessError.message}`);
+    }
+
+    // Extrair cursos e aplicar filtros adicionais
+    let courses = (accessData || [])
+        .map((access: any) => access.courses)
+        .filter((course: any) => course !== null) as Course[];
+
+    // Aplicar filtros restantes
     if (filters?.area) {
-        query = query.eq('area', filters.area);
+        courses = courses.filter((c) => c.area === filters.area);
     }
 
     if (filters?.level) {
-        query = query.eq('level', filters.level);
-    }
-
-    if (filters?.status) {
-        query = query.eq('status', filters.status);
-    } else {
-        // Default: only show published courses for students
-        if (user.role === 'student') {
-            query = query.eq('status', 'published');
-        }
+        courses = courses.filter((c) => c.level === filters.level);
     }
 
     if (filters?.is_public !== undefined) {
-        query = query.eq('is_public', filters.is_public);
+        courses = courses.filter((c) => c.is_public === filters.is_public);
     }
 
     if (filters?.search) {
-        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        const searchLower = filters.search.toLowerCase();
+        courses = courses.filter(
+            (c) =>
+                c.title?.toLowerCase().includes(searchLower) ||
+                c.description?.toLowerCase().includes(searchLower)
+        );
     }
 
-    const { data, error } = await query;
-
-    if (error) {
-        throw new Error(`Failed to fetch courses: ${error.message}`);
-    }
-
-    return data as Course[];
+    return courses;
 }
 
 // ============================================================================
@@ -123,22 +182,52 @@ export async function getCourseBySlug(slug: string) {
 
 export async function getCoursesWithProgress(filters?: CourseFilters) {
     const supabase = createClient();
-    // requireAuth() will redirect if not authenticated
     const user = await requireAuth();
 
     const courses = await getCourses(filters);
+
+    if (courses.length === 0) {
+        return [];
+    }
 
     // Fetch progress for all courses
     const { data: progressData } = await supabase
         .from('user_course_progress')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .in('course_id', courses.map((c) => c.id));
 
-    // Merge progress with courses
-    const coursesWithProgress = courses.map(course => ({
-        ...course,
-        progress: progressData?.find((p: any) => p.course_id === course.id),
-    })) as CourseWithProgress[];
+    // Buscar informações de acesso da organização (para personalizações)
+    let accessData: any[] = [];
+    if (user.organization_id) {
+        const { data } = await supabase
+            .from('organization_course_access')
+            .select('*')
+            .eq('organization_id', user.organization_id)
+            .in('course_id', courses.map((c) => c.id));
+
+        accessData = data || [];
+    }
+
+    // Merge progress with courses e aplicar personalizações
+    const coursesWithProgress = courses.map((course) => {
+        const progress = progressData?.find((p: any) => p.course_id === course.id);
+        const access = accessData.find((a: any) => a.course_id === course.id);
+
+        // Aplicar personalizações se houver
+        const displayTitle = access?.custom_title || course.title;
+        const displayDescription = access?.custom_description || course.description;
+        const displayThumbnail = access?.custom_thumbnail_url || course.thumbnail_url;
+
+        return {
+            ...course,
+            title: displayTitle,
+            description: displayDescription,
+            thumbnail_url: displayThumbnail,
+            progress: progress || undefined,
+            access: access || undefined,
+        };
+    }) as CourseWithProgress[];
 
     return coursesWithProgress;
 }
