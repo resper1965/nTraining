@@ -17,6 +17,8 @@ export interface Organization {
     id: string;
     name: string;
     slug: string;
+    cnpj: string | null;
+    razao_social: string | null;
     industry: string | null;
     employee_count: number | null;
     logo_url: string | null;

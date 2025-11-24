@@ -25,6 +25,8 @@ CREATE TABLE organizations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
   slug VARCHAR(100) UNIQUE NOT NULL,
+  cnpj VARCHAR(20),
+  razao_social VARCHAR(255),
   industry VARCHAR(100),
   employee_count INTEGER,
   logo_url TEXT,
