@@ -16,7 +16,7 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: "nTraining - Training Platform",
+  title: "n.training - Training Platform",
   description: "Professional training platform powered by ness.",
 }
 

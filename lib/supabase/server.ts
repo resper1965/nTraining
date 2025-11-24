@@ -6,9 +6,16 @@ import type { User } from '@/lib/types/database';
 export function createClient() {
   const cookieStore = cookies();
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your Vercel project settings.');
+  }
+
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {
@@ -35,22 +42,31 @@ export function createClient() {
 
 // Helper to get current user on server
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = createClient();
+  try {
+    const supabase = createClient();
 
-  const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (error || !user) {
+    if (error || !user) {
+      return null;
+    }
+
+    // Get extended user data
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (userError || !userData) {
+      return null;
+    }
+
+    return userData as User | null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
     return null;
   }
-
-  // Get extended user data
-  const { data: userData } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  return userData as User | null;
 }
 
 // Helper to require authentication

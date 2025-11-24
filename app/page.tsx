@@ -20,7 +20,7 @@ export default async function Home() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="font-display text-6xl font-medium text-white mb-4 leading-tight">
-            nTraining
+            n<span className="text-[#00ade8]">.</span>training
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed max-w-2xl mx-auto mb-8">
             Professional training platform powered by{' '}

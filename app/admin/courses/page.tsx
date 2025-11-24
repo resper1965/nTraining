@@ -4,6 +4,8 @@ import { CourseCard } from '@/components/course-card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminCoursesPage() {
   await requireRole('platform_admin')
 

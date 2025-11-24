@@ -3,6 +3,8 @@ import { requireRole } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { User } from '@/lib/types/database'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminUsersPage() {
   await requireRole('platform_admin')
   const supabase = createClient()

@@ -19,7 +19,7 @@ export default function SignUpPage({
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="font-display text-4xl font-medium text-white mb-2">
-            nTraining
+            n<span className="text-[#00ade8]">.</span>training
           </h1>
           <p className="text-slate-400">
             Create your account to get started

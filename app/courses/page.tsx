@@ -4,6 +4,8 @@ import { CourseCard } from '@/components/course-card'
 import { CourseFilters } from '@/components/course-filters'
 import type { CourseLevel } from '@/lib/types/database'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CoursesPage({
   searchParams,
 }: {

@@ -9,6 +9,8 @@ import { notFound } from 'next/navigation'
 import { LessonPlayer } from '@/components/lesson-player'
 import { markLessonComplete } from '@/app/actions/progress'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LessonPage({
   params,
 }: {

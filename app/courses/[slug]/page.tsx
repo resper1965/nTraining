@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { CourseWithModules } from '@/lib/types/database'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CourseDetailPage({
   params,
 }: {
