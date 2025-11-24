@@ -1,0 +1,178 @@
+import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/supabase/server'
+import { getUserProgress } from '@/app/actions/progress'
+import { getCoursesWithProgress } from '@/app/actions/courses'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { signOut } from '@/app/actions/auth'
+import Link from 'next/link'
+
+export default async function DashboardPage() {
+  const user = await requireAuth()
+  const progress = await getUserProgress()
+  const courses = await getCoursesWithProgress({ status: 'published' })
+
+  const inProgressCourses = progress?.filter(
+    (p: any) => p.status === 'in_progress'
+  ) || []
+  const completedCourses = progress?.filter(
+    (p: any) => p.status === 'completed'
+  ) || []
+
+  return (
+    <main className="min-h-screen bg-slate-950">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="font-display text-4xl font-medium text-white mb-2">
+              Welcome back, {user.full_name || user.email}!
+            </h1>
+            <p className="text-slate-400">
+              Continue your learning journey
+            </p>
+          </div>
+          <form action={signOut}>
+            <Button type="submit" variant="outline">
+              Sign Out
+            </Button>
+          </form>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader>
+              <CardTitle className="font-display text-lg text-white">
+                Courses in Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white">
+                {inProgressCourses.length}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader>
+              <CardTitle className="font-display text-lg text-white">
+                Completed Courses
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white">
+                {completedCourses.length}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader>
+              <CardTitle className="font-display text-lg text-white">
+                Available Courses
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white">
+                {courses.length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Courses in Progress */}
+        {inProgressCourses.length > 0 && (
+          <div className="mb-8">
+            <h2 className="font-display text-2xl font-medium text-white mb-4">
+              Continue Learning
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {inProgressCourses.slice(0, 3).map((item: any) => (
+                <Card
+                  key={item.id}
+                  className="bg-slate-900 border-slate-800 hover:border-primary/50 transition-colors"
+                >
+                  <CardHeader>
+                    <CardTitle className="font-display text-lg text-white line-clamp-2">
+                      {item.courses?.title || 'Course'}
+                    </CardTitle>
+                    <CardDescription className="text-slate-400">
+                      {item.completion_percentage}% complete
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="w-full bg-slate-800 rounded-full h-2 mb-4">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all"
+                        style={{ width: `${item.completion_percentage}%` }}
+                      />
+                    </div>
+                    <Link href={`/courses/${item.courses?.slug || '#'}`}>
+                      <Button variant="outline" className="w-full">
+                        Continue
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Available Courses */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-2xl font-medium text-white">
+              Available Courses
+            </h2>
+            <Link href="/courses">
+              <Button variant="outline">View All</Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courses.slice(0, 6).map((course: any) => (
+              <Card
+                key={course.id}
+                className="bg-slate-900 border-slate-800 hover:border-primary/50 transition-colors"
+              >
+                <CardHeader>
+                  <CardTitle className="font-display text-lg text-white line-clamp-2">
+                    {course.title}
+                  </CardTitle>
+                  <CardDescription className="text-slate-400 line-clamp-2">
+                    {course.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs text-slate-500 uppercase">
+                      {course.level}
+                    </span>
+                    {course.duration_hours && (
+                      <span className="text-xs text-slate-500">
+                        {course.duration_hours}h
+                      </span>
+                    )}
+                  </div>
+                  <Link href={`/courses/${course.slug}`}>
+                    <Button className="w-full">
+                      {course.progress ? 'Continue' : 'Start Course'}
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
+
