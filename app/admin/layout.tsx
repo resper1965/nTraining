@@ -1,5 +1,6 @@
 import { requireSuperAdmin } from '@/lib/supabase/server'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { signOut } from '@/app/actions/auth'
@@ -44,7 +45,10 @@ export default async function AdminLayout({
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
-          {children}
+          <div className="p-6">
+            <AdminBreadcrumbs />
+            {children}
+          </div>
         </main>
       </div>
     </div>
