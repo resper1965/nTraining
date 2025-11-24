@@ -18,7 +18,19 @@ export default async function Home() {
       redirect('/dashboard')
     }
 
-    return (
+    // Redirect to login if not authenticated
+    redirect('/auth/login')
+  } catch (error) {
+    // If there's an error, redirect to login anyway
+    console.error('Home page error:', error)
+    redirect('/auth/login')
+  }
+}
+
+// Esta função nunca será executada devido ao redirect acima,
+// mas mantemos para evitar erros de TypeScript
+function HomeContent() {
+  return (
       <main className="min-h-screen bg-slate-950">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-16">
@@ -92,32 +104,6 @@ export default async function Home() {
           </Card>
         </div>
       </div>
-    </main>
-  )
-  } catch (error) {
-    // If there's an error, show the page anyway
-    console.error('Home page error:', error)
-    return (
-      <main className="min-h-screen bg-slate-950">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center mb-16">
-            <h1 className="font-display text-6xl font-medium text-white mb-4 leading-tight">
-              n<span className="text-[#00ade8]">.</span>training
-            </h1>
-            <p className="text-slate-400 text-lg leading-relaxed max-w-2xl mx-auto mb-8">
-              Professional training platform powered by{' '}
-              <span className="text-white font-medium">
-                ness<span className="text-primary">.</span>
-              </span>
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/auth/login">
-                <Button size="lg">Entrar</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
       </main>
-    )
-  }
+  )
 }

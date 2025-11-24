@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/supabase/server'
 import { getUserProgress } from '@/app/actions/progress'
 import { getCoursesWithProgress } from '@/app/actions/courses'
+import { getUserMandatoryCourses } from '@/app/actions/organization-courses'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -20,9 +21,10 @@ export default async function DashboardPage() {
   const user = await requireAuth()
   
   try {
-    const [progress, courses] = await Promise.all([
+    const [progress, courses, mandatoryCourses] = await Promise.all([
       getUserProgress(),
-      getCoursesWithProgress({ status: 'published' })
+      getCoursesWithProgress({ status: 'published' }),
+      getUserMandatoryCourses().catch(() => []) // Se falhar, retorna array vazio
     ])
 
     const inProgressCourses = progress?.filter(
@@ -94,6 +96,47 @@ export default async function DashboardPage() {
           </Card>
         </div>
 
+        {/* Mandatory Courses */}
+        {mandatoryCourses && mandatoryCourses.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="font-display text-2xl font-medium text-white">
+                Cursos Obrigatórios
+              </h2>
+              <span className="text-xs bg-yellow-950/50 text-yellow-400 px-2 py-1 rounded">
+                {mandatoryCourses.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mandatoryCourses.slice(0, 3).map((assignment: any) => (
+                <Card
+                  key={assignment.id}
+                  className="bg-slate-900 border-yellow-800/50 hover:border-yellow-700/50 transition-colors"
+                >
+                  <CardHeader>
+                    <CardTitle className="font-display text-lg text-white line-clamp-2">
+                      {assignment.courses?.title || 'Course'}
+                    </CardTitle>
+                    <CardDescription className="text-yellow-400">
+                      ⚠️ Obrigatório
+                      {assignment.deadline && (
+                        <span className="block mt-1 text-xs">
+                          Prazo: {new Date(assignment.deadline).toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Link href={`/courses/${assignment.courses?.slug || '#'}`}>
+                      <Button className="w-full">Iniciar Curso</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Courses in Progress */}
         {inProgressCourses.length > 0 && (
           <div className="mb-8">
@@ -134,50 +177,88 @@ export default async function DashboardPage() {
         )}
 
         {/* Available Courses */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-2xl font-medium text-white">
-              Available Courses
-            </h2>
-            <Link href="/courses">
-              <Button variant="outline">View All</Button>
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.slice(0, 6).map((course: any) => (
-              <Card
-                key={course.id}
-                className="bg-slate-900 border-slate-800 hover:border-primary/50 transition-colors"
-              >
-                <CardHeader>
-                  <CardTitle className="font-display text-lg text-white line-clamp-2">
-                    {course.title}
-                  </CardTitle>
-                  <CardDescription className="text-slate-400 line-clamp-2">
-                    {course.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs text-slate-500 uppercase">
-                      {course.level}
-                    </span>
-                    {course.duration_hours && (
-                      <span className="text-xs text-slate-500">
-                        {course.duration_hours}h
+        {courses.length > 0 ? (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-2xl font-medium text-white">
+                Available Courses
+              </h2>
+              <Link href="/courses">
+                <Button variant="outline">View All</Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.slice(0, 6).map((course: any) => (
+                <Card
+                  key={course.id}
+                  className="bg-slate-900 border-slate-800 hover:border-primary/50 transition-colors"
+                >
+                  <CardHeader>
+                    <CardTitle className="font-display text-lg text-white line-clamp-2">
+                      {course.title}
+                    </CardTitle>
+                    <CardDescription className="text-slate-400 line-clamp-2">
+                      {course.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-xs text-slate-500 uppercase">
+                        {course.level}
                       </span>
-                    )}
-                  </div>
-                  <Link href={`/courses/${course.slug}`}>
-                    <Button className="w-full">
-                      {course.progress ? 'Continue' : 'Start Course'}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+                      {course.duration_hours && (
+                        <span className="text-xs text-slate-500">
+                          {course.duration_hours}h
+                        </span>
+                      )}
+                    </div>
+                    <Link href={`/courses/${course.slug}`}>
+                      <Button className="w-full">
+                        {course.progress ? 'Continue' : 'Start Course'}
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <Card className="bg-slate-900 border-slate-800">
+            <CardContent className="pt-6">
+              <div className="text-center py-12">
+                <h3 className="font-display text-xl font-medium text-white mb-2">
+                  Nenhum curso disponível
+                </h3>
+                <p className="text-slate-400 mb-6">
+                  {user.is_superadmin ? (
+                    <>
+                      Crie cursos na{' '}
+                      <Link href="/admin/courses" className="text-primary hover:underline">
+                        área administrativa
+                      </Link>
+                      {' '}ou disponibilize cursos para organizações.
+                    </>
+                  ) : (
+                    <>
+                      Entre em contato com o administrador para ter acesso aos cursos
+                      ou aguarde a disponibilização de novos cursos.
+                    </>
+                  )}
+                </p>
+                {user.is_superadmin && (
+                  <div className="flex gap-4 justify-center">
+                    <Link href="/admin/courses/new">
+                      <Button>Criar Novo Curso</Button>
+                    </Link>
+                    <Link href="/admin/tenants">
+                      <Button variant="outline">Gerenciar Organizações</Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </main>
   )
