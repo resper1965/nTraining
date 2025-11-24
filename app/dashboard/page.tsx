@@ -15,8 +15,10 @@ import Link from 'next/link'
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
+  // requireAuth() will redirect if not authenticated, so we don't need try/catch here
+  const user = await requireAuth()
+  
   try {
-    const user = await requireAuth()
     const progress = await getUserProgress()
     const courses = await getCoursesWithProgress({ status: 'published' })
 

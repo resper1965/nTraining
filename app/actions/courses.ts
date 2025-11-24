@@ -123,6 +123,7 @@ export async function getCourseBySlug(slug: string) {
 
 export async function getCoursesWithProgress(filters?: CourseFilters) {
     const supabase = createClient();
+    // requireAuth() will redirect if not authenticated
     const user = await requireAuth();
 
     const courses = await getCourses(filters);

@@ -209,6 +209,7 @@ async function updateCourseProgressFromLessons(lessonId: string) {
 
 export async function getUserProgress() {
     const supabase = createClient();
+    // requireAuth() will redirect if not authenticated
     const user = await requireAuth();
 
     const { data, error } = await supabase

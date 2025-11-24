@@ -96,13 +96,12 @@ export async function requireAuth(): Promise<User> {
   const user = await getCurrentUser();
 
   if (!user) {
-    // Redirect to login instead of throwing error
+    // Redirect to login - this throws NEXT_REDIRECT which should not be caught
     const { redirect } = await import('next/navigation');
     redirect('/auth/login');
   }
 
-  // TypeScript doesn't know redirect() never returns, so we assert here
-  return user as User;
+  return user;
 }
 
 // Helper to check if user is superadmin
