@@ -9,6 +9,8 @@ const config = {
     './src/**/*.{ts,tsx}',
 	],
   prefix: "",
+  // Tema sempre dark, sem sistema
+  // O dark mode é forçado via className no html
   theme: {
     container: {
       center: true,

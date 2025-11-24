@@ -3,26 +3,39 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  .dark {
+    /* Background: gray-950 (#030712) */
     --background: 222.2 84% 4.9%;
+    /* Foreground: gray-50 */
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    /* Cards: gray-900 */
+    --card: 222.2 47.4% 11.2%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    /* Popover: gray-900 */
+    --popover: 222.2 47.4% 11.2%;
     --popover-foreground: 210 40% 98%;
-    --primary: 195 100% 45%;
+    /* Primary: #00ade8 (Ness Blue) */
+    --primary: 195.4 100% 45.5%;
     --primary-foreground: 210 40% 98%;
+    /* Secondary: gray-800 */
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
+    /* Muted: gray-800 */
     --muted: 217.2 32.6% 17.5%;
+    /* Muted Foreground: gray-400 */
     --muted-foreground: 215 20.2% 65.1%;
+    /* Accent: gray-800 */
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
+    /* Destructive */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+    /* Borders/Inputs: gray-800 */
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 195 100% 45%;
+    /* Ring/Focus: #00ade8 */
+    --ring: 195.4 100% 45.5%;
     --radius: 0.5rem;
   }
 }
