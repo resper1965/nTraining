@@ -39,9 +39,17 @@ export interface User {
     department: string | null;
     job_title: string | null;
     is_active: boolean;
+    is_superadmin: boolean;
     last_login_at: string | null;
     created_at: string;
     updated_at: string;
+}
+
+export interface TenantUser {
+    tenant_id: string;
+    user_id: string;
+    role: string;
+    joined_at: string;
 }
 
 export interface Course {

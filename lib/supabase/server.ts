@@ -84,9 +84,37 @@ export async function requireAuth(): Promise<User> {
   return user as User;
 }
 
+// Helper to check if user is superadmin
+export async function isSuperAdmin(): Promise<boolean> {
+  try {
+    const user = await getCurrentUser();
+    return user?.is_superadmin === true;
+  } catch {
+    return false;
+  }
+}
+
+// Helper to require superadmin
+export async function requireSuperAdmin(): Promise<User> {
+  const user = await requireAuth();
+  
+  if (!user.is_superadmin) {
+    const { redirect } = await import('next/navigation');
+    redirect('/unauthorized');
+    throw new Error('Redirecting to unauthorized');
+  }
+  
+  return user;
+}
+
 // Helper to require specific role
 export async function requireRole(role: 'platform_admin' | 'org_manager' | 'student') {
   const user = await requireAuth();
+
+  // Superadmins bypass role checks
+  if (user.is_superadmin) {
+    return user;
+  }
 
   const roleHierarchy = {
     platform_admin: 3,
