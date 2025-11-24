@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { formatCNPJ, unformatCNPJ } from '@/lib/utils/cnpj'
+import { maskCNPJ, unmaskCNPJ } from '@/lib/utils/cnpj'
 
 interface CNPJInputProps {
   value?: string | null
@@ -30,7 +30,7 @@ export function CNPJInput({
 
   useEffect(() => {
     if (value) {
-      setDisplayValue(formatCNPJ(value))
+      setDisplayValue(maskCNPJ(value))
     } else {
       setDisplayValue('')
     }
@@ -38,13 +38,13 @@ export function CNPJInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value
-    const numbers = unformatCNPJ(inputValue)
+    const numbers = unmaskCNPJ(inputValue)
 
     // Limita a 14 dígitos
     const limitedNumbers = numbers.slice(0, 14)
 
-    // Formata o valor
-    const formatted = formatCNPJ(limitedNumbers)
+    // Aplica máscara progressiva
+    const formatted = maskCNPJ(limitedNumbers)
     setDisplayValue(formatted)
 
     // Chama onChange com apenas números

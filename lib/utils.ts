@@ -6,5 +6,5 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Re-export CNPJ utilities for convenience
-export { formatCNPJ, unformatCNPJ, isValidCNPJFormat } from './utils/cnpj'
+export { maskCNPJ, unmaskCNPJ, formatCNPJ, isValidCNPJFormat } from './utils/cnpj'
 

@@ -99,8 +99,9 @@ export async function createTenant(data: TenantFormData) {
   await requireSuperAdmin()
   const supabase = createClient()
 
-  // Remove formatação do CNPJ antes de salvar (apenas números)
-  const cnpjNumbers = data.cnpj ? data.cnpj.replace(/\D/g, '') : null
+  // Remove máscara do CNPJ antes de salvar (apenas números)
+  const { unmaskCNPJ } = await import('@/lib/utils/cnpj')
+  const cnpjNumbers = data.cnpj ? unmaskCNPJ(data.cnpj) : null
 
   const { data: tenant, error } = await supabase
     .from('organizations')
@@ -130,8 +131,9 @@ export async function updateTenant(tenantId: string, data: Partial<TenantFormDat
   await requireSuperAdmin()
   const supabase = createClient()
 
-  // Remove formatação do CNPJ antes de salvar (apenas números)
-  const cnpjNumbers = data.cnpj ? data.cnpj.replace(/\D/g, '') : undefined
+  // Remove máscara do CNPJ antes de salvar (apenas números)
+  const { unmaskCNPJ } = await import('@/lib/utils/cnpj')
+  const cnpjNumbers = data.cnpj ? unmaskCNPJ(data.cnpj) : undefined
 
   const updateData: any = {}
   if (data.name !== undefined) updateData.name = data.name
