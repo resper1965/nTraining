@@ -7,17 +7,19 @@ Configure as seguintes variáveis de ambiente no seu projeto Vercel:
 ### Variáveis Obrigatórias
 
 1. **NEXT_PUBLIC_SUPABASE_URL**
-   - URL do seu projeto Supabase
-   - Formato: `https://xxxxx.supabase.co`
+   - URL do projeto Supabase: `https://dcigykpfdehqbtbaxzak.supabase.co`
+   - ✅ Já configurado
 
 2. **NEXT_PUBLIC_SUPABASE_ANON_KEY**
    - Chave anônima do Supabase (pública, segura para uso no cliente)
-   - Encontrada em: Supabase Dashboard → Settings → API → anon/public key
+   - ✅ Já configurado
+   - Valor: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjaWd5a3BmZGVocWJ0YmF4emFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1NDEzNTYsImV4cCI6MjA3ODExNzM1Nn0.bHxC87Sox8vwNTqREljvO2FJRveplINwggOMrF8k0IE`
 
 3. **SUPABASE_SERVICE_ROLE_KEY**
    - Chave de service role (PRIVADA, apenas server-side)
    - Encontrada em: Supabase Dashboard → Settings → API → service_role key
    - ⚠️ **NUNCA** exponha esta chave no cliente
+   - ⚠️ **OBRIGATÓRIA** para funcionalidades server-side
 
 ## Como Configurar no Vercel
 
