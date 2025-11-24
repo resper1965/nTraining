@@ -15,12 +15,15 @@ import Link from 'next/link'
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  // requireAuth() will redirect if not authenticated, so we don't need try/catch here
+  // requireAuth() will redirect if not authenticated (throws NEXT_REDIRECT)
+  // This should NOT be wrapped in try/catch as redirect() throws a special error
   const user = await requireAuth()
   
   try {
-    const progress = await getUserProgress()
-    const courses = await getCoursesWithProgress({ status: 'published' })
+    const [progress, courses] = await Promise.all([
+      getUserProgress(),
+      getCoursesWithProgress({ status: 'published' })
+    ])
 
     const inProgressCourses = progress?.filter(
       (p: any) => p.status === 'in_progress'

@@ -99,6 +99,8 @@ export async function requireAuth(): Promise<User> {
     // Redirect to login - this throws NEXT_REDIRECT which should not be caught
     const { redirect } = await import('next/navigation');
     redirect('/auth/login');
+    // TypeScript doesn't know redirect() never returns, so we need to assert
+    throw new Error('Redirecting to login'); // This will never execute
   }
 
   return user;
