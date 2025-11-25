@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import type {
   Notification,
   NotificationType,
+  NotificationFrequency,
   CreateNotificationData,
   NotificationPreferences,
 } from '@/lib/types/database'
