@@ -34,17 +34,28 @@ export async function signIn(formData: FormData) {
   } = await supabase.auth.getUser()
 
   if (user) {
+    // Buscar dados completos do usuário antes de atualizar
+    const { data: userData } = await supabase
+      .from('users')
+      .select('last_login_at, full_name, email, is_superadmin')
+      .eq('id', user.id)
+      .single()
+
+    // Atualizar last_login_at
     await supabase
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id)
 
-    // Check if user is superadmin
-    const { data: userData } = await supabase
-      .from('users')
-      .select('is_superadmin')
-      .eq('id', user.id)
-      .single()
+    // Criar notificação de boas-vindas se for primeiro login
+    if (userData && !userData.last_login_at) {
+      try {
+        const { notifyWelcome } = await import('@/lib/notifications/triggers')
+        await notifyWelcome(user.id, userData.full_name || userData.email)
+      } catch (notifError) {
+        console.error('Error creating welcome notification:', notifError)
+      }
+    }
 
     // Redirect superadmin to admin panel, unless redirectTo is specified
     if (userData?.is_superadmin && !redirectTo) {
