@@ -113,6 +113,23 @@ export async function updateLessonProgress(
         // Certificate check failed, but don't fail the progress update
         console.error('Error checking certificate eligibility:', error)
       }
+
+      // Check if course completion unlocks next course in any learning path
+      try {
+        const { unlockNextCourseInPath, checkPathCompletion } = await import('./path-assignments')
+        const { getUserPathsWithProgress } = await import('./path-progress')
+        const paths = await getUserPathsWithProgress().catch(() => [])
+        
+        for (const path of paths) {
+          if (path.id) {
+            await unlockNextCourseInPath(path.id, user.id).catch(() => null)
+            await checkPathCompletion(path.id, user.id).catch(() => null)
+          }
+        }
+      } catch (error) {
+        // Path check failed, but don't fail the progress update
+        console.error('Error checking path completion:', error)
+      }
     }
 
     return result as UserLessonProgress;

@@ -7,6 +7,30 @@ import type { UserLessonProgress } from '@/lib/types/database'
 /**
  * Get progress for all lessons in a course
  */
+export async function getCourseProgress(courseId: string) {
+  const supabase = createClient()
+  const user = await requireAuth()
+
+  const { data: progress, error } = await supabase
+    .from('user_course_progress')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('course_id', courseId)
+    .single()
+
+  if (error && error.code !== 'PGRST116') {
+    throw new Error(`Failed to fetch course progress: ${error.message}`)
+  }
+
+  return progress || {
+    course_id: courseId,
+    user_id: user.id,
+    completion_percentage: 0,
+    last_accessed_at: null,
+    completed_at: null,
+  }
+}
+
 export async function getCourseLessonsProgress(courseId: string) {
   const supabase = createClient()
   const user = await requireAuth()

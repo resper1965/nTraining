@@ -2,6 +2,8 @@ import { requireAuth } from '@/lib/supabase/server'
 import { getUserProgress } from '@/app/actions/progress'
 import { getCoursesWithProgress } from '@/app/actions/courses'
 import { getUserMandatoryCourses } from '@/app/actions/organization-courses'
+import { getUserPathsWithProgress } from '@/app/actions/path-progress'
+import { getUserCertificates } from '@/app/actions/certificates'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -11,6 +13,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { GitBranch, Award, Clock, CheckCircle2, PlayCircle } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
 import Link from 'next/link'
 
@@ -27,10 +31,12 @@ export default async function DashboardPage() {
     redirect('/admin')
   }
   
-  const [progress, courses, mandatoryCourses] = await Promise.all([
+  const [progress, courses, mandatoryCourses, certificates, paths] = await Promise.all([
     getUserProgress().catch(() => []),
     getCoursesWithProgress({ status: 'published' }).catch(() => []),
-    getUserMandatoryCourses().catch(() => [])
+    getUserMandatoryCourses().catch(() => []),
+    getUserCertificates().catch(() => []),
+    getUserPathsWithProgress().catch(() => []),
   ])
 
     const inProgressCourses = progress?.filter(

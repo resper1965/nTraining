@@ -63,6 +63,27 @@ export async function getLearningPathById(pathId: string) {
 }
 
 // ============================================================================
+// GET LEARNING PATH BY SLUG
+// ============================================================================
+
+export async function getLearningPathBySlug(slug: string) {
+  const supabase = createClient()
+  await requireAuth()
+
+  const { data, error } = await supabase
+    .from('learning_paths')
+    .select('*')
+    .eq('slug', slug)
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to fetch learning path: ${error.message}`)
+  }
+
+  return data as LearningPath
+}
+
+// ============================================================================
 // GET LEARNING PATH WITH COURSES
 // ============================================================================
 
