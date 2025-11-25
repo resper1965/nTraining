@@ -45,14 +45,13 @@ export function EditCourseAccessDialog({
 
     try {
       await updateOrganizationCourseAccess(
-        organizationId,
-        organizationCourseAccess.course_id,
+        organizationCourseAccess.id,
         {
-          access_type: formData.access_type as any,
-          total_licenses: formData.access_type === 'licensed' ? parseInt(formData.total_licenses) : null,
-          is_mandatory: formData.is_mandatory,
-          auto_enroll: formData.auto_enroll,
-          allow_certificate: formData.allow_certificate,
+          accessType: formData.access_type as any,
+          totalLicenses: formData.access_type === 'licensed' ? parseInt(formData.total_licenses) : null,
+          isMandatory: formData.is_mandatory,
+          autoEnroll: formData.auto_enroll,
+          allowCertificate: formData.allow_certificate,
         }
       )
 
