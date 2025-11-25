@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { uploadImage } from './storage'
+import { uploadFile } from './storage'
 
 /**
  * Update user profile
@@ -43,7 +43,13 @@ export async function uploadAvatar(formData: FormData) {
   }
 
   // Upload to Supabase Storage
-  const avatarUrl = await uploadImage(formData, 'avatars', 'avatars')
+  // Create a new FormData with bucket and folder info
+  const uploadFormData = new FormData()
+  uploadFormData.append('file', file)
+  uploadFormData.append('bucket', 'avatars')
+  uploadFormData.append('folder', 'avatars')
+  
+  const avatarUrl = await uploadFile(uploadFormData)
 
   // Update user record
   const { error } = await supabase
