@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter, Montserrat } from "next/font/google"
 import "./globals.css"
 import { Toaster as SonnerToaster } from "sonner"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
         <SonnerToaster position="top-right" richColors />
       </body>
     </html>

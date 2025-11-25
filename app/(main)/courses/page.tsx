@@ -11,20 +11,19 @@ export default async function CoursesPage({
 }: {
   searchParams: { level?: string; area?: string; search?: string }
 }) {
-  try {
-    await requireAuth()
+  await requireAuth()
 
-    const filters = {
-      level: searchParams.level as CourseLevel | undefined,
-      area: searchParams.area || undefined,
-      search: searchParams.search || undefined,
-      status: 'published' as const,
-    }
+  const filters = {
+    level: searchParams.level as CourseLevel | undefined,
+    area: searchParams.area || undefined,
+    search: searchParams.search || undefined,
+    status: 'published' as const,
+  }
 
-    const [courses, areas] = await Promise.all([
-      getCoursesWithProgress(filters),
-      getCourseAreas(),
-    ])
+  const [courses, areas] = await Promise.all([
+    getCoursesWithProgress(filters).catch(() => []),
+    getCourseAreas().catch(() => []),
+  ])
 
   return (
     <main className="min-h-screen bg-slate-950">

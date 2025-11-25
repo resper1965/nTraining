@@ -26,12 +26,11 @@ export default async function DashboardPage() {
     redirect('/admin')
   }
   
-  try {
-    const [progress, courses, mandatoryCourses] = await Promise.all([
-      getUserProgress(),
-      getCoursesWithProgress({ status: 'published' }),
-      getUserMandatoryCourses().catch(() => []) // Se falhar, retorna array vazio
-    ])
+  const [progress, courses, mandatoryCourses] = await Promise.all([
+    getUserProgress().catch(() => []),
+    getCoursesWithProgress({ status: 'published' }).catch(() => []),
+    getUserMandatoryCourses().catch(() => [])
+  ])
 
     const inProgressCourses = progress?.filter(
       (p: any) => p.status === 'in_progress'
