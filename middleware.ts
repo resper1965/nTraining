@@ -100,7 +100,39 @@ export async function middleware(request: NextRequest) {
 
     // Redirect to dashboard if accessing auth pages while logged in
     if (isAuthPath && user) {
+      // Check if user is superadmin and redirect accordingly
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('is_superadmin')
+          .eq('id', user.id)
+          .single()
+        
+        if (userData?.is_superadmin) {
+          return NextResponse.redirect(new URL('/admin', request.url))
+        }
+      } catch (error) {
+        console.error('Error checking superadmin status:', error)
+      }
+      
       return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    
+    // Redirect superadmin from dashboard to admin
+    if (request.nextUrl.pathname === '/dashboard' && user) {
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('is_superadmin')
+          .eq('id', user.id)
+          .single()
+        
+        if (userData?.is_superadmin) {
+          return NextResponse.redirect(new URL('/admin', request.url))
+        }
+      } catch (error) {
+        console.error('Error checking superadmin status:', error)
+      }
     }
 
     return response
