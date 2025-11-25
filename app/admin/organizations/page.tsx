@@ -87,10 +87,9 @@ export default async function AdminOrganizationsPage({
           ) : (
             <div className="space-y-3">
               {organizations.map((org) => (
-                <Link
+                <div
                   key={org.id}
-                  href={`/admin/organizations/${org.id}`}
-                  className="block p-4 rounded-lg bg-slate-800/50 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors"
+                  className="p-4 rounded-lg bg-slate-800/50 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -135,7 +134,7 @@ export default async function AdminOrganizationsPage({
                       </Link>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}
