@@ -104,7 +104,7 @@ export async function getUserPathsWithProgress() {
     .select('path_id, status, started_at, completed_at')
     .eq('user_id', user.id)
 
-  const assignedPathIds = assignments?.map((a) => a.path_id) || []
+  const assignedPathIds = assignments?.map((a: any) => a.path_id) || []
 
   // Buscar trilhas globais ou da organização do usuário
   let query = supabase
