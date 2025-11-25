@@ -55,7 +55,14 @@ export default async function AdminDashboardPage() {
   }
 
   return (
-    <div className="space-y-6 min-h-full">
+    <div className="space-y-6 min-h-full bg-slate-950">
+      {/* Debug Info - remover depois */}
+      <div className="p-4 bg-green-900/20 border border-green-700 rounded-md">
+        <p className="text-green-300 text-sm font-bold">✓ Dashboard carregado com sucesso!</p>
+        <p className="text-green-400 text-xs mt-1">Usuário: {user?.email || 'N/A'}</p>
+        <p className="text-green-400 text-xs">Superadmin: {user?.is_superadmin ? 'Sim' : 'Não'}</p>
+      </div>
+      
       {/* Page Header */}
       <div>
         <h1 className="font-display text-3xl font-medium text-white mb-2">
