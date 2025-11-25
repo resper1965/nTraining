@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
-import { Plus, Search, Building2 } from 'lucide-react'
+import { Plus, Search, Building2, Eye } from 'lucide-react'
 import { formatCNPJ } from '@/lib/utils/cnpj'
 
 export const dynamic = 'force-dynamic'
@@ -121,9 +121,19 @@ export default async function AdminOrganizationsPage({
                         </span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-slate-400">
-                      Ver detalhes →
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/admin/organizations/${org.id}/view`}>
+                        <Button variant="ghost" size="sm" className="text-slate-400">
+                          <Eye className="h-4 w-4 mr-1" />
+                          Visitar
+                        </Button>
+                      </Link>
+                      <Link href={`/admin/organizations/${org.id}`}>
+                        <Button variant="ghost" size="sm" className="text-slate-400">
+                          Detalhes →
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </Link>
               ))}

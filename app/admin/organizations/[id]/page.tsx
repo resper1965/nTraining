@@ -3,7 +3,7 @@ import { getOrganizationById, getOrganizationUsers, getOrganizationCourses } fro
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft, Edit, Users, BookOpen, Building2, Plus } from 'lucide-react'
+import { ArrowLeft, Edit, Users, BookOpen, Building2, Plus, Eye } from 'lucide-react'
 import { formatCNPJ } from '@/lib/utils/cnpj'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -42,12 +42,20 @@ export default async function OrganizationDetailPage({
             </p>
           </div>
         </div>
-        <Link href={`/admin/organizations/${params.id}/edit`}>
-          <Button>
-            <Edit className="h-4 w-4 mr-2" />
-            Editar
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href={`/admin/organizations/${params.id}/view`}>
+            <Button variant="outline">
+              <Eye className="h-4 w-4 mr-2" />
+              Visitar Organização
+            </Button>
+          </Link>
+          <Link href={`/admin/organizations/${params.id}/edit`}>
+            <Button>
+              <Edit className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Quick Stats */}
