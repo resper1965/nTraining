@@ -240,13 +240,24 @@ export async function createCourse(formData: CourseFormData) {
     const supabase = createClient();
     const user = await requireRole('platform_admin');
 
+    // Preparar dados para inserção (permitir campos opcionais)
+    const insertData: any = {
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description || null,
+        objectives: formData.objectives || null,
+        level: formData.level,
+        area: formData.area || null,
+        duration_hours: formData.duration_hours || null,
+        status: formData.status,
+        is_public: formData.is_public,
+        created_by: user.id,
+        organization_id: user.organization_id || null,
+    }
+
     const { data, error } = await supabase
         .from('courses')
-        .insert({
-            ...formData,
-            created_by: user.id,
-            organization_id: user.organization_id,
-        })
+        .insert(insertData)
         .select()
         .single();
 
