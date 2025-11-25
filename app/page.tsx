@@ -23,8 +23,13 @@ export default async function Home() {
         console.error('Error fetching user in home page:', userError)
       }
       
-      if (userData?.is_superadmin === true) {
-        console.log('Home page: Redirecting superadmin to /admin')
+      // Use strict equality check
+      const isSuperAdmin = userData?.is_superadmin === true || userData?.is_superadmin === 'true'
+      if (isSuperAdmin) {
+        console.log('Home page: Redirecting superadmin to /admin', {
+          email: user.email,
+          is_superadmin: userData?.is_superadmin
+        })
         redirect('/admin')
         return
       }

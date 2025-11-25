@@ -136,8 +136,13 @@ export async function middleware(request: NextRequest) {
           console.error('Error fetching user in middleware (dashboard):', userError)
         }
         
-        if (userData?.is_superadmin === true) {
-          console.log('Middleware: Redirecting superadmin from /dashboard to /admin')
+        // Use strict equality check
+        const isSuperAdmin = userData?.is_superadmin === true || userData?.is_superadmin === 'true'
+        if (isSuperAdmin) {
+          console.log('Middleware: Redirecting superadmin from /dashboard to /admin', {
+            email: user.email,
+            is_superadmin: userData?.is_superadmin
+          })
           return NextResponse.redirect(new URL('/admin', request.url))
         }
       } catch (error) {
