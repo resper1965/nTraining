@@ -292,8 +292,8 @@ export default async function OrganizationDetailPage({
                 <div className="text-center py-12">
                   <BookOpen className="h-12 w-12 text-slate-600 mx-auto mb-4" />
                   <p className="text-slate-400 mb-4">Nenhum curso disponível</p>
-                  <Link href={`/admin/organizations/${params.id}/courses/assign`}>
-                    <Button variant="outline">Adicionar primeiro curso</Button>
+                  <Link href={`/admin/organizations/${params.id}/courses`}>
+                    <Button variant="outline">Gerenciar Cursos</Button>
                   </Link>
                 </div>
               ) : (
