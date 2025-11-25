@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { updateLessonProgressClient } from '@/app/actions/lesson-client'
+import { useState } from 'react'
+import { VideoPlayer } from './lesson-player/video-player'
+import { PDFViewer } from './lesson-player/pdf-viewer'
+import { TextViewer } from './lesson-player/text-viewer'
 import type { Lesson, UserLessonProgress } from '@/lib/types/database'
 
 interface LessonPlayerProps {
@@ -10,114 +12,99 @@ interface LessonPlayerProps {
 }
 
 export function LessonPlayer({ lesson, progress }: LessonPlayerProps) {
-  const [currentTime, setCurrentTime] = useState(progress?.last_position_seconds || 0)
   const [isCompleted, setIsCompleted] = useState(progress?.is_completed || false)
 
-  useEffect(() => {
-    // Auto-save progress every 10 seconds
-    const interval = setInterval(() => {
-      if (currentTime > 0 && !isCompleted) {
-        updateLessonProgressClient(lesson.id, {
-          last_position_seconds: currentTime,
-          watched_duration_seconds: currentTime,
-        })
-      }
-    }, 10000)
-
-    return () => clearInterval(interval)
-  }, [currentTime, lesson.id, isCompleted])
-
-  const handleComplete = async () => {
-    await updateLessonProgressClient(lesson.id, {
-      is_completed: true,
-      last_position_seconds: currentTime,
-      watched_duration_seconds: currentTime,
-    })
+  const handleComplete = () => {
     setIsCompleted(true)
   }
 
   const renderContent = () => {
     switch (lesson.content_type) {
       case 'video':
+        if (!lesson.content_url) {
+          return (
+            <div className="flex items-center justify-center h-96 bg-slate-800 rounded-lg text-slate-500">
+              URL do vídeo não disponível
+            </div>
+          )
+        }
         return (
-          <div className="relative w-full aspect-video bg-slate-800 rounded-lg overflow-hidden">
-            {lesson.content_url ? (
-              <video
-                controls
-                src={lesson.content_url}
-                className="w-full h-full"
-                onTimeUpdate={(e) => {
-                  const video = e.currentTarget
-                  setCurrentTime(Math.floor(video.currentTime))
-                }}
-                onEnded={handleComplete}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full text-slate-500">
-                Video URL not available
-              </div>
-            )}
-          </div>
+          <VideoPlayer
+            src={lesson.content_url}
+            lessonId={lesson.id}
+            durationMinutes={lesson.duration_minutes || undefined}
+            initialProgress={progress?.last_position_seconds || 0}
+            onComplete={handleComplete}
+          />
         )
 
       case 'text':
-        return (
-          <div className="prose prose-invert max-w-none">
-            <div className="text-slate-300 whitespace-pre-line">
-              {lesson.content_text || 'No content available'}
+        if (!lesson.content_text) {
+          return (
+            <div className="flex items-center justify-center h-96 bg-slate-800 rounded-lg text-slate-500">
+              Conteúdo não disponível
             </div>
-          </div>
+          )
+        }
+        return (
+          <TextViewer
+            content={lesson.content_text}
+            lessonId={lesson.id}
+            onComplete={handleComplete}
+          />
         )
 
       case 'pdf':
+        if (!lesson.content_url) {
+          return (
+            <div className="flex items-center justify-center h-96 bg-slate-800 rounded-lg text-slate-500">
+              URL do PDF não disponível
+            </div>
+          )
+        }
         return (
-          <div className="w-full h-[600px]">
-            {lesson.content_url ? (
-              <iframe
-                src={lesson.content_url}
-                className="w-full h-full rounded-lg"
-                title={lesson.title}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full text-slate-500">
-                PDF URL not available
-              </div>
-            )}
-          </div>
+          <PDFViewer
+            src={lesson.content_url}
+            lessonId={lesson.id}
+            lessonTitle={lesson.title}
+            onComplete={handleComplete}
+          />
         )
 
       case 'embed':
+        if (!lesson.content_url) {
+          return (
+            <div className="flex items-center justify-center h-96 bg-slate-800 rounded-lg text-slate-500">
+              URL do embed não disponível
+            </div>
+          )
+        }
         return (
           <div className="relative w-full aspect-video bg-slate-800 rounded-lg overflow-hidden">
-            {lesson.content_url ? (
-              <iframe
-                src={lesson.content_url}
-                className="w-full h-full"
-                allowFullScreen
-                title={lesson.title}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full text-slate-500">
-                Embed URL not available
-              </div>
-            )}
+            <iframe
+              src={lesson.content_url}
+              className="w-full h-full"
+              allowFullScreen
+              title={lesson.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
           </div>
         )
 
       case 'quiz':
         return (
-          <div className="text-center py-12">
-            <p className="text-slate-400 mb-4">Quiz functionality coming soon</p>
+          <div className="text-center py-12 bg-slate-900 rounded-lg border border-slate-800">
+            <p className="text-slate-400 mb-4">Funcionalidade de Quiz em breve</p>
             <p className="text-slate-500 text-sm">
-              This lesson contains a quiz that will be available in a future update
+              Esta aula contém um quiz que estará disponível em uma atualização futura
             </p>
           </div>
         )
 
       default:
         return (
-          <div className="text-center py-12 text-slate-500">
-            Unknown content type
+          <div className="text-center py-12 bg-slate-900 rounded-lg border border-slate-800 text-slate-500">
+            Tipo de conteúdo desconhecido
           </div>
         )
     }
@@ -127,28 +114,11 @@ export function LessonPlayer({ lesson, progress }: LessonPlayerProps) {
     <div className="space-y-6">
       {renderContent()}
 
-      {lesson.content_type !== 'quiz' && (
-        <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-          <div className="text-sm text-slate-400">
-            {lesson.duration_minutes && (
-              <span>
-                Duration: {lesson.duration_minutes} minutes
-              </span>
-            )}
-          </div>
-          {!isCompleted && (
-            <button
-              onClick={handleComplete}
-              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-            >
-              Mark as Complete
-            </button>
-          )}
-          {isCompleted && (
-            <span className="px-4 py-2 bg-green-950/50 text-green-400 rounded-md text-sm font-medium">
-              ✓ Completed
-            </span>
-          )}
+      {isCompleted && (
+        <div className="flex items-center justify-center p-4 bg-green-950/50 border border-green-800 rounded-lg">
+          <span className="text-green-400 font-medium">
+            ✓ Aula concluída
+          </span>
         </div>
       )}
     </div>

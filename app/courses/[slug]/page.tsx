@@ -1,11 +1,13 @@
 import { getCourseBySlug, enrollInCourse } from '@/app/actions/courses'
 import { requireAuth } from '@/lib/supabase/server'
+import { getCourseLessonsProgress, getCourseCompletionPercentage } from '@/app/actions/course-progress'
 import { Button } from '@/components/ui/button'
 import { ProgressBar } from '@/components/progress-bar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { CheckCircle2, Circle, Play, BookOpen, Clock } from 'lucide-react'
 import type { CourseWithModules } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -24,14 +26,20 @@ export default async function CourseDetailPage({
     notFound()
   }
 
-  const progress = course.modules?.[0]?.lessons?.[0] 
-    ? null // Will be fetched separately if needed
-    : null
+  // Get course progress
+  const [lessonsProgress, completionPercentage] = await Promise.all([
+    getCourseLessonsProgress(course.id),
+    getCourseCompletionPercentage(course.id),
+  ])
 
   const totalLessons = course.modules?.reduce(
     (acc, mod) => acc + (mod.lessons?.length || 0),
     0
   ) || 0
+
+  const completedLessons = Object.values(lessonsProgress).filter(
+    (p) => p.is_completed
+  ).length
 
   const totalDuration = course.modules?.reduce(
     (acc, mod) =>
@@ -42,6 +50,19 @@ export default async function CourseDetailPage({
       ) || 0),
     0
   ) || 0
+
+  // Find first incomplete lesson or last lesson
+  const allLessons = course.modules?.flatMap((mod) =>
+    mod.lessons?.map((lesson) => ({
+      ...lesson,
+      moduleId: mod.id,
+      moduleTitle: mod.title,
+    })) || []
+  ) || []
+
+  const firstIncompleteLesson = allLessons.find(
+    (lesson) => !lessonsProgress[lesson.id]?.is_completed
+  ) || allLessons[0]
 
   return (
     <main className="min-h-screen bg-slate-950">
@@ -99,11 +120,55 @@ export default async function CourseDetailPage({
             </div>
           )}
 
-          <form action={enrollInCourse.bind(null, course.id)}>
-            <Button size="lg" className="w-full md:w-auto">
-              Start Course
-            </Button>
-          </form>
+          {/* Progress Bar */}
+          {completionPercentage > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-400">Progresso do Curso</span>
+                <span className="text-sm font-medium text-white">
+                  {completionPercentage}%
+                </span>
+              </div>
+              <ProgressBar
+                value={completionPercentage}
+                max={100}
+                className="h-2"
+              />
+              <p className="text-xs text-slate-500 mt-2">
+                {completedLessons} de {totalLessons} aulas concluídas
+              </p>
+            </div>
+          )}
+
+          {/* Action Button */}
+          <div className="flex items-center gap-4">
+            {firstIncompleteLesson ? (
+              <Link
+                href={`/courses/${params.slug}/${firstIncompleteLesson.moduleId}/${firstIncompleteLesson.id}`}
+              >
+                <Button size="lg" className="w-full md:w-auto">
+                  {completionPercentage > 0 ? (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Continuar Curso
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Iniciar Curso
+                    </>
+                  )}
+                </Button>
+              </Link>
+            ) : (
+              <form action={enrollInCourse.bind(null, course.id)}>
+                <Button size="lg" className="w-full md:w-auto">
+                  <Play className="h-4 w-4 mr-2" />
+                  Iniciar Curso
+                </Button>
+              </form>
+            )}
+          </div>
         </div>
 
         {/* Course Content */}
@@ -131,34 +196,65 @@ export default async function CourseDetailPage({
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {mod.lessons?.map((lesson, lessonIndex) => (
-                        <Link
-                          key={lesson.id}
-                          href={`/courses/${params.slug}/${mod.id}/${lesson.id}`}
-                          className="block p-3 bg-slate-800 hover:bg-slate-700 rounded-md transition-colors group"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              <span className="text-sm text-slate-500 font-mono">
-                                {moduleIndex + 1}.{lessonIndex + 1}
-                              </span>
-                              <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
-                                {lesson.title}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              {lesson.duration_minutes && (
-                                <span className="text-xs text-slate-500">
-                                  {lesson.duration_minutes}min
+                      {mod.lessons?.map((lesson, lessonIndex) => {
+                        const lessonProgress = lessonsProgress[lesson.id]
+                        const isCompleted = lessonProgress?.is_completed || false
+                        const isCurrent = lesson.id === firstIncompleteLesson?.id
+
+                        return (
+                          <Link
+                            key={lesson.id}
+                            href={`/courses/${params.slug}/${mod.id}/${lesson.id}`}
+                            className={`block p-3 rounded-md transition-colors group ${
+                              isCurrent
+                                ? 'bg-primary/20 border border-primary/50'
+                                : isCompleted
+                                ? 'bg-slate-800/50 hover:bg-slate-700'
+                                : 'bg-slate-800 hover:bg-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 flex-1">
+                                {isCompleted ? (
+                                  <CheckCircle2 className="h-4 w-4 text-green-400 flex-shrink-0" />
+                                ) : (
+                                  <Circle className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                                )}
+                                <span className="text-sm text-slate-500 font-mono">
+                                  {moduleIndex + 1}.{lessonIndex + 1}
                                 </span>
-                              )}
-                              <span className="text-xs px-2 py-1 bg-slate-700 rounded text-slate-400">
-                                {lesson.content_type}
-                              </span>
+                                <span
+                                  className={`text-sm transition-colors ${
+                                    isCurrent
+                                      ? 'text-primary font-medium'
+                                      : isCompleted
+                                      ? 'text-slate-300 group-hover:text-white'
+                                      : 'text-slate-300 group-hover:text-white'
+                                  }`}
+                                >
+                                  {lesson.title}
+                                </span>
+                                {isCurrent && (
+                                  <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded">
+                                    Continuar
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {lesson.duration_minutes && (
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {lesson.duration_minutes}min
+                                  </span>
+                                )}
+                                <span className="text-xs px-2 py-1 bg-slate-700 rounded text-slate-400 capitalize">
+                                  {lesson.content_type}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                      ))}
+                          </Link>
+                        )
+                      })}
                     </div>
                   </CardContent>
                 </Card>
@@ -176,18 +272,40 @@ export default async function CourseDetailPage({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {completionPercentage > 0 && (
+                    <div>
+                      <div className="text-sm text-slate-400 mb-2">
+                        Progresso
+                      </div>
+                      <ProgressBar
+                        value={completionPercentage}
+                        max={100}
+                        className="h-3 mb-1"
+                      />
+                      <div className="text-lg font-medium text-white">
+                        {completionPercentage}%
+                      </div>
+                    </div>
+                  )}
                   <div>
-                    <div className="text-sm text-slate-400 mb-1">
-                      Total Lessons
+                    <div className="text-sm text-slate-400 mb-1 flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Total de Aulas
                     </div>
                     <div className="text-lg font-medium text-white">
                       {totalLessons}
                     </div>
+                    {completedLessons > 0 && (
+                      <div className="text-xs text-slate-500 mt-1">
+                        {completedLessons} concluídas
+                      </div>
+                    )}
                   </div>
                   {totalDuration > 0 && (
                     <div>
-                      <div className="text-sm text-slate-400 mb-1">
-                        Total Duration
+                      <div className="text-sm text-slate-400 mb-1 flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Duração Total
                       </div>
                       <div className="text-lg font-medium text-white">
                         {Math.round(totalDuration / 60)}h {totalDuration % 60}min
@@ -195,14 +313,14 @@ export default async function CourseDetailPage({
                     </div>
                   )}
                   <div>
-                    <div className="text-sm text-slate-400 mb-1">Level</div>
+                    <div className="text-sm text-slate-400 mb-1">Nível</div>
                     <div className="text-lg font-medium text-white capitalize">
-                      {course.level}
+                      {course.level === 'beginner' ? 'Iniciante' : course.level === 'intermediate' ? 'Intermediário' : 'Avançado'}
                     </div>
                   </div>
                   {course.area && (
                     <div>
-                      <div className="text-sm text-slate-400 mb-1">Area</div>
+                      <div className="text-sm text-slate-400 mb-1">Área</div>
                       <div className="text-lg font-medium text-white">
                         {course.area}
                       </div>
