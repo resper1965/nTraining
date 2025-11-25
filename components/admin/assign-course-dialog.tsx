@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { assignCourseToOrganization } from '@/app/actions/organization-courses'
+// assignCourseToOrganization will be imported dynamically
 import { toast } from 'sonner'
 import { Plus } from 'lucide-react'
 
@@ -47,14 +47,18 @@ export function AssignCourseDialog({
     setIsSubmitting(true)
 
     try {
-      await assignCourseToOrganization(organizationId, {
-        course_id: formData.course_id,
-        access_type: formData.access_type,
-        total_licenses: formData.access_type === 'licensed' ? parseInt(formData.total_licenses) : null,
-        is_mandatory: formData.is_mandatory,
-        auto_enroll: formData.auto_enroll,
-        allow_certificate: formData.allow_certificate,
-      })
+      const { assignCourseToOrganization } = await import('@/app/actions/organization-courses')
+      await assignCourseToOrganization(
+        organizationId,
+        formData.course_id,
+        {
+          accessType: formData.access_type,
+          totalLicenses: formData.access_type === 'licensed' ? parseInt(formData.total_licenses) : null,
+          isMandatory: formData.is_mandatory,
+          autoEnroll: formData.auto_enroll,
+          allowCertificate: formData.allow_certificate,
+        }
+      )
 
       toast.success('Curso atribuído com sucesso!')
       setOpen(false)
