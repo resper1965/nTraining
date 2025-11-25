@@ -15,7 +15,6 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { updateOrganizationCourseAccess } from '@/app/actions/organization-courses-update'
 import { toast } from 'sonner'
 import { Settings } from 'lucide-react'
 
