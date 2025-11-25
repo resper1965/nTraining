@@ -34,8 +34,8 @@ export async function sendEmail(options: EmailOptions) {
       subject: options.subject,
       html: options.html,
       reply_to: options.replyTo,
-      cc: Array.isArray(options.cc) ? options.cc : options.cc ? [options.cc] : undefined,
-      bcc: Array.isArray(options.bcc) ? options.bcc : options.bcc ? [options.bcc] : undefined,
+      cc: options.cc ? (Array.isArray(options.cc) ? options.cc : [options.cc]) : undefined,
+      bcc: options.bcc ? (Array.isArray(options.bcc) ? options.bcc : [options.bcc]) : undefined,
     })
 
     if (error) {
