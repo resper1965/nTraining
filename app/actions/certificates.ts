@@ -139,7 +139,8 @@ export async function generateCertificate(courseId: string) {
     await notifyCertificateAvailable(
       user.id,
       course.title,
-      certificate.id
+      certificate.id,
+      verificationCode
     )
   } catch (notifError) {
     // Não falhar a geração se a notificação falhar

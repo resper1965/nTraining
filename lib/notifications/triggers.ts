@@ -3,6 +3,14 @@
 import { createNotification, createNotificationForUsers } from '@/app/actions/notifications'
 import { getOrganizationUsers } from '@/app/actions/organizations'
 import type { NotificationType } from '@/lib/types/database'
+import {
+  sendWelcomeEmail,
+  sendCourseAssignedEmail,
+  sendDeadlineApproachingEmail,
+  sendCourseCompletedEmail,
+  sendCertificateAvailableEmail,
+} from '@/lib/email/sender'
+import { createClient } from '@/lib/supabase/server'
 
 /**
  * Criar notificação quando curso é atribuído a usuário
@@ -27,6 +35,7 @@ export async function notifyCourseAssigned(
     message += ` Prazo para conclusão: ${deadlineStr}`
   }
 
+  // Criar notificação in-app
   await createNotification({
     user_id: userId,
     type: 'course_assigned',
@@ -40,6 +49,31 @@ export async function notifyCourseAssigned(
     action_url: `/courses/${courseSlug}`,
     action_label: 'Ver Curso',
   })
+
+  // Enviar email (se habilitado)
+  try {
+    const supabase = createClient()
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, full_name')
+      .eq('id', userId)
+      .single()
+
+    if (user?.email) {
+      await sendCourseAssignedEmail(
+        userId,
+        user.email,
+        user.full_name || user.email,
+        courseTitle,
+        courseSlug,
+        isMandatory,
+        deadline
+      )
+    }
+  } catch (emailError) {
+    // Não falhar se o email falhar
+    console.error('Error sending course assigned email:', emailError)
+  }
 }
 
 /**
@@ -51,6 +85,7 @@ export async function notifyDeadlineApproaching(
   courseSlug: string,
   daysRemaining: number
 ) {
+  // Criar notificação in-app
   await createNotification({
     user_id: userId,
     type: 'course_deadline_approaching',
@@ -63,6 +98,29 @@ export async function notifyDeadlineApproaching(
     action_url: `/courses/${courseSlug}`,
     action_label: 'Continuar Curso',
   })
+
+  // Enviar email (se habilitado)
+  try {
+    const supabase = createClient()
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, full_name')
+      .eq('id', userId)
+      .single()
+
+    if (user?.email) {
+      await sendDeadlineApproachingEmail(
+        userId,
+        user.email,
+        user.full_name || user.email,
+        courseTitle,
+        courseSlug,
+        daysRemaining
+      )
+    }
+  } catch (emailError) {
+    console.error('Error sending deadline approaching email:', emailError)
+  }
 }
 
 /**
@@ -94,6 +152,7 @@ export async function notifyCourseCompleted(
   courseTitle: string,
   courseSlug: string
 ) {
+  // Criar notificação in-app
   await createNotification({
     user_id: userId,
     type: 'course_completed',
@@ -105,6 +164,28 @@ export async function notifyCourseCompleted(
     action_url: `/courses/${courseSlug}`,
     action_label: 'Ver Certificado',
   })
+
+  // Enviar email (se habilitado)
+  try {
+    const supabase = createClient()
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, full_name')
+      .eq('id', userId)
+      .single()
+
+    if (user?.email) {
+      await sendCourseCompletedEmail(
+        userId,
+        user.email,
+        user.full_name || user.email,
+        courseTitle,
+        courseSlug
+      )
+    }
+  } catch (emailError) {
+    console.error('Error sending course completed email:', emailError)
+  }
 }
 
 /**
@@ -113,8 +194,10 @@ export async function notifyCourseCompleted(
 export async function notifyCertificateAvailable(
   userId: string,
   courseTitle: string,
-  certificateId: string
+  certificateId: string,
+  verificationCode?: string
 ) {
+  // Criar notificação in-app
   await createNotification({
     user_id: userId,
     type: 'certificate_available',
@@ -123,16 +206,41 @@ export async function notifyCertificateAvailable(
     metadata: {
       certificate_id: certificateId,
       course_title: courseTitle,
+      verification_code: verificationCode,
     },
     action_url: `/certificates/${certificateId}`,
     action_label: 'Ver Certificado',
   })
+
+  // Enviar email (se habilitado)
+  try {
+    const supabase = createClient()
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, full_name')
+      .eq('id', userId)
+      .single()
+
+    if (user?.email && verificationCode) {
+      await sendCertificateAvailableEmail(
+        userId,
+        user.email,
+        user.full_name || user.email,
+        courseTitle,
+        certificateId,
+        verificationCode
+      )
+    }
+  } catch (emailError) {
+    console.error('Error sending certificate available email:', emailError)
+  }
 }
 
 /**
  * Criar notificação de boas-vindas
  */
 export async function notifyWelcome(userId: string, userName: string) {
+  // Criar notificação in-app
   await createNotification({
     user_id: userId,
     type: 'welcome',
@@ -141,6 +249,26 @@ export async function notifyWelcome(userId: string, userName: string) {
     action_url: '/courses',
     action_label: 'Explorar Cursos',
   })
+
+  // Enviar email (se habilitado)
+  try {
+    const supabase = createClient()
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, full_name')
+      .eq('id', userId)
+      .single()
+
+    if (user?.email) {
+      await sendWelcomeEmail(
+        userId,
+        user.email,
+        user.full_name || user.email
+      )
+    }
+  } catch (emailError) {
+    console.error('Error sending welcome email:', emailError)
+  }
 }
 
 /**
