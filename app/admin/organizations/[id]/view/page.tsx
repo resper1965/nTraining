@@ -1,10 +1,9 @@
 import { requireSuperAdmin } from '@/lib/supabase/server'
 import { getOrganizationById, getOrganizationUsers, getOrganizationCourses } from '@/app/actions/organizations'
-import { getCoursesWithProgress } from '@/app/actions/courses'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft, Eye, Users, BookOpen, Building2 } from 'lucide-react'
+import { ArrowLeft, Eye, Users, BookOpen } from 'lucide-react'
 import { formatCNPJ } from '@/lib/utils/cnpj'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
