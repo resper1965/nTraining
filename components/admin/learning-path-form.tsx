@@ -99,7 +99,10 @@ export function LearningPathForm({ courses, initialData }: LearningPathFormProps
 
   return (
     <div className="space-y-6">
-      {renderHiddenInputs()}
+      {/* Hidden inputs para course_ids */}
+      {selectedCourseIds.map((courseId) => (
+        <input key={courseId} type="hidden" name="course_ids" value={courseId} />
+      ))}
       {/* Basic Info */}
       <Card className="bg-slate-900 border-slate-800">
         <CardHeader>
