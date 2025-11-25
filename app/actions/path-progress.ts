@@ -124,7 +124,7 @@ export async function getUserPathsWithProgress() {
 
   // Calcular progresso para cada trilha
   const pathsWithProgress = await Promise.all(
-    (paths || []).map(async (path) => {
+    (paths || []).map(async (path: any) => {
       const progress = await getPathProgress(path.id).catch(() => ({
         overall_progress: 0,
         completed_courses: 0,
