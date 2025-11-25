@@ -44,8 +44,8 @@ export default async function AdminLayout({
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="p-6">
+        <main className="flex-1 overflow-auto bg-slate-950">
+          <div className="p-6 min-h-full">
             <AdminBreadcrumbs />
             {children}
           </div>
