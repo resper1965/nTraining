@@ -47,49 +47,85 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
   // Organizations
-  const { count: totalOrgs } = await supabase
+  const { count: totalOrgs, error: orgsError } = await supabase
     .from('organizations')
     .select('*', { count: 'exact', head: true })
 
-  const { count: activeOrgs } = await supabase
+  if (orgsError) {
+    console.error('Error fetching organizations:', orgsError)
+  }
+
+  const { count: activeOrgs, error: activeOrgsError } = await supabase
     .from('organizations')
     .select('*', { count: 'exact', head: true })
     .eq('subscription_status', 'active')
 
-  const { count: newOrgsThisMonth } = await supabase
+  if (activeOrgsError) {
+    console.error('Error fetching active organizations:', activeOrgsError)
+  }
+
+  const { count: newOrgsThisMonth, error: newOrgsError } = await supabase
     .from('organizations')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', startOfMonth.toISOString())
 
+  if (newOrgsError) {
+    console.error('Error fetching new organizations:', newOrgsError)
+  }
+
   // Users
-  const { count: totalUsers } = await supabase
+  const { count: totalUsers, error: usersError } = await supabase
     .from('users')
     .select('*', { count: 'exact', head: true })
 
-  const { count: activeUsers } = await supabase
+  if (usersError) {
+    console.error('Error fetching users:', usersError)
+  }
+
+  const { count: activeUsers, error: activeUsersError } = await supabase
     .from('users')
     .select('*', { count: 'exact', head: true })
     .eq('is_active', true)
 
-  const { count: newUsersThisMonth } = await supabase
+  if (activeUsersError) {
+    console.error('Error fetching active users:', activeUsersError)
+  }
+
+  const { count: newUsersThisMonth, error: newUsersError } = await supabase
     .from('users')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', startOfMonth.toISOString())
 
+  if (newUsersError) {
+    console.error('Error fetching new users:', newUsersError)
+  }
+
   // Courses
-  const { count: totalCourses } = await supabase
+  const { count: totalCourses, error: coursesError } = await supabase
     .from('courses')
     .select('*', { count: 'exact', head: true })
 
-  const { count: publishedCourses } = await supabase
+  if (coursesError) {
+    console.error('Error fetching courses:', coursesError)
+  }
+
+  const { count: publishedCourses, error: publishedError } = await supabase
     .from('courses')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'published')
 
-  const { count: newCoursesThisMonth } = await supabase
+  if (publishedError) {
+    console.error('Error fetching published courses:', publishedError)
+  }
+
+  const { count: newCoursesThisMonth, error: newCoursesError } = await supabase
     .from('courses')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', startOfMonth.toISOString())
+
+  if (newCoursesError) {
+    console.error('Error fetching new courses:', newCoursesError)
+  }
 
   // Certificates
   const { count: totalCertificates } = await supabase
