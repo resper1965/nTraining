@@ -3,10 +3,15 @@ import { createLearningPath } from '@/app/actions/learning-paths'
 import { getCourses } from '@/app/actions/courses'
 import { redirect } from 'next/navigation'
 import { LearningPathForm } from '@/components/admin/learning-path-form'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export const dynamic = 'force-dynamic'
 
-export default async function NewLearningPathPage() {
+export default async function NewLearningPathPage({
+  searchParams,
+}: {
+  searchParams: { error?: string }
+}) {
   await requireSuperAdmin()
 
   const courses = await getCourses().catch(() => [])
