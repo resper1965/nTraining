@@ -1,13 +1,14 @@
 import { getCourseBySlug, enrollInCourse } from '@/app/actions/courses'
 import { requireAuth } from '@/lib/supabase/server'
 import { getCourseLessonsProgress, getCourseCompletionPercentage } from '@/app/actions/course-progress'
+import { getQuizzes } from '@/app/actions/quizzes'
 import { Button } from '@/components/ui/button'
 import { ProgressBar } from '@/components/progress-bar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { CheckCircle2, Circle, Play, BookOpen, Clock } from 'lucide-react'
+import { CheckCircle2, Circle, Play, BookOpen, Clock, FileText } from 'lucide-react'
 import type { CourseWithModules } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -26,10 +27,11 @@ export default async function CourseDetailPage({
     notFound()
   }
 
-  // Get course progress
-  const [lessonsProgress, completionPercentage] = await Promise.all([
+  // Get course progress and quizzes
+  const [lessonsProgress, completionPercentage, quizzes] = await Promise.all([
     getCourseLessonsProgress(course.id),
     getCourseCompletionPercentage(course.id),
+    getQuizzes(course.id).catch(() => []), // Don't fail if quizzes fail
   ])
 
   const totalLessons = course.modules?.reduce(
