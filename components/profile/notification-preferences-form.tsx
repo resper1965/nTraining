@@ -40,10 +40,24 @@ export function NotificationPreferencesForm({
     setIsSubmitting(true)
 
     try {
-      const form = new FormData(e.currentTarget)
-      const response = await fetch('/profile/notifications', {
+      const formData = new FormData(e.currentTarget)
+      
+      // Criar um objeto com os dados do formulário
+      const data = {
+        email_enabled: formData.get('email_enabled') === 'on',
+        in_app_enabled: formData.get('in_app_enabled') === 'on',
+        push_enabled: formData.get('push_enabled') === 'on',
+        frequency: formData.get('frequency'),
+        quiet_hours_start: formData.get('quiet_hours_start') || null,
+        quiet_hours_end: formData.get('quiet_hours_end') || null,
+      }
+
+      const response = await fetch('/api/profile/notifications', {
         method: 'POST',
-        body: form,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       })
 
       if (response.ok) {

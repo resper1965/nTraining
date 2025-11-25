@@ -54,9 +54,7 @@ export default async function NotificationPreferencesPage() {
         </div>
       </div>
 
-      <form action={handleUpdate}>
-        <NotificationPreferencesForm initialPreferences={preferences} />
-      </form>
+      <NotificationPreferencesForm initialPreferences={preferences} />
     </div>
   )
 }
