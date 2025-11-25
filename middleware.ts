@@ -74,7 +74,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Protected routes
-    const protectedPaths = ['/dashboard', '/courses', '/admin']
+    const protectedPaths = ['/dashboard', '/courses', '/admin', '/profile', '/search', '/certificates', '/notifications']
     const isProtectedPath = protectedPaths.some((path) =>
       request.nextUrl.pathname.startsWith(path)
     )

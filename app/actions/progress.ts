@@ -222,6 +222,8 @@ async function updateCourseProgressFromLessons(lessonId: string) {
         .eq('course_id', courseId)
         .single();
 
+    const wasCompleted = existingProgress?.status === 'completed';
+
     if (existingProgress) {
         await supabase
             .from('user_course_progress')
@@ -244,6 +246,24 @@ async function updateCourseProgressFromLessons(lessonId: string) {
                 completed_at: isCompleted ? new Date().toISOString() : null,
                 last_accessed_at: new Date().toISOString(),
             });
+    }
+
+    // Criar notificação se curso foi completado agora
+    if (isCompleted && !wasCompleted) {
+      try {
+        const { notifyCourseCompleted } = await import('@/lib/notifications/triggers')
+        const { data: course } = await supabase
+          .from('courses')
+          .select('title, slug')
+          .eq('id', courseId)
+          .single()
+
+        if (course) {
+          await notifyCourseCompleted(user.id, course.title, course.slug)
+        }
+      } catch (notifError) {
+        console.error('Error creating completion notification:', notifError)
+      }
     }
 
     revalidatePath(`/courses/${courseId}`);

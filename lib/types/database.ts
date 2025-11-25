@@ -485,3 +485,60 @@ export interface ProgressFilters {
     status?: AssignmentStatus;
     organization_id?: string;
 }
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+export type NotificationType =
+  | 'course_assigned'
+  | 'course_deadline_approaching'
+  | 'course_deadline_passed'
+  | 'course_completed'
+  | 'certificate_available'
+  | 'new_content'
+  | 'quiz_available'
+  | 'quiz_result'
+  | 'welcome'
+  | 'system'
+  | 'organization_update'
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: NotificationType
+  title: string
+  message: string
+  read: boolean
+  metadata: Record<string, any>
+  action_url: string | null
+  action_label: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type NotificationFrequency = 'immediate' | 'daily' | 'weekly' | 'never'
+
+export interface NotificationPreferences {
+  id: string
+  user_id: string
+  email_enabled: boolean
+  in_app_enabled: boolean
+  push_enabled: boolean
+  frequency: NotificationFrequency
+  quiet_hours_start: string | null
+  quiet_hours_end: string | null
+  preferences: Record<string, any>
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateNotificationData {
+  user_id: string
+  type: NotificationType
+  title: string
+  message: string
+  metadata?: Record<string, any>
+  action_url?: string | null
+  action_label?: string | null
+}

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Search, User, LogOut, Menu } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
 import { usePathname } from 'next/navigation'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 
 export function Header() {
   const router = useRouter()
@@ -72,6 +73,7 @@ export function Header() {
 
           {/* User Menu */}
           <div className="flex items-center gap-2">
+            <NotificationBell />
             <Link href="/profile">
               <Button variant="ghost" size="icon" className="hidden sm:flex">
                 <User className="h-5 w-5" />

@@ -349,6 +349,29 @@ export async function assignCourseToUser(
     throw new Error(`Failed to assign course to user: ${error.message}`)
   }
 
+  // Criar notificação para o usuário
+  try {
+    const { notifyCourseAssigned } = await import('@/lib/notifications/triggers')
+    const { data: course } = await supabase
+      .from('courses')
+      .select('title, slug')
+      .eq('id', courseId)
+      .single()
+
+    if (course) {
+      await notifyCourseAssigned(
+        userId,
+        course.title,
+        course.slug,
+        config?.isMandatory || false,
+        config?.deadline || undefined
+      )
+    }
+  } catch (notifError) {
+    // Não falhar a atribuição se a notificação falhar
+    console.error('Error creating notification:', notifError)
+  }
+
   revalidatePath('/admin/users')
   revalidatePath(`/admin/users/${userId}`)
   return data as OrganizationCourseAssignment

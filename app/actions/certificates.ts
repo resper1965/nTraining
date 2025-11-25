@@ -133,6 +133,19 @@ export async function generateCertificate(courseId: string) {
   // Generate PDF (will be implemented in next task)
   // const pdfUrl = await generateCertificatePDF(certificate as Certificate)
 
+  // Criar notificação de certificado disponível
+  try {
+    const { notifyCertificateAvailable } = await import('@/lib/notifications/triggers')
+    await notifyCertificateAvailable(
+      user.id,
+      course.title,
+      certificate.id
+    )
+  } catch (notifError) {
+    // Não falhar a geração se a notificação falhar
+    console.error('Error creating certificate notification:', notifError)
+  }
+
   revalidatePath('/certificates')
   revalidatePath(`/courses/${course.slug}`)
 
