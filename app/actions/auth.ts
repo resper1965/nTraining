@@ -28,7 +28,7 @@ export async function signIn(formData: FormData) {
     redirect(`/auth/login?error=${encodeURIComponent(error.message)}&redirect=${encodeURIComponent(redirectTo || '')}`)
   }
 
-  // Update last login
+  // Update last login and check if superadmin
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -38,6 +38,20 @@ export async function signIn(formData: FormData) {
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id)
+
+    // Check if user is superadmin
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_superadmin')
+      .eq('id', user.id)
+      .single()
+
+    // Redirect superadmin to admin panel, unless redirectTo is specified
+    if (userData?.is_superadmin && !redirectTo) {
+      revalidatePath('/')
+      redirect('/admin')
+      return
+    }
   }
 
   revalidatePath('/')

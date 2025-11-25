@@ -19,10 +19,27 @@ export const dynamic = 'force-dynamic'
 export default async function AdminDashboardPage() {
   await requireSuperAdmin()
   
-  const [metrics, activities] = await Promise.all([
-    getDashboardMetrics(),
-    getRecentActivities(5),
-  ])
+  let metrics: Awaited<ReturnType<typeof getDashboardMetrics>>
+  let activities: Awaited<ReturnType<typeof getRecentActivities>>
+  
+  try {
+    [metrics, activities] = await Promise.all([
+      getDashboardMetrics(),
+      getRecentActivities(5),
+    ])
+  } catch (error) {
+    console.error('Error loading dashboard metrics:', error)
+    // Return default values if there's an error
+    metrics = {
+      organizations: { total: 0, active: 0, newThisMonth: 0 },
+      users: { total: 0, active: 0, newThisMonth: 0 },
+      courses: { total: 0, published: 0, newThisMonth: 0 },
+      certificates: { total: 0, issuedThisMonth: 0 },
+      licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
+      progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
+    }
+    activities = []
+  }
 
   return (
     <div className="space-y-6">

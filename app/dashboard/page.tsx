@@ -20,6 +20,12 @@ export default async function DashboardPage() {
   // This should NOT be wrapped in try/catch as redirect() throws a special error
   const user = await requireAuth()
   
+  // Redirect superadmin to admin panel
+  if (user.is_superadmin) {
+    const { redirect } = await import('next/navigation')
+    redirect('/admin')
+  }
+  
   try {
     const [progress, courses, mandatoryCourses] = await Promise.all([
       getUserProgress(),
