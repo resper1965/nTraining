@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card'
 import { CheckCircle2, XCircle, Clock, Target, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { QuizResults } from '@/components/quiz/quiz-results'
 
 export const dynamic = 'force-dynamic'
