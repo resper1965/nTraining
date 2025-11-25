@@ -44,6 +44,7 @@ export function EditCourseAccessDialog({
     setIsSubmitting(true)
 
     try {
+      const { updateOrganizationCourseAccess } = await import('@/app/actions/organization-courses')
       await updateOrganizationCourseAccess(
         organizationCourseAccess.id,
         {
