@@ -1,27 +1,10 @@
 import { requireSuperAdmin } from '@/lib/supabase/server'
 import { getCourseById, updateCourse } from '@/app/actions/courses'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import Link from 'next/link'
-import { ArrowLeft, Save, X } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { redirect } from 'next/navigation'
-import { DeleteCourseButton } from '@/components/admin/delete-course-button'
+import { ClientEditForm } from './client-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,16 +27,17 @@ export default async function EditCoursePage({
         ? parseFloat(formData.get('duration_hours') as string)
         : 0
 
-      const courseData = {
+      const courseData: any = {
         title: formData.get('title') as string,
         slug: formData.get('slug') as string,
         description: formData.get('description') as string,
         objectives: (formData.get('objectives') as string) || '',
         level: formData.get('level') as 'beginner' | 'intermediate' | 'advanced',
         area: (formData.get('area') as string) || '',
-        duration_hours: durationHours,
+        duration_hours: durationHours || null,
         status: formData.get('status') as 'draft' | 'published' | 'archived',
         is_public: formData.get('is_public') === 'true',
+        thumbnail_url: (formData.get('thumbnail_url') as string) || null,
       }
 
       await updateCourse(params.id, courseData)

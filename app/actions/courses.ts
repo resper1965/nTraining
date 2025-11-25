@@ -274,13 +274,31 @@ export async function createCourse(formData: CourseFormData) {
 // UPDATE COURSE (Admin only)
 // ============================================================================
 
-export async function updateCourse(courseId: string, formData: Partial<CourseFormData>) {
+export async function updateCourse(courseId: string, formData: Partial<CourseFormData> & { thumbnail_url?: string | null }) {
     const supabase = createClient();
     await requireRole('platform_admin');
 
+    // Preparar dados para atualização
+    const updateData: any = {
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description || null,
+        objectives: formData.objectives || null,
+        level: formData.level,
+        area: formData.area || null,
+        duration_hours: formData.duration_hours || null,
+        status: formData.status,
+        is_public: formData.is_public,
+    }
+
+    // Adicionar thumbnail_url se fornecido
+    if (formData.thumbnail_url !== undefined) {
+        updateData.thumbnail_url = formData.thumbnail_url || null
+    }
+
     const { data, error } = await supabase
         .from('courses')
-        .update(formData)
+        .update(updateData)
         .eq('id', courseId)
         .select()
         .single();
