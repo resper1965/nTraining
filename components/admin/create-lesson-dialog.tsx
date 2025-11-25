@@ -25,6 +25,7 @@ import { Plus, Loader2 } from 'lucide-react'
 import { createLesson } from '@/app/actions/lessons'
 import { useRouter } from 'next/navigation'
 import { Switch } from '@/components/ui/switch'
+import { FileUpload } from '@/components/admin/file-upload'
 
 interface CreateLessonDialogProps {
   moduleId: string
@@ -36,6 +37,7 @@ export function CreateLessonDialog({ moduleId, courseId }: CreateLessonDialogPro
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [contentType, setContentType] = useState<'video' | 'text' | 'pdf' | 'quiz' | 'embed'>('video')
+  const [fileUrl, setFileUrl] = useState<string>('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -45,7 +47,7 @@ export function CreateLessonDialog({ moduleId, courseId }: CreateLessonDialogPro
     const lessonData = {
       title: formData.get('title') as string,
       content_type: contentType,
-      content_url: (formData.get('content_url') as string) || undefined,
+      content_url: fileUrl || (formData.get('content_url_external') as string) || undefined,
       content_text: (formData.get('content_text') as string) || undefined,
       duration_minutes: formData.get('duration_minutes')
         ? parseInt(formData.get('duration_minutes') as string)
@@ -122,19 +124,33 @@ export function CreateLessonDialog({ moduleId, courseId }: CreateLessonDialogPro
 
           {contentType === 'video' && (
             <div className="space-y-2">
-              <Label htmlFor="content_url" className="text-slate-300">
-                URL do Vídeo
-              </Label>
+              <FileUpload
+                label="Vídeo da Aula"
+                currentFileUrl={fileUrl}
+                onFileUploaded={(url) => {
+                  setFileUrl(url)
+                }}
+                bucket="lesson-materials"
+                folder={`course-${courseId}/module-${moduleId}`}
+                maxSizeMB={500}
+                fileType="video"
+              />
+              <input type="hidden" name="content_url" value={fileUrl} />
+              <div className="text-xs text-slate-500 mt-2">
+                Ou forneça uma URL externa:
+              </div>
               <Input
-                id="content_url"
-                name="content_url"
+                id="content_url_external"
+                name="content_url_external"
                 type="url"
                 placeholder="https://..."
                 className="bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:ring-primary"
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setFileUrl(e.target.value)
+                  }
+                }}
               />
-              <p className="text-xs text-slate-500">
-                URL do vídeo (será implementado upload posteriormente)
-              </p>
             </div>
           )}
 
@@ -155,19 +171,33 @@ export function CreateLessonDialog({ moduleId, courseId }: CreateLessonDialogPro
 
           {contentType === 'pdf' && (
             <div className="space-y-2">
-              <Label htmlFor="content_url" className="text-slate-300">
-                URL do PDF
-              </Label>
+              <FileUpload
+                label="PDF da Aula"
+                currentFileUrl={fileUrl}
+                onFileUploaded={(url) => {
+                  setFileUrl(url)
+                }}
+                bucket="lesson-materials"
+                folder={`course-${courseId}/module-${moduleId}`}
+                maxSizeMB={50}
+                fileType="pdf"
+              />
+              <input type="hidden" name="content_url" value={fileUrl} />
+              <div className="text-xs text-slate-500 mt-2">
+                Ou forneça uma URL externa:
+              </div>
               <Input
-                id="content_url"
-                name="content_url"
+                id="content_url_external"
+                name="content_url_external"
                 type="url"
                 placeholder="https://..."
                 className="bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:ring-primary"
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setFileUrl(e.target.value)
+                  }
+                }}
               />
-              <p className="text-xs text-slate-500">
-                URL do PDF (será implementado upload posteriormente)
-              </p>
             </div>
           )}
 
