@@ -14,6 +14,9 @@ import { User, Mail, Building, Shield, Camera } from 'lucide-react'
 import { ProfileForm } from '@/components/profile/profile-form'
 import { ChangePasswordForm } from '@/components/profile/change-password-form'
 import { AvatarUpload } from '@/components/profile/avatar-upload'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Bell } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
