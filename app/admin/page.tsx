@@ -17,15 +17,28 @@ import { Button } from '@/components/ui/button'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
-  await requireSuperAdmin()
+  const user = await requireSuperAdmin()
   
   let metrics: Awaited<ReturnType<typeof getDashboardMetrics>>
   let activities: Awaited<ReturnType<typeof getRecentActivities>>
   
   try {
     [metrics, activities] = await Promise.all([
-      getDashboardMetrics(),
-      getRecentActivities(5),
+      getDashboardMetrics().catch((error) => {
+        console.error('Error in getDashboardMetrics:', error)
+        return {
+          organizations: { total: 0, active: 0, newThisMonth: 0 },
+          users: { total: 0, active: 0, newThisMonth: 0 },
+          courses: { total: 0, published: 0, newThisMonth: 0 },
+          certificates: { total: 0, issuedThisMonth: 0 },
+          licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
+          progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
+        }
+      }),
+      getRecentActivities(5).catch((error) => {
+        console.error('Error in getRecentActivities:', error)
+        return []
+      }),
     ])
   } catch (error) {
     console.error('Error loading dashboard metrics:', error)
@@ -51,6 +64,9 @@ export default async function AdminDashboardPage() {
         <p className="text-slate-400">
           Visão geral da plataforma n.training
         </p>
+        <p className="text-xs text-slate-500 mt-1">
+          Logado como: {user?.full_name || user?.email} (Superadmin)
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -64,7 +80,7 @@ export default async function AdminDashboardPage() {
             metrics.organizations.newThisMonth > 0
               ? {
                   value: Math.round(
-                    (metrics.organizations.newThisMonth / metrics.organizations.total) * 100
+                    (metrics.organizations.newThisMonth / Math.max(metrics.organizations.total, 1)) * 100
                   ),
                   isPositive: true,
                 }
@@ -82,7 +98,7 @@ export default async function AdminDashboardPage() {
             metrics.users.newThisMonth > 0
               ? {
                   value: Math.round(
-                    (metrics.users.newThisMonth / metrics.users.total) * 100
+                    (metrics.users.newThisMonth / Math.max(metrics.users.total, 1)) * 100
                   ),
                   isPositive: true,
                 }
@@ -100,7 +116,7 @@ export default async function AdminDashboardPage() {
             metrics.courses.newThisMonth > 0
               ? {
                   value: Math.round(
-                    (metrics.courses.newThisMonth / metrics.courses.total) * 100
+                    (metrics.courses.newThisMonth / Math.max(metrics.courses.total, 1)) * 100
                   ),
                   isPositive: true,
                 }
@@ -234,4 +250,3 @@ export default async function AdminDashboardPage() {
     </div>
   )
 }
-
