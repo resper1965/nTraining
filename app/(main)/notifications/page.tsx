@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/supabase/server'
 import { getUserNotifications } from '@/app/actions/notifications'
-import { prioritizeNotifications } from '@/lib/notifications/intelligent'
+import { prioritizeNotifications } from '@/lib/notifications/utils'
 import {
   Card,
   CardContent,

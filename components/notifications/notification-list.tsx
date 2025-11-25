@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/app/actions/notifications'
-import { prioritizeNotifications } from '@/lib/notifications/intelligent'
+import { prioritizeNotifications } from '@/lib/notifications/utils'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
