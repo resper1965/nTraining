@@ -13,7 +13,6 @@ import { Clock, BookOpen, ArrowLeft, Edit, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { DeletePathButton } from '@/components/admin/delete-path-button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CourseCard } from '@/components/courses/course-card'
 
 export const dynamic = 'force-dynamic'
 
@@ -132,10 +131,20 @@ export default async function LearningPathDetailPage({
                       </div>
                       <div className="flex-1">
                         {pathCourse.courses && (
-                          <CourseCard
-                            course={pathCourse.courses as any}
-                            showProgress={false}
-                          />
+                          <div className="p-4 bg-slate-800 rounded-lg">
+                            <h3 className="text-white font-medium mb-1">
+                              {pathCourse.courses.title}
+                            </h3>
+                            <p className="text-sm text-slate-400 mb-2">
+                              {pathCourse.courses.description}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-slate-500">
+                              {pathCourse.courses.duration_hours && (
+                                <span>{pathCourse.courses.duration_hours}h</span>
+                              )}
+                              <span className="capitalize">{pathCourse.courses.level}</span>
+                            </div>
+                          </div>
                         )}
                       </div>
                       {pathCourse.is_required && (
