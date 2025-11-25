@@ -12,8 +12,20 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  await requireSuperAdmin()
+  try {
+    await requireSuperAdmin()
+  } catch (error) {
+    console.error('Error in AdminLayout requireSuperAdmin:', error)
+    // Se não for superadmin, redirect já foi feito pelo requireSuperAdmin
+    return null
+  }
+  
   const user = await getCurrentUser()
+  
+  if (!user) {
+    console.error('No user found in AdminLayout')
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
