@@ -92,8 +92,8 @@ export async function createQuiz(formData: {
   description?: string
   course_id: string
   passing_score?: number
-  max_attempts?: number
-  time_limit_minutes?: number
+  max_attempts?: number | null
+  time_limit_minutes?: number | null
   is_required?: boolean
 }) {
   const supabase = createClient()
@@ -106,9 +106,9 @@ export async function createQuiz(formData: {
       description: formData.description || null,
       course_id: formData.course_id,
       passing_score: formData.passing_score || 70,
-      max_attempts: formData.max_attempts || null,
-      time_limit_minutes: formData.time_limit_minutes || null,
-      is_required: formData.is_required || false,
+      max_attempts: formData.max_attempts ?? null,
+      time_limit_minutes: formData.time_limit_minutes ?? null,
+      show_correct_answers: true, // Default
     })
     .select()
     .single()
@@ -133,17 +133,26 @@ export async function updateQuiz(
     description: string
     course_id: string
     passing_score: number
-    max_attempts: number
-    time_limit_minutes: number
+    max_attempts: number | null
+    time_limit_minutes: number | null
     is_required: boolean
   }>
 ) {
   const supabase = createClient()
   await requireRole('platform_admin')
 
+  // Handle null values for optional fields
+  const updateData: any = { ...formData }
+  if (formData.max_attempts === undefined) {
+    updateData.max_attempts = null
+  }
+  if (formData.time_limit_minutes === undefined) {
+    updateData.time_limit_minutes = null
+  }
+
   const { data, error } = await supabase
     .from('quizzes')
-    .update(formData)
+    .update(updateData)
     .eq('id', quizId)
     .select()
     .single()
@@ -154,6 +163,7 @@ export async function updateQuiz(
 
   revalidatePath('/admin/quizzes')
   revalidatePath(`/admin/quizzes/${quizId}`)
+  revalidatePath(`/admin/quizzes/${quizId}/edit`)
 
   return data as Quiz
 }
