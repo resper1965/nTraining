@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AssignCourseDialog } from '@/components/admin/assign-course-dialog'
 import { CourseAccessCard } from '@/components/admin/course-access-card'
+import { AddLicensesDialog } from '@/components/admin/add-licenses-dialog'
 
 export const dynamic = 'force-dynamic'
 

@@ -111,17 +111,24 @@ export default async function OrganizationDetailPage({
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="bg-slate-900 border-slate-800">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-slate-800">
-            Visão Geral
-          </TabsTrigger>
-          <TabsTrigger value="users" className="data-[state=active]:bg-slate-800">
-            Usuários ({users.length})
-          </TabsTrigger>
-          <TabsTrigger value="courses" className="data-[state=active]:bg-slate-800">
-            Cursos ({courses.length})
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between">
+          <TabsList className="bg-slate-900 border-slate-800">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-slate-800">
+              Visão Geral
+            </TabsTrigger>
+            <TabsTrigger value="users" className="data-[state=active]:bg-slate-800">
+              Usuários ({users.length})
+            </TabsTrigger>
+            <TabsTrigger value="courses" className="data-[state=active]:bg-slate-800">
+              Cursos ({courses.length})
+            </TabsTrigger>
+          </TabsList>
+          <Link href={`/admin/organizations/${params.id}/courses`}>
+            <Button variant="outline" size="sm">
+              Gerenciar Cursos
+            </Button>
+          </Link>
+        </div>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">

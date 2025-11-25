@@ -15,6 +15,7 @@ import { Settings, Edit, Trash2, CheckCircle2, XCircle, Users, Calendar } from '
 import { updateOrganizationCourseAccess, removeCourseFromOrganization } from '@/app/actions/organization-courses'
 import { toast } from 'sonner'
 import { EditCourseAccessDialog } from './edit-course-access-dialog'
+import { AddLicensesDialog } from './add-licenses-dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -130,9 +131,14 @@ export function CourseAccessCard({
                 <Users className="h-3 w-3" />
                 Licenças
               </div>
-              <div className="text-lg font-medium text-white">
+              <div className="text-lg font-medium text-white mb-2">
                 {organizationCourseAccess.used_licenses || 0} / {organizationCourseAccess.total_licenses || 0}
               </div>
+              <AddLicensesDialog
+                organizationId={organizationId}
+                courseId={organizationCourseAccess.course_id}
+                currentTotal={organizationCourseAccess.total_licenses || 0}
+              />
             </div>
           )}
           {organizationCourseAccess.valid_from && (
