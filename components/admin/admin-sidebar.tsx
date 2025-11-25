@@ -12,6 +12,7 @@ import {
   FileText,
   Settings,
   Activity,
+  GitBranch,
 } from 'lucide-react'
 
 interface NavItem {
@@ -35,6 +36,11 @@ const navItems: NavItem[] = [
     title: 'Cursos',
     href: '/admin/courses',
     icon: BookOpen,
+  },
+  {
+    title: 'Trilhas',
+    href: '/admin/paths',
+    icon: GitBranch,
   },
   {
     title: 'Usuários',

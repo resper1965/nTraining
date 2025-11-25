@@ -453,10 +453,10 @@ export interface OptionFormData {
 export interface LearningPathFormData {
     title: string;
     slug: string;
-    description: string;
-    estimated_duration_hours: number;
-    is_mandatory: boolean;
-    course_ids: string[];
+    description?: string;
+    estimated_duration_hours?: number;
+    is_mandatory?: boolean;
+    course_ids?: string[];
 }
 
 // ============================================================================
