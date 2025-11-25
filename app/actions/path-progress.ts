@@ -134,7 +134,7 @@ export async function getUserPathsWithProgress() {
         is_completed: false,
       }))
 
-      const assignment = assignments?.find((a) => a.path_id === path.id)
+      const assignment = assignments?.find((a: any) => a.path_id === path.id)
 
       return {
         ...path,

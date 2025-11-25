@@ -28,7 +28,10 @@ export default async function AssignPathPage({
     redirect('/admin/paths')
   }
 
-  const users = await getOrganizationUsers(path.organization_id || '').catch(() => [])
+  // Buscar usuários da organização ou todos se não houver organização específica
+  const users = path.organization_id 
+    ? await getOrganizationUsers(path.organization_id).catch(() => [])
+    : []
 
   return (
     <div className="min-h-screen bg-slate-950">
