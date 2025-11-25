@@ -101,7 +101,11 @@ export default async function EditQuestionPage({
             question_type: question.question_type,
             points: question.points,
             explanation: question.explanation || undefined,
-            question_options: question.question_options || [],
+            question_options: (question.question_options || []) as Array<{
+              option_text: string
+              is_correct: boolean
+              explanation?: string
+            }>,
           }}
         />
       </form>

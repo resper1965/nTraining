@@ -65,12 +65,15 @@ export function QuestionForm({ quizId, question }: QuestionFormProps) {
   }
 
   // For true/false, ensure exactly 2 options
-  if (questionType === 'true_false' && options.length !== 2) {
-    setOptions([
-      { text: 'Verdadeiro', is_correct: false, explanation: '' },
-      { text: 'Falso', is_correct: false, explanation: '' },
-    ])
-  }
+  useEffect(() => {
+    if (questionType === 'true_false' && options.length !== 2) {
+      setOptions([
+        { text: 'Verdadeiro', is_correct: false, explanation: '' },
+        { text: 'Falso', is_correct: false, explanation: '' },
+      ])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionType])
 
   return (
     <>
