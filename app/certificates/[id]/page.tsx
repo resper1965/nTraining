@@ -77,17 +77,7 @@ export default async function CertificateDetailPage({
                   Download PDF
                 </Button>
               </Link>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const url = `${window.location.origin}/certificates/verify/${certificate.verification_code}`
-                  navigator.clipboard.writeText(url)
-                  alert('Link copiado para a área de transferência!')
-                }}
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Compartilhar
-              </Button>
+              <ShareCertificateButton verificationCode={certificate.verification_code} />
             </div>
           </div>
 
