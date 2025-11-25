@@ -246,6 +246,7 @@ export async function createCourse(formData: CourseFormData) {
         slug: formData.slug,
         description: formData.description || null,
         objectives: formData.objectives || null,
+        thumbnail_url: (formData as any).thumbnail_url || null,
         level: formData.level,
         area: formData.area || null,
         duration_hours: formData.duration_hours || null,

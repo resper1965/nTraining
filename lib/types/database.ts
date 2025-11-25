@@ -400,11 +400,11 @@ export interface CourseFormData {
     title: string;
     slug: string;
     description: string;
-    objectives: string;
-    thumbnail_url?: string;
-    duration_hours: number;
+    objectives?: string;
+    thumbnail_url?: string | null;
+    duration_hours?: number | null;
     level: CourseLevel;
-    area: string;
+    area?: string;
     status: CourseStatus;
     is_public: boolean;
 }
