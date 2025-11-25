@@ -12,19 +12,38 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
+  let user
   try {
-    await requireSuperAdmin()
+    user = await requireSuperAdmin()
   } catch (error) {
     console.error('Error in AdminLayout requireSuperAdmin:', error)
     // Se não for superadmin, redirect já foi feito pelo requireSuperAdmin
-    return null
+    // Mas vamos renderizar uma mensagem de erro para debug
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center p-8 bg-red-900/20 border border-red-700 rounded-lg">
+          <h1 className="text-red-300 text-2xl mb-2 font-bold">Erro ao carregar layout admin</h1>
+          <p className="text-red-400 text-sm">Verifique os logs do servidor</p>
+          <p className="text-red-500 text-xs mt-2">{String(error)}</p>
+        </div>
+      </div>
+    )
   }
   
-  const user = await getCurrentUser()
+  if (!user) {
+    user = await getCurrentUser()
+  }
   
   if (!user) {
     console.error('No user found in AdminLayout')
-    return null
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center p-8 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+          <h1 className="text-yellow-300 text-2xl mb-2 font-bold">Usuário não encontrado</h1>
+          <p className="text-yellow-400 text-sm">Faça login novamente</p>
+        </div>
+      </div>
+    )
   }
 
   return (
