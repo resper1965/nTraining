@@ -35,11 +35,15 @@ export async function signIn(formData: FormData) {
 
   if (user) {
     // Buscar dados completos do usuário antes de atualizar
-    const { data: userData } = await supabase
+    const { data: userData, error: userDataError } = await supabase
       .from('users')
       .select('last_login_at, full_name, email, is_superadmin')
       .eq('id', user.id)
       .single()
+
+    if (userDataError) {
+      console.error('Error fetching user data:', userDataError)
+    }
 
     // Atualizar last_login_at
     await supabase
@@ -58,10 +62,16 @@ export async function signIn(formData: FormData) {
     }
 
     // Redirect superadmin to admin panel, unless redirectTo is specified
-    if (userData?.is_superadmin && !redirectTo) {
+    if (userData?.is_superadmin === true && !redirectTo) {
+      console.log('Redirecting superadmin to /admin')
       revalidatePath('/')
       redirect('/admin')
       return
+    }
+    
+    // Log for debugging
+    if (userData) {
+      console.log('User data:', { email: userData.email, is_superadmin: userData.is_superadmin, redirectTo })
     }
   }
 

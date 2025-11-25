@@ -102,17 +102,22 @@ export async function middleware(request: NextRequest) {
     if (isAuthPath && user) {
       // Check if user is superadmin and redirect accordingly
       try {
-        const { data: userData } = await supabase
+        const { data: userData, error: userError } = await supabase
           .from('users')
           .select('is_superadmin')
           .eq('id', user.id)
           .single()
         
-        if (userData?.is_superadmin) {
+        if (userError) {
+          console.error('Error fetching user in middleware:', userError)
+        }
+        
+        if (userData?.is_superadmin === true) {
+          console.log('Middleware: Redirecting superadmin from auth to /admin')
           return NextResponse.redirect(new URL('/admin', request.url))
         }
       } catch (error) {
-        console.error('Error checking superadmin status:', error)
+        console.error('Error checking superadmin status in middleware:', error)
       }
       
       return NextResponse.redirect(new URL('/dashboard', request.url))
@@ -121,17 +126,22 @@ export async function middleware(request: NextRequest) {
     // Redirect superadmin from dashboard to admin
     if (request.nextUrl.pathname === '/dashboard' && user) {
       try {
-        const { data: userData } = await supabase
+        const { data: userData, error: userError } = await supabase
           .from('users')
           .select('is_superadmin')
           .eq('id', user.id)
           .single()
         
-        if (userData?.is_superadmin) {
+        if (userError) {
+          console.error('Error fetching user in middleware (dashboard):', userError)
+        }
+        
+        if (userData?.is_superadmin === true) {
+          console.log('Middleware: Redirecting superadmin from /dashboard to /admin')
           return NextResponse.redirect(new URL('/admin', request.url))
         }
       } catch (error) {
-        console.error('Error checking superadmin status:', error)
+        console.error('Error checking superadmin status in middleware (dashboard):', error)
       }
     }
 

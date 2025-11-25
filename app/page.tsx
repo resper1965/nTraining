@@ -13,18 +13,23 @@ export default async function Home() {
   if (user) {
     // Check if user is superadmin
     try {
-      const { data: userData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('is_superadmin')
         .eq('id', user.id)
         .single()
       
-      if (userData?.is_superadmin) {
+      if (userError) {
+        console.error('Error fetching user in home page:', userError)
+      }
+      
+      if (userData?.is_superadmin === true) {
+        console.log('Home page: Redirecting superadmin to /admin')
         redirect('/admin')
         return
       }
     } catch (error) {
-      console.error('Error checking superadmin status:', error)
+      console.error('Error checking superadmin status in home page:', error)
     }
     
     redirect('/dashboard')
