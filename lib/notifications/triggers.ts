@@ -1,6 +1,7 @@
 'use server'
 
 import { createNotification, createNotificationForUsers } from '@/app/actions/notifications'
+import { createIntelligentNotification } from '@/lib/notifications/intelligent'
 import { getOrganizationUsers } from '@/app/actions/organizations'
 import type { NotificationType } from '@/lib/types/database'
 import {
