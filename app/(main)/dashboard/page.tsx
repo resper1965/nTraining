@@ -267,22 +267,5 @@ export default async function DashboardPage() {
       </div>
     </main>
   )
-  } catch (error) {
-    console.error('Dashboard error:', error)
-    return (
-      <main className="min-h-screen bg-slate-950">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-12">
-            <h1 className="font-display text-2xl font-medium text-white mb-4">
-              Error loading dashboard
-            </h1>
-            <p className="text-slate-400 mb-4">
-              {error instanceof Error ? error.message : 'An unexpected error occurred'}
-            </p>
-          </div>
-        </div>
-      </main>
-    )
-  }
 }
 
