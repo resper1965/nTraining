@@ -1,7 +1,5 @@
-'use server'
-
 import { createClient } from '@/lib/supabase/server'
-import { getUserNotifications, createNotification } from '@/app/actions/notifications'
+import { createNotification } from '@/app/actions/notifications'
 import type { Notification, NotificationType } from '@/lib/types/database'
 
 // ============================================================================
@@ -136,6 +134,7 @@ export async function createIntelligentNotification(
   actionUrl?: string,
   actionLabel?: string
 ): Promise<Notification | null> {
+  'use server'
   // Verificar rate limit
   const canSend = await checkRateLimit(userId, type)
   if (!canSend) {
@@ -191,6 +190,7 @@ export async function createIntelligentNotification(
  * Em uma versão mais avançada, isso poderia usar ML
  */
 export async function learnFromUserBehavior(userId: string): Promise<void> {
+  'use server'
   const supabase = createClient()
 
   // Buscar estatísticas de notificações do usuário
