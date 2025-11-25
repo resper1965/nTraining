@@ -8,7 +8,6 @@ import {
   getCourseCompletedEmailTemplate,
   getCertificateAvailableEmailTemplate,
 } from './resend'
-import { getNotificationPreferences } from '@/app/actions/notifications'
 import { createClient } from '@/lib/supabase/server'
 
 // ============================================================================
@@ -17,8 +16,16 @@ import { createClient } from '@/lib/supabase/server'
 
 async function shouldSendEmail(userId: string): Promise<boolean> {
   try {
-    const preferences = await getNotificationPreferences()
-    return preferences.email_enabled
+    // Buscar preferências do usuário específico diretamente do banco
+    const supabase = createClient()
+    const { data: preferences } = await supabase
+      .from('notification_preferences')
+      .select('email_enabled')
+      .eq('user_id', userId)
+      .single()
+
+    // Se não existir preferência, assume que deve enviar (padrão)
+    return preferences?.email_enabled ?? true
   } catch (error) {
     // Se não conseguir buscar preferências, assume que deve enviar
     return true
