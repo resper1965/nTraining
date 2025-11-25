@@ -35,20 +35,20 @@ export async function notifyCourseAssigned(
     message += ` Prazo para conclusão: ${deadlineStr}`
   }
 
-  // Criar notificação in-app
-  await createNotification({
-    user_id: userId,
-    type: 'course_assigned',
+  // Criar notificação in-app (com inteligência)
+  await createIntelligentNotification(
+    userId,
+    'course_assigned',
     title,
     message,
-    metadata: {
+    {
       course_slug: courseSlug,
       is_mandatory: isMandatory,
       deadline: deadline?.toISOString(),
     },
-    action_url: `/courses/${courseSlug}`,
-    action_label: 'Ver Curso',
-  })
+    `/courses/${courseSlug}`,
+    'Ver Curso'
+  )
 
   // Enviar email (se habilitado)
   try {
@@ -85,19 +85,19 @@ export async function notifyDeadlineApproaching(
   courseSlug: string,
   daysRemaining: number
 ) {
-  // Criar notificação in-app
-  await createNotification({
-    user_id: userId,
-    type: 'course_deadline_approaching',
-    title: `Prazo Próximo: ${courseTitle}`,
-    message: `Faltam ${daysRemaining} dia${daysRemaining > 1 ? 's' : ''} para o prazo de conclusão do curso ${courseTitle}`,
-    metadata: {
+  // Criar notificação in-app (com inteligência)
+  await createIntelligentNotification(
+    userId,
+    'course_deadline_approaching',
+    `Prazo Próximo: ${courseTitle}`,
+    `Faltam ${daysRemaining} dia${daysRemaining > 1 ? 's' : ''} para o prazo de conclusão do curso ${courseTitle}`,
+    {
       course_slug: courseSlug,
       days_remaining: daysRemaining,
     },
-    action_url: `/courses/${courseSlug}`,
-    action_label: 'Continuar Curso',
-  })
+    `/courses/${courseSlug}`,
+    'Continuar Curso'
+  )
 
   // Enviar email (se habilitado)
   try {
@@ -152,18 +152,18 @@ export async function notifyCourseCompleted(
   courseTitle: string,
   courseSlug: string
 ) {
-  // Criar notificação in-app
-  await createNotification({
-    user_id: userId,
-    type: 'course_completed',
-    title: `Parabéns! Curso Concluído: ${courseTitle}`,
-    message: `Você completou o curso ${courseTitle}. Continue aprendendo!`,
-    metadata: {
+  // Criar notificação in-app (com inteligência)
+  await createIntelligentNotification(
+    userId,
+    'course_completed',
+    `Parabéns! Curso Concluído: ${courseTitle}`,
+    `Você completou o curso ${courseTitle}. Continue aprendendo!`,
+    {
       course_slug: courseSlug,
     },
-    action_url: `/courses/${courseSlug}`,
-    action_label: 'Ver Certificado',
-  })
+    `/courses/${courseSlug}`,
+    'Ver Certificado'
+  )
 
   // Enviar email (se habilitado)
   try {
@@ -197,20 +197,20 @@ export async function notifyCertificateAvailable(
   certificateId: string,
   verificationCode?: string
 ) {
-  // Criar notificação in-app
-  await createNotification({
-    user_id: userId,
-    type: 'certificate_available',
-    title: `Certificado Disponível: ${courseTitle}`,
-    message: `Seu certificado do curso ${courseTitle} está pronto para download!`,
-    metadata: {
+  // Criar notificação in-app (com inteligência)
+  await createIntelligentNotification(
+    userId,
+    'certificate_available',
+    `Certificado Disponível: ${courseTitle}`,
+    `Seu certificado do curso ${courseTitle} está pronto para download!`,
+    {
       certificate_id: certificateId,
       course_title: courseTitle,
       verification_code: verificationCode,
     },
-    action_url: `/certificates/${certificateId}`,
-    action_label: 'Ver Certificado',
-  })
+    `/certificates/${certificateId}`,
+    'Ver Certificado'
+  )
 
   // Enviar email (se habilitado)
   try {

@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/supabase/server'
 import { getUserNotifications } from '@/app/actions/notifications'
+import { prioritizeNotifications } from '@/lib/notifications/intelligent'
 import {
   Card,
   CardContent,
@@ -18,7 +19,9 @@ export const dynamic = 'force-dynamic'
 export default async function NotificationsPage() {
   await requireAuth()
 
-  const notifications = await getUserNotifications().catch(() => [])
+  const rawNotifications = await getUserNotifications().catch(() => [])
+  // Priorizar notificações (mais importantes primeiro)
+  const notifications = prioritizeNotifications(rawNotifications)
 
   const unreadCount = notifications.filter((n) => !n.read).length
 

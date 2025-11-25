@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/app/actions/notifications'
+import { prioritizeNotifications } from '@/lib/notifications/intelligent'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
@@ -27,7 +28,9 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
     try {
       setLoading(true)
       const data = await getUserNotifications({ limit: 20 })
-      setNotifications(data)
+      // Priorizar notificações (mais importantes primeiro)
+      const prioritized = prioritizeNotifications(data)
+      setNotifications(prioritized)
     } catch (error) {
       console.error('Error loading notifications:', error)
       toast.error('Erro ao carregar notificações')
