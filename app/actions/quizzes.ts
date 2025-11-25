@@ -135,7 +135,7 @@ export async function updateQuiz(
     passing_score: number
     max_attempts: number | null
     time_limit_minutes: number | null
-    is_required: boolean
+    show_correct_answers: boolean
   }>
 ) {
   const supabase = createClient()
