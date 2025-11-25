@@ -69,6 +69,52 @@ export async function updateLessonProgress(
     // Update course progress
     await updateCourseProgressFromLessons(lessonId);
 
+    // Check if course is completed and generate certificate if applicable
+    if (data.is_completed) {
+      try {
+        const { getCourseById } = await import('./courses')
+        const course = await getCourseById(
+          (await supabase
+            .from('lessons')
+            .select('module_id, modules!inner(course_id)')
+            .eq('id', lessonId)
+            .single()).data?.modules as any
+        )
+        
+        if (course?.is_certifiable) {
+          // Check if all required lessons are completed
+          const { data: allRequiredLessons } = await supabase
+            .from('lessons')
+            .select('id, module_id, modules!inner(course_id)')
+            .eq('modules.course_id', (course as any).id)
+            .eq('is_required', true)
+
+          if (allRequiredLessons && allRequiredLessons.length > 0) {
+            const { data: completedLessons } = await supabase
+              .from('user_lesson_progress')
+              .select('lesson_id')
+              .eq('user_id', user.id)
+              .eq('is_completed', true)
+              .in('lesson_id', allRequiredLessons.map((l: any) => l.id))
+
+            // If all required lessons are completed, generate certificate
+            if (completedLessons?.length === allRequiredLessons.length) {
+              const { generateCertificate } = await import('./certificates')
+              try {
+                await generateCertificate((course as any).id)
+              } catch (certError) {
+                // Certificate generation failed, but don't fail the progress update
+                console.error('Error generating certificate:', certError)
+              }
+            }
+          }
+        }
+      } catch (error) {
+        // Certificate check failed, but don't fail the progress update
+        console.error('Error checking certificate eligibility:', error)
+      }
+    }
+
     return result as UserLessonProgress;
 }
 
