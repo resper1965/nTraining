@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 
 interface AssignCoursesToUsersFormProps {
   users: Array<{ id: string; email: string; full_name: string | null }>
-  courses: Array<{ id: string; courses: { title: string } }>
+  courses: Array<{ id: string; course_id: string; courses: { title: string } }>
 }
 
 export function AssignCoursesToUsersForm({
