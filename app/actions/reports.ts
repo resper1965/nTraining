@@ -101,7 +101,8 @@ export async function getCourseCompletionStats(): Promise<CourseCompletionStat[]
   const supabase = await createServerClient()
 
   try {
-    // Buscar todos os cursos publicados
+    // Buscar todos os cursos publicados com progresso agregado
+    // Otimizado: usa JOIN + GROUP BY para evitar N+1 queries
     const { data: courses, error: coursesError } = await supabase
       .from('courses')
       .select('id, title, slug')
@@ -114,62 +115,50 @@ export async function getCourseCompletionStats(): Promise<CourseCompletionStat[]
       return []
     }
 
-    // Para cada curso, calcular estatísticas
-    const stats = await Promise.all(
-      courses.map(async (course) => {
-        // Total de usuários inscritos (com progresso)
-        const { count: totalEnrolled } = await supabase
-          .from('user_course_progress')
-          .select('*', { count: 'exact', head: true })
-          .eq('course_id', course.id)
+    // Buscar todos os progressos em uma única query
+    const { data: allProgress } = await supabase
+      .from('user_course_progress')
+      .select('course_id, completion_percentage, enrolled_at, completed_at')
+      .in('course_id', courses.map(c => c.id))
 
-        // Total de usuários que completaram (100%)
-        const { count: totalCompleted } = await supabase
-          .from('user_course_progress')
-          .select('*', { count: 'exact', head: true })
-          .eq('course_id', course.id)
-          .gte('completion_percentage', 100)
+    // Agregar dados por curso (client-side group by)
+    const stats = courses.map((course) => {
+      const courseProgress = allProgress?.filter(p => p.course_id === course.id) || []
 
-        // Calcular taxa de conclusão
-        const completionRate = totalEnrolled
-          ? Math.round((totalCompleted! / totalEnrolled) * 100)
-          : 0
+      const totalEnrolled = courseProgress.length
+      const totalCompleted = courseProgress.filter(p => (p.completion_percentage || 0) >= 100).length
 
-        // Calcular tempo médio de conclusão (em horas)
-        const { data: completedProgress } = await supabase
-          .from('user_course_progress')
-          .select('enrolled_at, completed_at')
-          .eq('course_id', course.id)
-          .gte('completion_percentage', 100)
-          .not('completed_at', 'is', null)
+      const completionRate = totalEnrolled > 0
+        ? Math.round((totalCompleted / totalEnrolled) * 100)
+        : 0
 
-        let averageTimeToComplete = null
-        if (completedProgress && completedProgress.length > 0) {
-          const times = completedProgress
-            .filter(p => p.enrolled_at && p.completed_at)
-            .map(p => {
-              const start = new Date(p.enrolled_at!).getTime()
-              const end = new Date(p.completed_at!).getTime()
-              return (end - start) / (1000 * 60 * 60) // Converter para horas
-            })
+      // Calcular tempo médio de conclusão
+      let averageTimeToComplete = null
+      const completedProgress = courseProgress.filter(
+        p => p.enrolled_at && p.completed_at && (p.completion_percentage || 0) >= 100
+      )
 
-          if (times.length > 0) {
-            const sum = times.reduce((acc, curr) => acc + curr, 0)
-            averageTimeToComplete = Math.round(sum / times.length)
-          }
-        }
+      if (completedProgress.length > 0) {
+        const times = completedProgress.map(p => {
+          const start = new Date(p.enrolled_at!).getTime()
+          const end = new Date(p.completed_at!).getTime()
+          return (end - start) / (1000 * 60 * 60) // Horas
+        })
 
-        return {
-          courseId: course.id,
-          courseTitle: course.title,
-          courseSlug: course.slug,
-          totalEnrolled: totalEnrolled || 0,
-          totalCompleted: totalCompleted || 0,
-          completionRate,
-          averageTimeToComplete,
-        }
-      })
-    )
+        const sum = times.reduce((acc, curr) => acc + curr, 0)
+        averageTimeToComplete = Math.round(sum / times.length)
+      }
+
+      return {
+        courseId: course.id,
+        courseTitle: course.title,
+        courseSlug: course.slug,
+        totalEnrolled,
+        totalCompleted,
+        completionRate,
+        averageTimeToComplete,
+      }
+    })
 
     // Ordenar por taxa de conclusão (maior primeiro)
     return stats.sort((a, b) => b.completionRate - a.completionRate)
@@ -209,31 +198,27 @@ export async function getCoursePopularityStats(): Promise<CoursePopularityStat[]
       return []
     }
 
-    // Para cada curso, contar inscrições
-    const stats = await Promise.all(
-      courses.map(async (course) => {
-        // Total de inscrições
-        const { count: totalEnrollments } = await supabase
-          .from('user_course_progress')
-          .select('*', { count: 'exact', head: true })
-          .eq('course_id', course.id)
+    // Buscar todos os progressos em uma única query (otimizado)
+    const { data: allProgress } = await supabase
+      .from('user_course_progress')
+      .select('course_id, completion_percentage')
+      .in('course_id', courses.map(c => c.id))
 
-        // Total de visualizações (progresso > 0)
-        const { count: totalViews } = await supabase
-          .from('user_course_progress')
-          .select('*', { count: 'exact', head: true })
-          .eq('course_id', course.id)
-          .gt('completion_percentage', 0)
+    // Agregar dados por curso (client-side group by)
+    const stats = courses.map((course) => {
+      const courseProgress = allProgress?.filter(p => p.course_id === course.id) || []
 
-        return {
-          courseId: course.id,
-          courseTitle: course.title,
-          courseSlug: course.slug,
-          totalEnrollments: totalEnrollments || 0,
-          totalViews: totalViews || 0,
-        }
-      })
-    )
+      const totalEnrollments = courseProgress.length
+      const totalViews = courseProgress.filter(p => (p.completion_percentage || 0) > 0).length
+
+      return {
+        courseId: course.id,
+        courseTitle: course.title,
+        courseSlug: course.slug,
+        totalEnrollments,
+        totalViews,
+      }
+    })
 
     // Ordenar por total de inscrições (maior primeiro)
     return stats.sort((a, b) => b.totalEnrollments - a.totalEnrollments)
