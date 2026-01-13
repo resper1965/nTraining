@@ -1,4 +1,5 @@
 import { Header } from '@/components/layout/header'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function MainLayout({
   children,
@@ -8,7 +9,9 @@ export default function MainLayout({
   return (
     <>
       <Header />
-      {children}
+      <ErrorBoundary>
+        {children}
+      </ErrorBoundary>
     </>
   )
 }

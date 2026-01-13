@@ -4,6 +4,7 @@ import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { signOut } from '@/app/actions/auth'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 export const dynamic = 'force-dynamic'
 
@@ -78,7 +79,9 @@ export default async function AdminLayout({
         <main className="flex-1 overflow-auto bg-slate-950">
           <div className="p-6 min-h-full">
             <AdminBreadcrumbs />
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
       </div>
