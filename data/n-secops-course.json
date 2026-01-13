@@ -5,11 +5,10 @@
     "description": "Curso completo de Operações de Segurança de Rede, cobrindo monitoramento, detecção de ameaças, resposta a incidentes e gestão de vulnerabilidades em ambientes corporativos.",
     "objectives": "Compreender os fundamentos de SecOps; Implementar estratégias de monitoramento de segurança; Detectar e responder a incidentes de segurança; Gerenciar vulnerabilidades e patches; Utilizar ferramentas SIEM e análise de logs; Aplicar frameworks de threat intelligence; Conduzir investigações forenses básicas.",
     "duration_hours": 24,
-    "level": "intermediario",
+    "level": "intermediate",
     "area": "Segurança da Informação",
     "status": "published",
-    "is_public": true,
-    "is_certifiable": true
+    "is_public": true
   },
   "modules": [
     {

@@ -96,19 +96,30 @@ async function setSuperadmin() {
     }
 
     // Buscar novamente para confirmar
-    const { data: updatedUser } = await supabase
+    const { data: updatedUser, error: verifyError } = await supabase
       .from('users')
       .select('id, email, full_name, is_superadmin, role')
       .eq('id', user.id)
       .single()
 
+    if (verifyError) {
+      console.error('❌ Erro ao verificar atualização:', verifyError.message)
+      console.error('⚠️  O usuário pode ter sido atualizado, mas não foi possível confirmar.')
+      process.exit(1)
+    }
+
+    if (!updatedUser) {
+      console.error('❌ Erro: Não foi possível recuperar os dados atualizados do usuário.')
+      process.exit(1)
+    }
+
     console.log('\n✅ Usuário atualizado com sucesso!')
     console.log('\n📋 Informações do usuário:')
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log(`Email:      ${updatedUser?.email}`)
-    console.log(`Nome:       ${updatedUser?.full_name || 'N/A'}`)
-    console.log(`ID:         ${updatedUser?.id}`)
-    console.log(`Role:       ${updatedUser?.role}`)
+    console.log(`Email:      ${updatedUser.email}`)
+    console.log(`Nome:       ${updatedUser.full_name || 'N/A'}`)
+    console.log(`ID:         ${updatedUser.id}`)
+    console.log(`Role:       ${updatedUser.role}`)
     console.log(`Superadmin: ✅ SIM`)
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
 

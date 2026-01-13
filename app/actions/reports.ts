@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient, requireAuth, requireSuperAdmin } from '@/lib/supabase/server'
+import { createClient, requireAuth, requireSuperAdmin } from '@/lib/supabase/server'
 
 // ============================================================================
 // OVERALL STATISTICS
@@ -19,7 +19,7 @@ export interface OverallStats {
 
 export async function getOverallStats(): Promise<OverallStats> {
   await requireSuperAdmin()
-  const supabase = await createServerClient()
+  const supabase = createClient()
 
   try {
     // Total de usuários
@@ -62,7 +62,7 @@ export async function getOverallStats(): Promise<OverallStats> {
 
     let averageCompletionRate = 0
     if (progressData && progressData.length > 0) {
-      const sum = progressData.reduce((acc, curr) => acc + (curr.completion_percentage || 0), 0)
+      const sum = progressData.reduce((acc: number, curr: { completion_percentage: number | null }) => acc + (curr.completion_percentage || 0), 0)
       averageCompletionRate = Math.round(sum / progressData.length)
     }
 
@@ -98,7 +98,7 @@ export interface CourseCompletionStat {
 
 export async function getCourseCompletionStats(): Promise<CourseCompletionStat[]> {
   await requireSuperAdmin()
-  const supabase = await createServerClient()
+  const supabase = createClient()
 
   try {
     // Buscar todos os cursos publicados com progresso agregado
@@ -119,14 +119,14 @@ export async function getCourseCompletionStats(): Promise<CourseCompletionStat[]
     const { data: allProgress } = await supabase
       .from('user_course_progress')
       .select('course_id, completion_percentage, enrolled_at, completed_at')
-      .in('course_id', courses.map(c => c.id))
+      .in('course_id', courses.map((c: { id: string }) => c.id))
 
     // Agregar dados por curso (client-side group by)
-    const stats = courses.map((course) => {
-      const courseProgress = allProgress?.filter(p => p.course_id === course.id) || []
+    const stats = courses.map((course: { id: string; title: string; slug: string }) => {
+      const courseProgress = allProgress?.filter((p: { course_id: string }) => p.course_id === course.id) || []
 
       const totalEnrolled = courseProgress.length
-      const totalCompleted = courseProgress.filter(p => (p.completion_percentage || 0) >= 100).length
+      const totalCompleted = courseProgress.filter((p: { completion_percentage: number | null }) => (p.completion_percentage || 0) >= 100).length
 
       const completionRate = totalEnrolled > 0
         ? Math.round((totalCompleted / totalEnrolled) * 100)
@@ -135,17 +135,17 @@ export async function getCourseCompletionStats(): Promise<CourseCompletionStat[]
       // Calcular tempo médio de conclusão
       let averageTimeToComplete = null
       const completedProgress = courseProgress.filter(
-        p => p.enrolled_at && p.completed_at && (p.completion_percentage || 0) >= 100
+        (p: { enrolled_at: string | null; completed_at: string | null; completion_percentage: number | null }) => p.enrolled_at && p.completed_at && (p.completion_percentage || 0) >= 100
       )
 
       if (completedProgress.length > 0) {
-        const times = completedProgress.map(p => {
+        const times = completedProgress.map((p: { enrolled_at: string | null; completed_at: string | null }) => {
           const start = new Date(p.enrolled_at!).getTime()
           const end = new Date(p.completed_at!).getTime()
           return (end - start) / (1000 * 60 * 60) // Horas
         })
 
-        const sum = times.reduce((acc, curr) => acc + curr, 0)
+        const sum = times.reduce((acc: number, curr: number) => acc + curr, 0)
         averageTimeToComplete = Math.round(sum / times.length)
       }
 
@@ -161,7 +161,7 @@ export async function getCourseCompletionStats(): Promise<CourseCompletionStat[]
     })
 
     // Ordenar por taxa de conclusão (maior primeiro)
-    return stats.sort((a, b) => b.completionRate - a.completionRate)
+    return stats.sort((a: CourseCompletionStat, b: CourseCompletionStat) => b.completionRate - a.completionRate)
   } catch (error) {
     console.error('Error getting course completion stats:', error)
     throw new Error('Erro ao buscar estatísticas de conclusão de cursos')
@@ -182,7 +182,7 @@ export interface CoursePopularityStat {
 
 export async function getCoursePopularityStats(): Promise<CoursePopularityStat[]> {
   await requireSuperAdmin()
-  const supabase = await createServerClient()
+  const supabase = createClient()
 
   try {
     // Buscar todos os cursos publicados
@@ -202,14 +202,14 @@ export async function getCoursePopularityStats(): Promise<CoursePopularityStat[]
     const { data: allProgress } = await supabase
       .from('user_course_progress')
       .select('course_id, completion_percentage')
-      .in('course_id', courses.map(c => c.id))
+      .in('course_id', courses.map((c: { id: string }) => c.id))
 
     // Agregar dados por curso (client-side group by)
-    const stats = courses.map((course) => {
-      const courseProgress = allProgress?.filter(p => p.course_id === course.id) || []
+    const stats = courses.map((course: { id: string; title: string; slug: string }) => {
+      const courseProgress = allProgress?.filter((p: { course_id: string }) => p.course_id === course.id) || []
 
       const totalEnrollments = courseProgress.length
-      const totalViews = courseProgress.filter(p => (p.completion_percentage || 0) > 0).length
+      const totalViews = courseProgress.filter((p: { completion_percentage: number | null }) => (p.completion_percentage || 0) > 0).length
 
       return {
         courseId: course.id,
@@ -221,7 +221,7 @@ export async function getCoursePopularityStats(): Promise<CoursePopularityStat[]
     })
 
     // Ordenar por total de inscrições (maior primeiro)
-    return stats.sort((a, b) => b.totalEnrollments - a.totalEnrollments)
+    return stats.sort((a: CoursePopularityStat, b: CoursePopularityStat) => b.totalEnrollments - a.totalEnrollments)
   } catch (error) {
     console.error('Error getting course popularity stats:', error)
     throw new Error('Erro ao buscar estatísticas de popularidade de cursos')
@@ -242,7 +242,7 @@ export interface UserActivityStats {
 
 export async function getUserActivityStats(days: number = 30): Promise<UserActivityStats> {
   await requireSuperAdmin()
-  const supabase = await createServerClient()
+  const supabase = createClient()
 
   try {
     const startDate = new Date()
@@ -297,33 +297,9 @@ export async function getUserActivityStats(days: number = 30): Promise<UserActiv
 // EXPORT DATA TO CSV
 // ============================================================================
 
-export interface ExportDataRow {
-  [key: string]: string | number | null
-}
+import { convertToCSV, type ExportDataRow } from '@/lib/utils/csv'
 
-export function convertToCSV(data: ExportDataRow[]): string {
-  if (data.length === 0) return ''
-
-  // Cabeçalhos
-  const headers = Object.keys(data[0])
-  const headerRow = headers.join(',')
-
-  // Linhas de dados
-  const rows = data.map(row => {
-    return headers.map(header => {
-      const value = row[header]
-      // Escapar valores com vírgula ou aspas
-      if (value === null || value === undefined) return ''
-      const stringValue = String(value)
-      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-        return `"${stringValue.replace(/"/g, '""')}"`
-      }
-      return stringValue
-    }).join(',')
-  })
-
-  return [headerRow, ...rows].join('\n')
-}
+export type { ExportDataRow }
 
 export async function exportCourseCompletionData(): Promise<string> {
   const stats = await getCourseCompletionStats()

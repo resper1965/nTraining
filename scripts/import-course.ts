@@ -254,10 +254,8 @@ async function main() {
   const fileContent = readFileSync(filePath, 'utf-8')
   const courseData: CourseData = JSON.parse(fileContent)
 
-  // ID da organização ness Security (do seed.sql)
-  const nessOrgId = '00000000-0000-0000-0000-000000000001'
-
-  await importCourse(courseData, nessOrgId)
+  // Curso público - não precisa de organização
+  await importCourse(courseData, undefined)
 }
 
 main().catch((error) => {

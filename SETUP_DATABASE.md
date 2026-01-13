@@ -13,7 +13,9 @@ Isso indica que o schema do banco de dados ainda não foi aplicado no Supabase.
 ### 1. Aplicar o Schema Base
 
 1. **Acesse o Supabase SQL Editor:**
-   - URL: https://supabase.com/dashboard/project/qaekhnagfzpwprvaxqwt/sql/new
+   - Acesse o [Supabase Dashboard](https://supabase.com/dashboard)
+   - Selecione seu projeto
+   - Navegue até **SQL Editor** no menu lateral
 
 2. **Execute o schema.sql completo:**
    - Abra o arquivo: `lib/supabase/schema.sql`

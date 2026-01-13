@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient, requireAuth, requireSuperAdmin } from '@/lib/supabase/server'
+import { createClient, requireAuth, requireSuperAdmin } from '@/lib/supabase/server'
 
 // ============================================================================
 // TYPES
@@ -39,7 +39,7 @@ export async function getActivityLogs(
   filters: ActivityLogFilters = {}
 ): Promise<{ logs: ActivityLog[]; total: number }> {
   await requireSuperAdmin()
-  const supabase = await createServerClient()
+  const supabase = createClient()
 
   try {
     const {
@@ -106,7 +106,7 @@ export async function getActivityLogs(
 
 export async function getActivityTypes(): Promise<string[]> {
   await requireSuperAdmin()
-  const supabase = await createServerClient()
+  const supabase = createClient()
 
   try {
     const { data, error } = await supabase
@@ -117,7 +117,7 @@ export async function getActivityTypes(): Promise<string[]> {
     if (error) throw error
 
     // Obter tipos únicos
-    const uniqueTypes = [...new Set((data || []).map(log => log.event_type))]
+    const uniqueTypes = Array.from(new Set((data || []).map((log: { event_type: string }) => log.event_type))) as string[]
     return uniqueTypes.sort()
   } catch (error) {
     console.error('Error getting activity types:', error)
@@ -139,7 +139,7 @@ export interface CreateActivityLogParams {
 }
 
 export async function createActivityLog(params: CreateActivityLogParams): Promise<void> {
-  const supabase = await createServerClient()
+  const supabase = createClient()
 
   try {
     const {
@@ -338,7 +338,7 @@ export async function logPathCompleted(
 
 export async function getRecentActivity(limit: number = 10): Promise<ActivityLog[]> {
   await requireSuperAdmin()
-  const supabase = await createServerClient()
+  const supabase = createClient()
 
   try {
     const { data, error } = await supabase

@@ -49,7 +49,7 @@ export const courseFormSchema = z.object({
   objectives: z.string().optional(),
   thumbnail_url: urlValidator,
   level: z.enum(['iniciante', 'intermediario', 'avancado'], {
-    required_error: 'Selecione um nível',
+    message: 'Selecione um nível',
   }),
   area: z.string().min(1, requiredFieldMsg).max(100, maxLengthMsg(100)),
   duration_hours: z.coerce
@@ -58,7 +58,7 @@ export const courseFormSchema = z.object({
     .max(1000, 'Duração máxima: 1000 horas')
     .optional(),
   status: z.enum(['draft', 'published', 'archived'], {
-    required_error: 'Selecione um status',
+    message: 'Selecione um status',
   }),
   is_public: z.boolean().default(false),
 })
@@ -74,7 +74,7 @@ export const userCreateSchema = z.object({
   full_name: z.string().min(3, minLengthMsg(3)).max(100, maxLengthMsg(100)),
   password: passwordValidator,
   role: z.enum(['student', 'org_manager', 'platform_admin', 'superadmin'], {
-    required_error: 'Selecione uma função',
+    message: 'Selecione uma função',
   }),
   organization_id: z.string().uuid('Organização inválida').optional().or(z.literal('')),
   is_active: z.boolean().default(true),
@@ -86,7 +86,7 @@ export const userUpdateSchema = z.object({
   full_name: z.string().min(3, minLengthMsg(3)).max(100, maxLengthMsg(100)),
   email: emailValidator,
   role: z.enum(['student', 'org_manager', 'platform_admin', 'superadmin'], {
-    required_error: 'Selecione uma função',
+    message: 'Selecione uma função',
   }),
   organization_id: z.string().uuid('Organização inválida').optional().or(z.literal('')),
   is_active: z.boolean(),
@@ -162,7 +162,7 @@ export const lessonFormSchema = z.object({
   title: z.string().min(3, minLengthMsg(3)).max(200, maxLengthMsg(200)),
   content: z.string().min(10, minLengthMsg(10)),
   type: z.enum(['video', 'text', 'quiz'], {
-    required_error: 'Selecione um tipo',
+    message: 'Selecione um tipo',
   }),
   video_url: urlValidator,
   duration_minutes: z.coerce
@@ -225,7 +225,7 @@ export type QuizFormValues = z.infer<typeof quizFormSchema>
 export const questionFormSchema = z.object({
   question_text: z.string().min(10, minLengthMsg(10)).max(1000, maxLengthMsg(1000)),
   question_type: z.enum(['multiple_choice', 'true_false'], {
-    required_error: 'Selecione um tipo',
+    message: 'Selecione um tipo',
   }),
   options: z
     .array(z.string().min(1, 'Opção não pode estar vazia'))
@@ -248,7 +248,7 @@ export type QuestionFormValues = z.infer<typeof questionFormSchema>
  */
 export function formatZodErrors(error: z.ZodError): Record<string, string> {
   const formatted: Record<string, string> = {}
-  error.errors.forEach((err) => {
+  error.issues.forEach((err) => {
     const path = err.path.join('.')
     formatted[path] = err.message
   })
