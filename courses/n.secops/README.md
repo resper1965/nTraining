@@ -6,6 +6,7 @@ Este diretório serve como **scaffold versionado** para organizar a criação do
 - `course.md`: visão geral (objetivos, público, pré‑requisitos, carga)
 - `syllabus.md`: ementa (módulos, tópicos e trilha sugerida)
 - `programa.md`: baseline do programa (estrutura macro)
+- `style-guide.md`: padrão de escrita/estrutura (UX/UI aplicado ao conteúdo)
 
 ### O que entra aqui
 - **Roteiro/ementa** do curso (módulos, aulas, objetivos, requisitos).
