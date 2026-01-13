@@ -17,14 +17,14 @@ Completar funcionalidades pendentes da aplicação (~56%) para alcançar 100% de
 ════════════════════════════════════════════════════════════
 Sprint 1 (Relatórios):      ████████████████████ 100% ✅
 Sprint 2 (Logs):            ████████████████████ 100% ✅
-Sprint 3 (Estabilidade):    ████████░░░░░░░░░░░░  40% 🔄
+Sprint 3 (Estabilidade):    ███████████░░░░░░░░░  55% 🔄
 Sprint 4 (Performance):     ██████████░░░░░░░░░░  53% 🔄
 Sprint 5 (Testes):          ░░░░░░░░░░░░░░░░░░░░   0% ⏳
 ════════════════════════════════════════════════════════════
-PROGRESSO TOTAL:            ██████████░░░░░░░░░░  51%
+PROGRESSO TOTAL:            ██████████░░░░░░░░░░  53%
 
-Horas completadas: ~52h de 103h
-Tempo restante estimado: ~51h
+Horas completadas: ~55h de 103h
+Tempo restante estimado: ~48h
 ```
 
 ---
@@ -143,7 +143,7 @@ Tempo restante estimado: ~51h
 
 ## 🔄 SPRINT 3: Estabilidade e Error Handling (EM ANDAMENTO)
 
-**Duração:** 20 horas | **Status:** 🔄 40% completo (~8h de 20h)
+**Duração:** 20 horas | **Status:** 🔄 55% completo (~11h de 20h)
 
 ### Implementado:
 
@@ -198,28 +198,56 @@ Tempo restante estimado: ~51h
 - ⏳ Highlights visuais de campos com erro
 - ⏳ Disable submit enquanto inválido
 
-#### 5. Toast Notifications Padronizadas (~3h)
-- ⏳ Padronizar em Server Actions
-- ⏳ Cores consistentes:
-  - ✅ Sucesso: verde com check icon
-  - ❌ Erro: vermelho com mensagem clara
-  - ⚠️ Warning: amarelo
-  - ℹ️ Info: azul
-- ⏳ Mensagens em português
-- ⏳ Duração adequada (3-5s)
+#### 5. Toast Notifications Padronizadas (~3h) ✅
 
-#### 6. Empty States Melhorados (~3h)
-- ⏳ Melhorar em:
+**Implementado:**
+- ✅ Criar `lib/toast.ts` com helper centralizado `showToast`
+- ✅ Mensagens padronizadas por contexto:
+  - Cursos, Usuários, Aulas, Trilhas, Certificados
+  - Quiz, Upload, Exportação, Auth, Notificações
+  - Mensagens genéricas
+- ✅ Cores e durações adequadas:
+  - Success: verde, 3s
+  - Error: vermelho, 5s (fica mais tempo)
+  - Warning: amarelo, 4s
+  - Info: azul, 4s
+  - Loading: infinito até substituição
+- ✅ 100% mensagens em português brasileiro
+- ✅ Suporte a toast.promise() para operações assíncronas
+- ✅ Atualizar `components/admin/export-button.tsx` para usar showToast
+- ✅ Documentação completa em `TOAST_NOTIFICATIONS.md`
+
+**Pendente:**
+- ⏳ Migrar componentes restantes (~1h):
+  - `avatar-upload.tsx`, `change-password-form.tsx`
+  - `profile-form.tsx`, `learning-path-form.tsx`
+  - Outros 10+ componentes
+
+**Commit:**
+- `a89423f` - feat: Implementar toast notifications e empty states padronizados
+
+---
+
+#### 6. Empty States Melhorados (~3h) 🔄 Parcial
+
+**Implementado:**
+- ✅ Criar `components/ui/empty-state.tsx` reutilizável
+- ✅ Suporte a:
+  - Ícone customizável (lucide-react)
+  - Título e descrição
+  - Botão de ação (href ou onClick)
+  - Lista de sugestões
+  - 3 tamanhos: compact, default, large
+- ✅ Variante `EmptyStateInline` para uso dentro de Cards
+- ✅ Atualizar `/certificates` com EmptyState melhorado
+
+**Pendente:**
+- ⏳ Aplicar em páginas restantes (~2h):
   - `/admin/courses` - quando não há cursos
   - `/admin/users` - quando não há usuários
-  - `/admin/tenants` - quando não há organizações
+  - `/admin/organizations` - quando não há organizações
   - `/dashboard` - quando usuário não tem cursos
-  - `/certificates` - quando não tem certificados
-- ⏳ Pattern:
-  - Ícone ilustrativo grande
-  - Mensagem amigável
-  - Call-to-action (botão)
-  - Sugestões de próximos passos
+  - `/admin/paths` - quando não há trilhas
 
 ---
 
@@ -436,6 +464,15 @@ Tempo restante estimado: ~51h
 - ✅ `app/(main)/layout.tsx` (MODIFICADO - +2 linhas)
 - ✅ `app/admin/loading.tsx` (NOVO - 36 linhas)
 - ✅ `app/(main)/loading.tsx` (NOVO - 31 linhas)
+- ✅ `lib/toast.ts` (NOVO - 379 linhas) - Helper toast padronizado
+- ✅ `TOAST_NOTIFICATIONS.md` (NOVO - 540 linhas) - Documentação
+- ✅ `components/ui/empty-state.tsx` (NOVO - 179 linhas) - Componente reutilizável
+- ✅ `components/admin/export-button.tsx` (MODIFICADO - usa showToast)
+- ✅ `app/(main)/certificates/page.tsx` (MODIFICADO - EmptyState melhorado)
+
+**Linhas Sprint 3:** ~1,271 linhas (error boundaries + loading + toast + empty states)
+
+---
 
 ### Sprint 4 (Performance)
 - ✅ `app/actions/reports.ts` (OTIMIZADO - eliminação N+1 queries)
@@ -464,6 +501,8 @@ Tempo restante estimado: ~51h
 5. ✅ `165dab2` - docs: Atualizar progresso do Sprint 4 (performance optimization completa)
 6. ✅ `f546ffe` - perf: Otimizar carregamento de imagens com next/image
 7. ✅ `85036c3` - perf: Otimizar select queries para reduzir bandwidth
+8. ✅ `3d862e9` - docs: Atualizar STATUS_DESENVOLVIMENTO.md (51% completo)
+9. ✅ `a89423f` - feat: Implementar toast notifications e empty states padronizados
 
 ---
 
@@ -473,10 +512,10 @@ Tempo restante estimado: ~51h
 |--------|------------------|-------------------|------------|--------|
 | Sprint 1 | 18h | 18h | 100% | ✅ Completo |
 | Sprint 2 | 16h | 16h | 100% | ✅ Completo |
-| Sprint 3 | 20h | 8h | 40% | 🔄 Em Andamento |
+| Sprint 3 | 20h | 11h | 55% | 🔄 Em Andamento |
 | Sprint 4 | 17h | 9h | 53% | 🔄 Em Andamento |
 | Sprint 5 | 32h | 0h | 0% | ⏳ Pendente |
-| **TOTAL** | **103h** | **51h** | **50%** | **🔄 Em Andamento** |
+| **TOTAL** | **103h** | **54h** | **52%** | **🔄 Em Andamento** |
 
 ---
 
