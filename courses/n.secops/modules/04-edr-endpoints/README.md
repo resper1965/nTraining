@@ -30,3 +30,9 @@
 ### Avaliação
 - `quiz.md`
 
+### Standards e referências
+- `../../standards/README.md`
+- `../../standards/cis-controls-v8.md` (endpoint e controles operacionais)
+- `../../standards/mitre-attck.md` (técnicas e evidências)
+- `../../standards/nist-800-61-incident-response.md` (resposta e preservação)
+

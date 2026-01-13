@@ -19,3 +19,8 @@
 ### Avaliação
 - `quiz.md`
 
+### Standards e referências
+- `../../standards/README.md`
+- `../../standards/nist-800-92-log-management.md` (logs e evidência)
+- `../../standards/iso-27001-27002.md` (registro/auditoria)
+

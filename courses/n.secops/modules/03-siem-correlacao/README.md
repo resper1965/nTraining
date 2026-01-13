@@ -33,3 +33,9 @@
 ### Avaliação
 - `quiz.md`
 
+### Standards e referências
+- `../../standards/README.md`
+- `../../standards/nist-800-92-log-management.md` (coleta, normalização e qualidade de logs)
+- `../../standards/mitre-attck.md` (casos de uso e cobertura por técnica)
+- `../../standards/cis-controls-v8.md` (logging/monitoramento)
+

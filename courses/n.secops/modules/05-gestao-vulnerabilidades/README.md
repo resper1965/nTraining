@@ -30,3 +30,9 @@
 ### Avaliação
 - `quiz.md`
 
+### Standards e referências
+- `../../standards/README.md`
+- `../../standards/cis-controls-v8.md` (vulnerability management)
+- `../../standards/iso-27001-27002.md` (governança e evidência)
+- `../../standards/nist-800-40-patch-management.md` (conexão vuln → patch)
+

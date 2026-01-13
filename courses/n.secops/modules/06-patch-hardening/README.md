@@ -34,3 +34,9 @@
 ### Avaliação
 - `quiz.md`
 
+### Standards e referências
+- `../../standards/README.md`
+- `../../standards/nist-800-40-patch-management.md` (processo de patching)
+- `../../standards/cis-controls-v8.md` (controles e priorização)
+- `../../standards/iso-27001-27002.md` (governança e evidência)
+
