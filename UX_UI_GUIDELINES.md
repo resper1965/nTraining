@@ -523,3 +523,28 @@ transition: all 150ms ease-in-out;
 **Versão:** 1.0
 **Baseado em:** Context7 UX/UI Guidelines + ness Branding
 
+---
+
+## 🤖 Claude Code: skill de design (opcional)
+
+Para manter consistência e “craft” ao gerar UI (admin/dashboards), adotamos o skill **Design Principles**.
+
+### Instalação (macOS/Linux)
+
+No projeto:
+
+```bash
+bash scripts/install-claude-design-principles-skill.sh
+```
+
+### Uso
+
+- No Claude Code, use o comando:
+  - `/design-principles`
+- Ou peça explicitamente para aplicar os princípios (4px grid, hierarquia tipográfica, profundidade consistente, etc.).
+
+### Fonte / Licença
+
+- Repositório: `https://github.com/Dammyjay93/claude-design-skill`
+- Licença: MIT (Damola Akinleye)
+
