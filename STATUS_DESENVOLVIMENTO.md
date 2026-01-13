@@ -18,13 +18,13 @@ Completar funcionalidades pendentes da aplicação (~56%) para alcançar 100% de
 Sprint 1 (Relatórios):      ████████████████████ 100% ✅
 Sprint 2 (Logs):            ████████████████████ 100% ✅
 Sprint 3 (Estabilidade):    ████████░░░░░░░░░░░░  40% 🔄
-Sprint 4 (Performance):     ████████░░░░░░░░░░░░  41% 🔄
+Sprint 4 (Performance):     ██████████░░░░░░░░░░  53% 🔄
 Sprint 5 (Testes):          ░░░░░░░░░░░░░░░░░░░░   0% ⏳
 ════════════════════════════════════════════════════════════
-PROGRESSO TOTAL:            █████████░░░░░░░░░░░  48%
+PROGRESSO TOTAL:            ██████████░░░░░░░░░░  51%
 
-Horas completadas: ~49h de 103h
-Tempo restante estimado: ~54h
+Horas completadas: ~52h de 103h
+Tempo restante estimado: ~51h
 ```
 
 ---
@@ -356,11 +356,12 @@ Tempo restante estimado: ~54h
 - ⏳ Menu admin (drawer mobile)
 - ⏳ Breakpoints: mobile (<640px), tablet (640-1024px), desktop (>1024px)
 
-#### 2. Performance Adicional em Outras Queries (~4h)
-- ⏳ Adicionar select() específicos (evitar select('*'))
-- ⏳ Cache de queries frequentes
-- ⏳ Evitar N+1 queries em outras páginas (usar joins)
-- ⏳ Queries críticas: getCourses(), getUserProgress(), getLearningPaths()
+#### 2. Performance Adicional em Outras Queries (~2h) ✅ COMPLETO
+- ✅ Adicionar select() específicos (evitar select('*'))
+- ✅ Análise completa de todas queries do sistema
+- ✅ Otimização de queries críticas (getCourses, getLearningPaths, users)
+- ⏳ Cache de queries frequentes (opcional - futuro)
+- ⏳ Indexação database (requer acesso - futuro)
 
 #### 3. Acessibilidade Básica (~4h)
 - ⏳ Labels em todos inputs
@@ -437,16 +438,20 @@ Tempo restante estimado: ~54h
 - ✅ `app/(main)/loading.tsx` (NOVO - 31 linhas)
 
 ### Sprint 4 (Performance)
-- ✅ `app/actions/reports.ts` (OTIMIZADO - refatoração major)
+- ✅ `app/actions/reports.ts` (OTIMIZADO - eliminação N+1 queries)
 - ✅ `PERFORMANCE_OPTIMIZATIONS.md` (NOVO - 365 linhas)
 - ✅ `IMAGE_OPTIMIZATION.md` (NOVO - 380 linhas)
+- ✅ `QUERY_OPTIMIZATION_OPPORTUNITIES.md` (NOVO - 290 linhas)
 - ✅ `app/(main)/courses/[slug]/page.tsx` (OTIMIZADO - priority + sizes)
 - ✅ `components/course-card.tsx` (OTIMIZADO - sizes)
 - ✅ `app/(main)/search/page.tsx` (OTIMIZADO - sizes)
 - ✅ `app/(main)/certificates/page.tsx` (OTIMIZADO - sizes)
 - ✅ `app/(main)/certificates/[id]/page.tsx` (OTIMIZADO - sizes)
+- ✅ `app/admin/users/page.tsx` (OTIMIZADO - select específico)
+- ✅ `app/actions/courses.ts` (OTIMIZADO - select específico)
+- ✅ `app/actions/learning-paths.ts` (OTIMIZADO - select específico)
 
-**Total de linhas de código:** ~2,260 linhas (código + documentação)
+**Total de linhas de código:** ~2,635 linhas (código + documentação)
 
 ---
 
@@ -456,6 +461,9 @@ Tempo restante estimado: ~54h
 2. ✅ `6317cad` - feat: Implementar sistema completo de log de atividades
 3. ✅ `682561f` - feat: Adicionar tratamento de erros robusto e conteúdo de teste no dashboard admin
 4. ✅ `2e3dbd5` - perf: Otimizar queries de relatórios eliminando N+1
+5. ✅ `165dab2` - docs: Atualizar progresso do Sprint 4 (performance optimization completa)
+6. ✅ `f546ffe` - perf: Otimizar carregamento de imagens com next/image
+7. ✅ `85036c3` - perf: Otimizar select queries para reduzir bandwidth
 
 ---
 
@@ -466,9 +474,9 @@ Tempo restante estimado: ~54h
 | Sprint 1 | 18h | 18h | 100% | ✅ Completo |
 | Sprint 2 | 16h | 16h | 100% | ✅ Completo |
 | Sprint 3 | 20h | 8h | 40% | 🔄 Em Andamento |
-| Sprint 4 | 17h | 7h | 41% | 🔄 Em Andamento |
+| Sprint 4 | 17h | 9h | 53% | 🔄 Em Andamento |
 | Sprint 5 | 32h | 0h | 0% | ⏳ Pendente |
-| **TOTAL** | **103h** | **49h** | **48%** | **🔄 Em Andamento** |
+| **TOTAL** | **103h** | **51h** | **50%** | **🔄 Em Andamento** |
 
 ---
 
@@ -478,19 +486,20 @@ Tempo restante estimado: ~54h
 1. ✅ Sprint 1 (Relatórios) - CONCLUÍDO
 2. ✅ Sprint 2 (Logs) - CONCLUÍDO
 3. 🔄 Sprint 3 (Estabilidade) - EM ANDAMENTO (40%)
-4. 🔄 Sprint 4 (Performance) - EM ANDAMENTO (24%)
+4. 🔄 Sprint 4 (Performance) - EM ANDAMENTO (53%)
+   - ✅ Query Optimization (N+1 elimination)
+   - ✅ Image Optimization (next/image)
+   - ✅ Selective Field Optimization (select queries)
 
 ### Próxima Sessão:
-5. ⏳ Continuar Sprint 4:
+5. ⏳ Continuar Sprint 4 (~8h restantes):
    - Responsividade Mobile (6h)
-   - Otimização de imagens com next/image (3h)
-   - Performance adicional em outras queries (4h)
-   - Acessibilidade básica (4h)
-6. ⏳ Finalizar Sprint 3:
+   - Acessibilidade básica (2h)
+6. ⏳ Finalizar Sprint 3 (~12h restantes):
    - Validações com Zod (6h)
    - Toast notifications padronizadas (3h)
    - Empty states melhorados (3h)
-7. ⏳ Sprint 5 (Testes)
+7. ⏳ Sprint 5 (Testes) - 32h
 
 ---
 
