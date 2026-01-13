@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyStateInline } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
+import { Users } from 'lucide-react'
 import Link from 'next/link'
 import type { User } from '@/lib/types/database'
 
@@ -55,9 +57,15 @@ export default async function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             {users && users.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-slate-400">No users found</p>
-              </div>
+              <EmptyStateInline
+                icon={Users}
+                title="Nenhum usuário encontrado"
+                description="Crie usuários para gerenciar acessos à plataforma"
+                action={{
+                  label: 'Criar Usuário',
+                  href: '/admin/users/new',
+                }}
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">

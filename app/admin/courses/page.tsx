@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import Link from 'next/link'
 import { Plus, Edit, BookOpen, Eye } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -58,25 +59,20 @@ export default async function AdminCoursesPage({
 
       {/* Courses Grid */}
       {courses.length === 0 ? (
-        <Card className="bg-slate-900 border-slate-800">
-          <CardContent className="pt-6">
-            <div className="text-center py-12">
-              <BookOpen className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-              <h3 className="font-display text-xl font-medium text-white mb-2">
-                Nenhum curso encontrado
-              </h3>
-              <p className="text-slate-400 mb-6">
-                Comece criando seu primeiro curso na plataforma
-              </p>
-              <Link href="/admin/courses/new">
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Primeiro Curso
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={BookOpen}
+          title="Nenhum curso encontrado"
+          description="Comece criando seu primeiro curso na plataforma e disponibilize conteúdo de qualidade"
+          action={{
+            label: 'Criar Primeiro Curso',
+            href: '/admin/courses/new',
+          }}
+          suggestions={[
+            'Cursos podem ser organizados em módulos e aulas',
+            'Adicione quizzes para avaliar o aprendizado',
+            'Configure certificados de conclusão automaticamente',
+          ]}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {courses.map((course) => (
