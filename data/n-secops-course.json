@@ -1,0 +1,315 @@
+{
+  "course": {
+    "title": "n.SecOps - Network Security Operations",
+    "slug": "n-secops",
+    "description": "Curso completo de Operações de Segurança de Rede, cobrindo monitoramento, detecção de ameaças, resposta a incidentes e gestão de vulnerabilidades em ambientes corporativos.",
+    "objectives": "Compreender os fundamentos de SecOps; Implementar estratégias de monitoramento de segurança; Detectar e responder a incidentes de segurança; Gerenciar vulnerabilidades e patches; Utilizar ferramentas SIEM e análise de logs; Aplicar frameworks de threat intelligence; Conduzir investigações forenses básicas.",
+    "duration_hours": 24,
+    "level": "intermediario",
+    "area": "Segurança da Informação",
+    "status": "published",
+    "is_public": true,
+    "is_certifiable": true
+  },
+  "modules": [
+    {
+      "title": "Módulo 1: Fundamentos de SecOps",
+      "description": "Introdução aos conceitos fundamentais de Security Operations",
+      "order_index": 1,
+      "lessons": [
+        {
+          "title": "O que é SecOps?",
+          "content_type": "text",
+          "content_text": "# O que é SecOps (Security Operations)?\n\nSecurity Operations (SecOps) é a prática de identificar, investigar e responder a ameaças de segurança cibernética em tempo real. É uma função crítica que combina pessoas, processos e tecnologia para proteger os ativos de informação de uma organização.\n\n## Objetivos Principais do SecOps\n\n### 1. Detecção de Ameaças\n- Monitoramento contínuo de redes e sistemas\n- Identificação de atividades suspeitas\n- Análise de indicadores de comprometimento (IoCs)\n\n### 2. Resposta a Incidentes\n- Contenção rápida de ameaças\n- Erradicação de malware e atacantes\n- Recuperação de sistemas afetados\n\n### 3. Gestão de Vulnerabilidades\n- Identificação de falhas de segurança\n- Priorização de correções\n- Aplicação de patches e atualizações\n\n### 4. Inteligência de Ameaças\n- Coleta de informações sobre ameaças emergentes\n- Análise de tendências de ataque\n- Compartilhamento de informações com a comunidade\n\n## O Ciclo SecOps\n\n```\n1. PREPARAÇÃO\n   ↓\n2. DETECÇÃO\n   ↓\n3. ANÁLISE\n   ↓\n4. CONTENÇÃO\n   ↓\n5. ERRADICAÇÃO\n   ↓\n6. RECUPERAÇÃO\n   ↓\n7. LIÇÕES APRENDIDAS\n   ↓\n(volta para PREPARAÇÃO)\n```\n\n## Papéis em uma Equipe SecOps\n\n- **Security Analyst**: Monitora alertas e investiga incidentes\n- **Incident Responder**: Responde ativamente a ameaças\n- **Threat Hunter**: Busca proativamente por ameaças ocultas\n- **Security Engineer**: Implementa e mantém ferramentas de segurança\n- **SOC Manager**: Gerencia a equipe e processos do SOC",
+          "duration_minutes": 30,
+          "order_index": 1,
+          "is_required": true
+        },
+        {
+          "title": "O Security Operations Center (SOC)",
+          "content_type": "text",
+          "content_text": "# Security Operations Center (SOC)\n\nO SOC (Security Operations Center) é o coração das operações de segurança de uma organização. É uma equipe centralizada que monitora, detecta, analisa e responde a incidentes de segurança cibernética 24/7.\n\n## Estrutura de um SOC\n\n### Tier 1 - Analistas de Triage\n- Monitoramento de alertas em tempo real\n- Triagem inicial de eventos de segurança\n- Encaminhamento de incidentes para Tier 2\n- Documentação básica\n\n### Tier 2 - Analistas de Incidentes\n- Investigação aprofundada de alertas\n- Correlação de eventos\n- Análise de logs e evidências\n- Coordenação da resposta inicial\n\n### Tier 3 - Especialistas e Threat Hunters\n- Análise avançada de ameaças\n- Hunting proativo de ameaças\n- Análise forense\n- Desenvolvimento de detecções customizadas\n\n### SOC Manager\n- Gestão da equipe e processos\n- Métricas e KPIs\n- Coordenação com outras áreas\n- Melhoria contínua\n\n## Modelos de SOC\n\n### 1. SOC Interno\n**Vantagens:**\n- Controle total\n- Conhecimento profundo do ambiente\n- Resposta rápida\n\n**Desvantagens:**\n- Custo elevado\n- Dificuldade de recrutar talentos\n- Cobertura 24/7 desafiadora\n\n### 2. SOC Terceirizado (MSSP)\n**Vantagens:**\n- Custo reduzido\n- Cobertura 24/7\n- Acesso a expertise especializada\n\n**Desvantagens:**\n- Menos controle\n- Conhecimento limitado do ambiente\n- Dependência de terceiros\n\n### 3. Modelo Híbrido\n**Vantagens:**\n- Equilíbrio entre custo e controle\n- Flexibilidade\n- Cobertura estendida\n\n**Desvantagens:**\n- Complexidade de coordenação\n- Sobreposição de responsabilidades\n\n## Ferramentas Essenciais do SOC\n\n1. **SIEM** (Security Information and Event Management)\n2. **EDR** (Endpoint Detection and Response)\n3. **NDR** (Network Detection and Response)\n4. **SOAR** (Security Orchestration, Automation and Response)\n5. **Threat Intelligence Platforms**\n6. **Vulnerability Scanners**\n7. **Ticketing Systems**\n\n## Métricas de Sucesso do SOC\n\n- **MTTD** (Mean Time to Detect): Tempo médio para detectar uma ameaça\n- **MTTR** (Mean Time to Respond): Tempo médio para responder\n- **MTTA** (Mean Time to Acknowledge): Tempo médio para reconhecer um alerta\n- **False Positive Rate**: Taxa de falsos positivos\n- **Incident Volume**: Volume de incidentes tratados\n- **Alert Coverage**: Cobertura de detecções",
+          "duration_minutes": 35,
+          "order_index": 2,
+          "is_required": true
+        },
+        {
+          "title": "Frameworks e Metodologias",
+          "content_type": "text",
+          "content_text": "# Frameworks e Metodologias em SecOps\n\nPara operações de segurança eficazes, é essencial seguir frameworks e metodologias estabelecidas que fornecem estrutura e melhores práticas.\n\n## 1. NIST Cybersecurity Framework\n\nO framework do NIST organiza atividades de cibersegurança em cinco funções:\n\n### Identificar (Identify)\n- Gestão de ativos\n- Avaliação de riscos\n- Governança\n\n### Proteger (Protect)\n- Controles de acesso\n- Treinamento e conscientização\n- Proteção de dados\n\n### Detectar (Detect)\n- Monitoramento contínuo\n- Processos de detecção\n- Análise de anomalias\n\n### Responder (Respond)\n- Planejamento de resposta\n- Comunicação\n- Análise e mitigação\n\n### Recuperar (Recover)\n- Planejamento de recuperação\n- Melhorias\n- Comunicação\n\n## 2. MITRE ATT&CK Framework\n\nO MITRE ATT&CK é uma base de conhecimento de táticas e técnicas de adversários baseada em observações do mundo real.\n\n### Estrutura\n- **Táticas**: Objetivos técnicos do adversário (ex: Initial Access, Persistence)\n- **Técnicas**: Métodos para alcançar os objetivos (ex: Phishing, Registry Run Keys)\n- **Procedimentos**: Implementações específicas de técnicas\n\n### Uso no SecOps\n- Mapeamento de detecções\n- Threat hunting\n- Gap analysis de cobertura\n- Simulação de adversários (Red Team)\n\n## 3. Cyber Kill Chain\n\nModelo desenvolvido pela Lockheed Martin que descreve as fases de um ataque:\n\n1. **Reconnaissance**: Coleta de informações sobre o alvo\n2. **Weaponization**: Criação de malware ou exploit\n3. **Delivery**: Transmissão da arma para o alvo\n4. **Exploitation**: Execução do exploit\n5. **Installation**: Instalação de backdoor/malware\n6. **Command & Control (C2)**: Comunicação com servidor de comando\n7. **Actions on Objectives**: Execução dos objetivos finais\n\n### Aplicação no SecOps\n- Identificar em qual fase o ataque está\n- Implementar controles em cada fase\n- Breaking the chain: interromper o ataque\n\n## 4. Incident Response Lifecycle (NIST SP 800-61)\n\n### Fase 1: Preparação\n- Políticas e procedimentos\n- Ferramentas e recursos\n- Treinamento da equipe\n\n### Fase 2: Detecção e Análise\n- Identificação de incidentes\n- Documentação\n- Priorização\n- Notificação\n\n### Fase 3: Contenção, Erradicação e Recuperação\n- Contenção: Isolar sistemas afetados\n- Erradicação: Remover ameaças\n- Recuperação: Restaurar operações normais\n\n### Fase 4: Post-Incident Activity\n- Lessons learned\n- Documentação completa\n- Melhorias de processos\n\n## 5. ISO/IEC 27035 - Incident Management\n\nPadrão internacional para gestão de incidentes de segurança da informação.\n\n### Componentes\n- Plano de resposta a incidentes\n- Equipe de resposta\n- Processos de escalação\n- Comunicação\n- Métricas e relatórios\n\n## Integrando Frameworks\n\nAs organizações modernas frequentemente combinam múltiplos frameworks:\n\n```\nNIST CSF (estrutura geral)\n  ↓\nMITRE ATT&CK (detecção e hunting)\n  ↓\nCyber Kill Chain (análise de ataques)\n  ↓\nNIST 800-61 (resposta a incidentes)\n```\n\nEsta abordagem em camadas fornece cobertura abrangente desde a estratégia até a execução operacional.",
+          "duration_minutes": 40,
+          "order_index": 3,
+          "is_required": true
+        }
+      ]
+    },
+    {
+      "title": "Módulo 2: Monitoramento e Detecção",
+      "description": "Técnicas e ferramentas para monitoramento e detecção de ameaças",
+      "order_index": 2,
+      "lessons": [
+        {
+          "title": "SIEM: Conceitos e Implementação",
+          "content_type": "text",
+          "content_text": "# SIEM - Security Information and Event Management\n\nSIEM é a espinha dorsal das operações de segurança modernas, fornecendo visibilidade centralizada e análise de eventos de segurança em toda a infraestrutura.\n\n## O que é SIEM?\n\nSIEM combina duas funcionalidades:\n\n### SIM (Security Information Management)\n- Armazenamento de longo prazo de logs\n- Análise e relatórios\n- Compliance e auditoria\n\n### SEM (Security Event Management)\n- Monitoramento em tempo real\n- Correlação de eventos\n- Alertas e notificações\n\n## Componentes Principais\n\n### 1. Coleta de Dados\n- **Agentes**: Software instalado em endpoints\n- **Syslog**: Protocolo padrão para envio de logs\n- **APIs**: Integração com serviços cloud\n- **Network Taps**: Captura de tráfego de rede\n\n### 2. Normalização\n- Conversão de diferentes formatos para um padrão\n- Padronização de campos (timestamp, source IP, etc.)\n- Enriquecimento com contexto adicional\n\n### 3. Armazenamento\n- Hot storage: Acesso rápido (30-90 dias)\n- Cold storage: Arquivamento de longo prazo\n- Indexação para buscas eficientes\n\n### 4. Correlação\n- Regras baseadas em assinaturas\n- Detecção baseada em anomalias\n- Machine learning para padrões complexos\n\n### 5. Alertas e Dashboards\n- Visualizações em tempo real\n- Alertas prioritizados\n- Workflows de investigação\n\n## Principais Plataformas SIEM\n\n### Splunk\n**Vantagens:**\n- Interface intuitiva\n- Poderosa linguagem de busca (SPL)\n- Grande ecossistema de apps\n\n**Desvantagens:**\n- Custo elevado\n- Licenciamento baseado em volume\n\n### Elastic Stack (ELK)\n**Vantagens:**\n- Open source\n- Flexível e escalável\n- Comunidade ativa\n\n**Desvantagens:**\n- Requer mais expertise técnica\n- Suporte pago separado\n\n### Microsoft Sentinel\n**Vantagens:**\n- Integração nativa com Azure/M365\n- Modelo de preço pay-as-you-go\n- IA e automação integradas\n\n**Desvantagens:**\n- Mais focado em ecossistema Microsoft\n- Custos podem escalar rapidamente\n\n### IBM QRadar\n**Vantagens:**\n- Forte análise forense\n- Bom para compliance\n- Suporte empresarial\n\n**Desvantagens:**\n- Complexo de configurar\n- Interface datada\n\n## Use Cases Essenciais\n\n### 1. Detecção de Brute Force\n```\nRegra: 5+ tentativas de login falhadas do mesmo IP em 5 minutos\nAção: Alerta + Bloqueio temporário de IP\n```\n\n### 2. Detecção de Lateral Movement\n```\nDetectar: Uso de PsExec, WMIC, ou outros comandos remotos\nCorrelação: Usuário acessando múltiplos hosts em curto período\n```\n\n### 3. Data Exfiltration\n```\nIdentificar: Upload incomum de grande volume de dados\nIndicadores: Conexões para IPs/domínios suspeitos\n```\n\n### 4. Privilege Escalation\n```\nMonitorar: Mudanças em grupos privilegiados\nAlertar: Execução com privilégios elevados incomuns\n```\n\n## Melhores Práticas\n\n### 1. Fontes de Dados Prioritárias\n- Logs de autenticação (AD, SSO)\n- Firewall e proxy logs\n- Endpoint logs (Windows Event Logs, Sysmon)\n- Cloud service logs (AWS CloudTrail, Azure Activity)\n- DNS logs\n- Email gateway logs\n\n### 2. Tuning de Alertas\n- Começar com regras conservadoras\n- Iterar baseado em falsos positivos\n- Documentar exceções e whitelists\n- Revisar regras mensalmente\n\n### 3. Retenção de Dados\n- Definir baseado em:\n  - Requisitos regulatórios\n  - Capacidade de armazenamento\n  - Casos de uso de threat hunting\n- Típico: 90 dias hot + 1-7 anos cold\n\n### 4. Performance\n- Indexar campos importantes\n- Usar parsing eficiente\n- Implementar data tiers\n- Monitorar uso de recursos\n\n## Métricas de Sucesso\n\n- **Data Ingestion Rate**: GB/dia processados\n- **Query Performance**: Tempo médio de busca\n- **Alert Volume**: Alertas/dia\n- **False Positive Rate**: % de falsos positivos\n- **MTTD**: Mean Time to Detect\n- **Coverage**: % de infraestrutura monitorada",
+          "duration_minutes": 50,
+          "order_index": 1,
+          "is_required": true
+        },
+        {
+          "title": "Análise de Logs e Correlação de Eventos",
+          "content_type": "text",
+          "content_text": "# Análise de Logs e Correlação de Eventos\n\nA análise eficaz de logs é fundamental para detectar ameaças e investigar incidentes de segurança.\n\n## Tipos de Logs Críticos\n\n### 1. Windows Event Logs\n\n#### Security Events\n- **4624**: Successful logon\n- **4625**: Failed logon\n- **4672**: Special privileges assigned\n- **4688**: Process creation\n- **4698**: Scheduled task created\n- **4720**: User account created\n- **4732**: User added to security group\n\n#### Sysmon Events\n- **Event ID 1**: Process creation (com command line)\n- **Event ID 3**: Network connection\n- **Event ID 7**: Image loaded (DLLs)\n- **Event ID 8**: CreateRemoteThread\n- **Event ID 10**: ProcessAccess\n- **Event ID 11**: FileCreate\n\n### 2. Linux Logs\n\n- **/var/log/auth.log**: Autenticação e sudo\n- **/var/log/syslog**: Mensagens gerais do sistema\n- **/var/log/apache2/**: Logs de web server\n- **/var/log/secure**: SSH e autenticação (RHEL/CentOS)\n\n### 3. Network Logs\n\n- **Firewall logs**: Conexões permitidas/bloqueadas\n- **Proxy logs**: Navegação web\n- **DNS logs**: Queries DNS\n- **VPN logs**: Conexões remotas\n- **IDS/IPS logs**: Atividades suspeitas\n\n### 4. Application Logs\n\n- **Database logs**: Queries e acesso a dados\n- **Email gateway**: SMTP transactions\n- **Cloud services**: API calls, mudanças de configuração\n\n## Técnicas de Correlação\n\n### 1. Time-Based Correlation\n\nAgrupar eventos que ocorrem dentro de uma janela de tempo:\n\n```\nScenario: Credential Dumping\n1. Process creation (mimikatz.exe)\n2. LSASS access (dentro de 5 segundos)\n3. Network connection para IP externo (dentro de 1 minuto)\n→ ALERTA: Possível credential theft\n```\n\n### 2. Count-Based Correlation\n\nDetectar padrões baseados em frequência:\n\n```\nScenario: Brute Force Attack\nCondição: >10 failed logins do mesmo source IP em 5 minutos\n→ ALERTA: Brute force attempt\n```\n\n### 3. Sequence-Based Correlation\n\nDetectar sequência específica de eventos:\n\n```\nScenario: Privilege Escalation\n1. User login com conta normal\n2. Uso de sudo/runas\n3. Mudança em arquivo sensível (/etc/passwd)\n→ ALERTA: Possível privilege escalation\n```\n\n### 4. Cross-Asset Correlation\n\nCorrelacionar eventos entre diferentes sistemas:\n\n```\nScenario: Lateral Movement\n1. Login em Workstation A\n2. RDP connection de A → Server B (mesmo usuário)\n3. RDP connection de B → Server C (mesmo usuário)\n→ ALERTA: Lateral movement detected\n```\n\n## Análise de Padrões Suspeitos\n\n### Padrão 1: Command & Control (C2)\n\n**Indicadores:**\n- Beaconing: Conexões periódicas regulares\n- Domínios recém-registrados\n- DGA (Domain Generation Algorithm) patterns\n- Conexões para IPs em países incomuns\n\n**Busca (Splunk SPL):**\n```\nindex=firewall dest_port=443 OR dest_port=80\n| stats count by src_ip, dest_ip, dest_port\n| where count > 100 AND count < 1000\n| eval regularity=count/(time_span)\n| where regularity < 0.1\n```\n\n### Padrão 2: Data Exfiltration\n\n**Indicadores:**\n- Upload incomum de grande volume\n- Transferência para serviços de file sharing\n- Compressão/criptografia de arquivos seguida de upload\n- Conexões para IPs suspeitos\n\n**Busca:**\n```\nindex=proxy \n| where bytes_out > 10000000\n| stats sum(bytes_out) as total_out by user, dest\n| where total_out > 100000000\n```\n\n### Padrão 3: Privilege Abuse\n\n**Indicadores:**\n- Acesso a recursos fora do horário normal\n- Uso de contas privilegiadas para tarefas comuns\n- Mudanças em grupos de segurança\n- Criação de novas contas administrativas\n\n**Busca:**\n```\nindex=windows EventCode=4732\n| where Group_Name=\"Administrators\" OR Group_Name=\"Domain Admins\"\n| table _time, user, Account_Added, Group_Name\n```\n\n### Padrão 4: Malware Execution\n\n**Indicadores:**\n- Execução de processos de locais incomuns (temp, downloads)\n- Process injection\n- Persistência via registry/scheduled tasks\n- Conexões de rede de processos não-browser\n\n**Busca:**\n```\nindex=sysmon EventCode=1\n| where (Image LIKE \"%\\\\Temp\\\\%\" OR Image LIKE \"%\\\\Downloads\\\\%\")\nAND (CommandLine LIKE \"%powershell%\" OR CommandLine LIKE \"%cmd%\")\n| table _time, User, Image, CommandLine, ParentImage\n```\n\n## Baseline e Anomalias\n\n### Estabelecendo Baseline\n\n1. **User Behavior Baseline**\n   - Horários típicos de login\n   - Recursos acessados normalmente\n   - Volume de dados transferidos\n   - Dispositivos utilizados\n\n2. **System Behavior Baseline**\n   - Processos normalmente em execução\n   - Conexões de rede esperadas\n   - Volume de logs por sistema\n\n3. **Network Behavior Baseline**\n   - Protocolos e portas comuns\n   - Fluxo de dados entre sistemas\n   - Bandwidth utilizado\n\n### Detecção de Anomalias\n\n- **Statistical anomalies**: Desvios significativos da média\n- **Time-based anomalies**: Atividade fora do horário normal\n- **Frequency anomalies**: Eventos incomumente frequentes/raros\n- **Geographic anomalies**: Logins de localizações incomuns\n\n## Ferramentas de Análise\n\n### Log Analysis Tools\n- **grep/awk/sed**: Análise de linha de comando\n- **jq**: Processamento de JSON\n- **Chainsaw**: Análise rápida de Windows Event Logs\n- **Sigma**: Regras de detecção genéricas\n\n### Visualization\n- **Kibana**: Dashboards do Elastic\n- **Grafana**: Visualização de métricas\n- **Timeline Explorer**: Análise de timeline\n\n## Melhores Práticas\n\n1. **Centralizar logs**: Enviar todos para SIEM\n2. **Sincronizar timestamps**: NTP em toda infraestrutura\n3. **Enriquecer com contexto**: GeoIP, threat intel, asset info\n4. **Automatizar análises comuns**: Playbooks e scripts\n5. **Documentar padrões**: Criar runbooks para cada tipo de alerta\n6. **Revisar regularmente**: Tuning contínuo de detecções",
+          "duration_minutes": 55,
+          "order_index": 2,
+          "is_required": true
+        },
+        {
+          "title": "Threat Intelligence e IoCs",
+          "content_type": "text",
+          "content_text": "# Threat Intelligence e Indicadores de Comprometimento (IoCs)\n\nThreat Intelligence é informação acionável sobre ameaças atuais ou emergentes que pode ser usada para proteger a organização.\n\n## Tipos de Threat Intelligence\n\n### 1. Strategic Intelligence\n**Audiência**: Executivos, tomadores de decisão\n\n**Conteúdo:**\n- Tendências de ameaças globais\n- Motivações de threat actors\n- Impacto potencial no negócio\n- Recomendações de investimentos em segurança\n\n**Formato**: Relatórios executivos, apresentações\n\n### 2. Tactical Intelligence\n**Audiência**: Arquitetos de segurança, gerentes de SOC\n\n**Conteúdo:**\n- TTPs (Tactics, Techniques, and Procedures) de adversários\n- Campanhas de ataque específicas\n- Vulnerabilidades exploradas\n- Vetores de ataque comuns\n\n**Formato**: Relatórios técnicos, boletins de ameaças\n\n### 3. Operational Intelligence\n**Audiência**: Analistas de SOC, incident responders\n\n**Conteúdo:**\n- Campanhas de ataque em andamento\n- Métodos de phishing atuais\n- Malware prevalente\n- Grupos APT ativos\n\n**Formato**: Alertas, feeds, relatórios de campanha\n\n### 4. Technical Intelligence\n**Audiência**: Analistas de segurança, threat hunters\n\n**Conteúdo:**\n- IoCs específicos (IPs, domains, file hashes)\n- Regras de detecção (Sigma, Yara, Snort)\n- Samples de malware\n- Network indicators\n\n**Formato**: Feeds de IoCs, regras, samples\n\n## Indicadores de Comprometimento (IoCs)\n\n### Tipos de IoCs\n\n#### 1. Network Indicators\n- **IP Addresses**: IPs de C2 servers, scanning sources\n- **Domains**: Domínios maliciosos, phishing sites\n- **URLs**: Links de download de malware\n- **Email Addresses**: Remetentes de phishing\n- **SSL Certificates**: Certificados usados por malware\n\n#### 2. Host Indicators\n- **File Hashes**: MD5, SHA1, SHA256 de malware\n- **File Paths**: Localizações comuns de malware\n- **Registry Keys**: Chaves usadas para persistência\n- **Mutexes**: Nomes de mutexes criados por malware\n- **Services**: Nomes de serviços maliciosos\n\n#### 3. Behavioral Indicators\n- **Process Patterns**: Sequências de execução suspeitas\n- **Network Patterns**: Beaconing, DGA\n- **File Operations**: Criação/modificação de arquivos sensíveis\n- **User Behavior**: Padrões de acesso anômalos\n\n## Fontes de Threat Intelligence\n\n### Comerciais\n- **Recorded Future**: Agregação de múltiplas fontes\n- **Mandiant (Google)**: APT intelligence\n- **CrowdStrike Falcon Intelligence**: Real-time threat data\n- **Anomali ThreatStream**: Threat intelligence platform\n\n### Open Source (OSINT)\n- **MISP**: Threat intel sharing platform\n- **AlienVault OTX**: Open threat exchange\n- **Abuse.ch**: Malware tracking (URLhaus, MalwareBazaar)\n- **PhishTank**: Phishing URLs\n- **VirusTotal**: File/URL analysis\n- **Shodan**: Internet-connected devices\n\n### Government/CERT\n- **US-CERT**: Alertas do governo americano\n- **CERT.BR**: CERT brasileiro\n- **CISA**: Cybersecurity alerts\n- **NCSC**: UK National Cyber Security Centre\n\n### ISACs (Information Sharing and Analysis Centers)\n- **FS-ISAC**: Setor financeiro\n- **H-ISAC**: Setor de saúde\n- **E-ISAC**: Setor de energia\n\n## Formatos de Intelligence\n\n### STIX (Structured Threat Information Expression)\nPadrão para representação estruturada de threat intelligence:\n\n```json\n{\n  \"type\": \"indicator\",\n  \"spec_version\": \"2.1\",\n  \"id\": \"indicator--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd3f\",\n  \"created\": \"2024-01-15T10:00:00.000Z\",\n  \"modified\": \"2024-01-15T10:00:00.000Z\",\n  \"name\": \"Malicious IP Address\",\n  \"pattern\": \"[ipv4-addr:value = '192.0.2.1']\",\n  \"pattern_type\": \"stix\",\n  \"valid_from\": \"2024-01-15T10:00:00Z\",\n  \"labels\": [\"malicious-activity\"]\n}\n```\n\n### TAXII (Trusted Automated Exchange of Intelligence Information)\nProtocolo para compartilhamento de threat intelligence via APIs.\n\n### OpenIOC\nFramework para descrever IoCs técnicos:\n\n```xml\n<OpenIOC>\n  <indicator>\n    <IndicatorItem>\n      <IndicatorItem condition=\"is\">\n        <Context type=\"FileItem/Md5sum\"/>\n        <Content>5d41402abc4b2a76b9719d911017c592</Content>\n      </IndicatorItem>\n    </IndicatorItem>\n  </indicator>\n</OpenIOC>\n```\n\n## Implementação de Threat Intelligence\n\n### 1. Coleta e Agregação\n```\nFontes → Normalização → Enriquecimento → Armazenamento\n```\n\n### 2. Integração com Ferramentas\n- **SIEM**: Enriquecer alertas com contexto de threat intel\n- **Firewall/IPS**: Bloquear IPs/domains maliciosos\n- **Email Gateway**: Filtrar phishing baseado em IoCs\n- **EDR**: Detectar file hashes maliciosos\n- **Proxy**: Bloquear URLs maliciosas\n\n### 3. Automatização\n```python\n# Exemplo: Verificar IoCs contra VirusTotal\nimport requests\n\ndef check_virustotal(ioc, ioc_type):\n    api_key = \"YOUR_API_KEY\"\n    \n    if ioc_type == \"ip\":\n        url = f\"https://www.virustotal.com/api/v3/ip_addresses/{ioc}\"\n    elif ioc_type == \"domain\":\n        url = f\"https://www.virustotal.com/api/v3/domains/{ioc}\"\n    \n    headers = {\"x-apikey\": api_key}\n    response = requests.get(url, headers=headers)\n    \n    if response.status_code == 200:\n        data = response.json()\n        malicious = data['data']['attributes']['last_analysis_stats']['malicious']\n        return malicious > 0\n    \n    return False\n```\n\n### 4. Priorização\n\nNem todos os IoCs têm a mesma importância:\n\n**High Priority:**\n- IoCs relacionados a APTs targeting sua indústria\n- Vulnerabilidades críticas sendo exploradas\n- Campanhas de ransomware ativas\n\n**Medium Priority:**\n- Malware commodity prevalente\n- Phishing genérico\n- Scanning activities\n\n**Low Priority:**\n- IoCs antigos (>6 meses)\n- Ameaças não relevantes para seu ambiente\n\n## Threat Intelligence Platform (TIP)\n\nUma TIP centraliza a gestão de threat intelligence:\n\n### Funcionalidades\n- **Aggregation**: Coletar de múltiplas fontes\n- **Normalization**: Converter para formato padrão\n- **Enrichment**: Adicionar contexto\n- **Correlation**: Relacionar IoCs\n- **Distribution**: Compartilhar com ferramentas\n- **Expiration**: Remover IoCs obsoletos\n\n### Plataformas Populares\n- **MISP**: Open source, community-driven\n- **Anomali**: Comercial, integrações extensas\n- **ThreatConnect**: Orchestration e automation\n- **ThreatQuotient**: Threat library e scoring\n\n## Melhores Práticas\n\n1. **Contextualizar**: IoCs sem contexto têm valor limitado\n2. **Verificar confiabilidade**: Avaliar qualidade das fontes\n3. **Automatizar**: Integrar feeds automaticamente\n4. **Enriquecer**: Adicionar dados próprios\n5. **Compartilhar**: Contribuir com a comunidade\n6. **Expirar**: Remover IoCs obsoletos\n7. **Medir efetividade**: Trackear detecções de IoCs\n8. **Treinar equipe**: Ensinar a usar intelligence\n\n## Métricas de Threat Intelligence\n\n- **Coverage**: % de fontes relevantes monitoradas\n- **Actionability**: % de intelligence acionável\n- **Timeliness**: Tempo entre publicação e implementação\n- **Detection Rate**: Detecções baseadas em IoCs\n- **False Positive Rate**: Falsos positivos de IoCs",
+          "duration_minutes": 45,
+          "order_index": 3,
+          "is_required": true
+        }
+      ]
+    },
+    {
+      "title": "Módulo 3: Resposta a Incidentes",
+      "description": "Processos e técnicas para resposta efetiva a incidentes de segurança",
+      "order_index": 3,
+      "lessons": [
+        {
+          "title": "Processo de Resposta a Incidentes",
+          "content_type": "text",
+          "content_text": "# Processo de Resposta a Incidentes\n\nA resposta rápida e eficaz a incidentes de segurança é crítica para minimizar danos e restaurar operações normais.\n\n## Ciclo de Vida da Resposta a Incidentes\n\n### Fase 1: PREPARAÇÃO\n\n#### Componentes Essenciais\n\n**1. Plano de Resposta a Incidentes**\n- Definição de incidente de segurança\n- Classificação e priorização\n- Procedimentos de escalação\n- Papéis e responsabilidades\n- Contatos de emergência\n\n**2. Equipe de Resposta (IRT/CSIRT)**\n- **Incident Manager**: Coordena a resposta\n- **Technical Lead**: Análise técnica\n- **Communications**: Comunicação interna/externa\n- **Legal**: Aspectos jurídicos\n- **Management**: Tomada de decisões\n\n**3. Ferramentas e Recursos**\n- SIEM para detecção\n- EDR para investigação em endpoints\n- Network forensics tools\n- Memory forensics tools\n- Ticketing system para tracking\n- Communication platform seguro\n- Jump bag: USB com ferramentas portáteis\n\n**4. Treinamento**\n- Tabletop exercises\n- Purple team exercises\n- Simulações de ransomware\n- Post-mortems de incidentes reais\n\n### Fase 2: DETECÇÃO e ANÁLISE\n\n#### 2.1 Detecção\n\n**Fontes de Detecção:**\n- Alertas de SIEM\n- EDR notifications\n- IDS/IPS alerts\n- Antivirus detections\n- User reports\n- Threat intelligence\n- Anomaly detection\n\n**Indicadores Comuns:**\n- Processos suspeitos em execução\n- Conexões de rede anômalas\n- Arquivos modificados/criados\n- Tentativas de login falhadas\n- Privilege escalation attempts\n- Data exfiltration patterns\n\n#### 2.2 Análise Inicial (Triage)\n\n**Questões Críticas:**\n1. O que aconteceu?\n2. Quando começou?\n3. Qual é o escopo?\n4. Quais sistemas estão afetados?\n5. Qual é a severidade?\n6. Há evidências de comprometimento?\n\n**Classificação de Severidade:**\n\n**Critical (P1):**\n- Ransomware ativo\n- Breach de dados confirmado\n- Sistemas críticos comprometidos\n- Impacto operacional severo\n**SLA: Resposta imediata**\n\n**High (P2):**\n- Malware detectado\n- Tentativa de breach\n- Sistemas importantes afetados\n**SLA: 1 hora**\n\n**Medium (P3):**\n- Atividade suspeita\n- Potencial compromisso\n- Sistemas não-críticos afetados\n**SLA: 4 horas**\n\n**Low (P4):**\n- Violação de política\n- Atividade anômala menor\n- Sem impacto operacional\n**SLA: 24 horas**\n\n#### 2.3 Análise Aprofundada\n\n**Coleta de Evidências:**\n- Memory dump de sistemas afetados\n- Disk images (se necessário)\n- Network packet captures\n- Logs relevantes (Windows Event, Syslog, application)\n- Snapshots de VMs\n\n**Timeline Reconstruction:**\n```\n2024-01-15 09:23:45 - Phishing email received\n2024-01-15 09:45:12 - User clicked malicious link\n2024-01-15 09:45:30 - Malware downloaded\n2024-01-15 09:46:02 - Malware executed\n2024-01-15 09:48:15 - C2 connection established\n2024-01-15 10:15:00 - Lateral movement to Server01\n2024-01-15 10:30:45 - Privilege escalation\n2024-01-15 11:00:00 - Data exfiltration started\n```\n\n**Análise de Malware:**\n- Static analysis: Strings, metadata, entropy\n- Dynamic analysis: Sandbox execution\n- Behavioral analysis: Process activity, network connections\n- Code analysis: Disassembly/decompilation (se necessário)\n\n### Fase 3: CONTENÇÃO\n\n#### 3.1 Contenção de Curto Prazo\n\n**Objetivo**: Parar a propagação imediata\n\n**Ações:**\n- Isolar sistemas comprometidos da rede\n- Desabilitar contas comprometidas\n- Bloquear IPs/domínios maliciosos no firewall\n- Bloquear file hashes no EDR\n- Suspender processos maliciosos\n\n**Trade-offs:**\n- Desconectar da rede pode destruir evidências voláteis\n- Pode alertar o atacante\n- Pode causar interrupção operacional\n\n#### 3.2 Contenção de Longo Prazo\n\n**Objetivo**: Permitir operação contínua com risco controlado\n\n**Ações:**\n- Reimaging de sistemas comprometidos\n- Rotação de credenciais\n- Aplicação de patches\n- Implementação de controles adicionais\n- Monitoramento intensificado\n\n### Fase 4: ERRADICAÇÃO\n\n**Objetivo**: Remover completamente a ameaça\n\n**Ações:**\n1. **Identificar todos os pontos de comprometimento**\n   - Varredura de indicadores em toda a rede\n   - Hunt for persistência mechanisms\n   - Verificar backdoors\n\n2. **Remover artefatos maliciosos**\n   - Deletar malware\n   - Remover registry keys\n   - Deletar scheduled tasks maliciosas\n   - Remover contas backdoor\n\n3. **Fortalecer defesas**\n   - Aplicar patches\n   - Atualizar regras de firewall\n   - Deploy de regras de detecção\n   - Implementar segmentação adicional\n\n4. **Verificar erradicação**\n   - Scan completo com múltiplas ferramentas\n   - Hunt for IoCs\n   - Monitoramento intensivo por 72h\n\n### Fase 5: RECUPERAÇÃO\n\n**Objetivo**: Restaurar sistemas para operação normal\n\n**Processo:**\n1. **Validar sistemas limpos**\n   - Scan de segurança\n   - Verificação de configurações\n   - Testes de funcionalidade\n\n2. **Restaurar operações**\n   - Faseamento: Sistemas críticos primeiro\n   - Monitoramento contínuo durante restore\n   - Testes de validação\n\n3. **Monitoramento pós-recuperação**\n   - Enhanced monitoring por 30 dias\n   - Alertas para IoCs relacionados\n   - Verificações regulares\n\n### Fase 6: LIÇÕES APRENDIDAS\n\n**Objetivo**: Melhorar processos e prevenção\n\n**Post-Mortem Meeting:**\n- **Participantes**: Toda a equipe de resposta + stakeholders\n- **Timing**: 1-2 semanas após resolução\n\n**Questões:**\n1. O que aconteceu e por quê?\n2. O que funcionou bem?\n3. O que poderia ter sido melhor?\n4. Que melhorias devemos implementar?\n5. Que treinamento adicional é necessário?\n\n**Deliverables:**\n- Incident report completo\n- Timeline detalhado\n- Root cause analysis\n- Action items com responsáveis\n- Atualização de runbooks\n- Atualização de detecções\n\n## Comunicação Durante Incidentes\n\n### Comunicação Interna\n- **War room**: Espaço dedicado (físico ou virtual)\n- **Status updates**: Frequência baseada em severidade\n- **Escalation**: Quando e para quem\n- **Documentation**: Tudo deve ser documentado em tempo real\n\n### Comunicação Externa\n- **Legal/Reguladores**: Obrigações de notificação (LGPD, etc.)\n- **Clientes/Parceiros**: Transparência apropriada\n- **Imprensa**: Através de porta-voz oficial apenas\n- **Law Enforcement**: Quando envolver crimes\n\n## Ferramentas de Resposta\n\n### Investigação\n- **Volatility**: Memory forensics\n- **Autopsy/FTK**: Disk forensics\n- **Wireshark**: Network analysis\n- **Sysinternals Suite**: Windows utilities\n- **KAPE**: Evidence collection\n\n### Contenção\n- **EDR platforms**: Isolação remota\n- **Firewall management**: Bloqueios\n- **Active Directory**: Desabilitar contas\n- **SOAR platforms**: Orchestração\n\n### Documentação\n- **Ticketing**: Jira, ServiceNow\n- **Note-taking**: OneNote, CherryTree\n- **Timeline tools**: Plaso, Timeline Explorer\n\n## Melhores Práticas\n\n1. **Documentar tudo**: Notas detalhadas com timestamps\n2. **Preservar evidências**: Chain of custody\n3. **Não entrar em pânico**: Seguir o plano\n4. **Comunicar claramente**: Updates regulares\n5. **Pedir ajuda**: Envolver especialistas quando necessário\n6. **Aprender**: Sempre fazer post-mortem",
+          "duration_minutes": 60,
+          "order_index": 1,
+          "is_required": true
+        }
+      ]
+    }
+  ],
+  "quizzes": [
+    {
+      "title": "Avaliação Final: n.SecOps",
+      "description": "Teste seus conhecimentos sobre Security Operations",
+      "passing_score": 75,
+      "max_attempts": 3,
+      "questions": [
+        {
+          "question_text": "Qual é o objetivo principal de um Security Operations Center (SOC)?",
+          "question_type": "multiple_choice",
+          "points": 1,
+          "explanation": "O objetivo principal do SOC é monitorar, detectar, analisar e responder a incidentes de segurança cibernética 24/7.",
+          "order_index": 1,
+          "options": [
+            {
+              "option_text": "Monitorar, detectar e responder a incidentes de segurança em tempo real",
+              "is_correct": true,
+              "order_index": 1
+            },
+            {
+              "option_text": "Desenvolver novos softwares de segurança",
+              "is_correct": false,
+              "order_index": 2
+            },
+            {
+              "option_text": "Gerenciar políticas de recursos humanos",
+              "is_correct": false,
+              "order_index": 3
+            },
+            {
+              "option_text": "Fazer backup de dados corporativos",
+              "is_correct": false,
+              "order_index": 4
+            }
+          ]
+        },
+        {
+          "question_text": "O que significa SIEM?",
+          "question_type": "multiple_choice",
+          "points": 1,
+          "explanation": "SIEM significa Security Information and Event Management, uma solução que coleta e analisa logs de segurança.",
+          "order_index": 2,
+          "options": [
+            {
+              "option_text": "Security Information and Event Management",
+              "is_correct": true,
+              "order_index": 1
+            },
+            {
+              "option_text": "System Integration and Error Monitoring",
+              "is_correct": false,
+              "order_index": 2
+            },
+            {
+              "option_text": "Secure Internet Email Management",
+              "is_correct": false,
+              "order_index": 3
+            },
+            {
+              "option_text": "Software Installation and Execution Manager",
+              "is_correct": false,
+              "order_index": 4
+            }
+          ]
+        },
+        {
+          "question_text": "Qual framework mapeia táticas e técnicas de adversários baseadas em observações reais?",
+          "question_type": "multiple_choice",
+          "points": 1,
+          "explanation": "O MITRE ATT&CK Framework é uma base de conhecimento que documenta táticas, técnicas e procedimentos de adversários.",
+          "order_index": 3,
+          "options": [
+            {
+              "option_text": "MITRE ATT&CK",
+              "is_correct": true,
+              "order_index": 1
+            },
+            {
+              "option_text": "ISO 27001",
+              "is_correct": false,
+              "order_index": 2
+            },
+            {
+              "option_text": "PCI-DSS",
+              "is_correct": false,
+              "order_index": 3
+            },
+            {
+              "option_text": "COBIT",
+              "is_correct": false,
+              "order_index": 4
+            }
+          ]
+        },
+        {
+          "question_text": "IoCs (Indicadores de Comprometimento) devem ser automaticamente descartados após 6 meses, pois perdem relevância.",
+          "question_type": "true_false",
+          "points": 1,
+          "explanation": "Falso. Embora IoCs antigos possam ter menos relevância, a decisão de descartá-los deve ser baseada em contexto e não apenas tempo. Alguns IoCs permanecem relevantes por anos.",
+          "order_index": 4,
+          "options": [
+            {
+              "option_text": "Verdadeiro",
+              "is_correct": false,
+              "order_index": 1
+            },
+            {
+              "option_text": "Falso",
+              "is_correct": true,
+              "order_index": 2
+            }
+          ]
+        },
+        {
+          "question_text": "Qual é a primeira fase do ciclo de resposta a incidentes segundo o NIST SP 800-61?",
+          "question_type": "multiple_choice",
+          "points": 1,
+          "explanation": "A Preparação é a primeira fase, incluindo desenvolvimento de políticas, formação da equipe e aquisição de ferramentas.",
+          "order_index": 5,
+          "options": [
+            {
+              "option_text": "Preparação",
+              "is_correct": true,
+              "order_index": 1
+            },
+            {
+              "option_text": "Detecção e Análise",
+              "is_correct": false,
+              "order_index": 2
+            },
+            {
+              "option_text": "Contenção",
+              "is_correct": false,
+              "order_index": 3
+            },
+            {
+              "option_text": "Recuperação",
+              "is_correct": false,
+              "order_index": 4
+            }
+          ]
+        },
+        {
+          "question_text": "Durante a contenção de um incidente, sempre devemos desconectar imediatamente o sistema comprometido da rede.",
+          "question_type": "true_false",
+          "points": 1,
+          "explanation": "Falso. Desconectar imediatamente pode destruir evidências voláteis e nem sempre é a melhor estratégia. A decisão deve considerar o contexto do incidente.",
+          "order_index": 6,
+          "options": [
+            {
+              "option_text": "Verdadeiro",
+              "is_correct": false,
+              "order_index": 1
+            },
+            {
+              "option_text": "Falso",
+              "is_correct": true,
+              "order_index": 2
+            }
+          ]
+        },
+        {
+          "question_text": "O que significa MTTD em métricas de SOC?",
+          "question_type": "multiple_choice",
+          "points": 1,
+          "explanation": "MTTD (Mean Time to Detect) mede o tempo médio para detectar uma ameaça ou incidente de segurança.",
+          "order_index": 7,
+          "options": [
+            {
+              "option_text": "Mean Time to Detect",
+              "is_correct": true,
+              "order_index": 1
+            },
+            {
+              "option_text": "Maximum Threat Detection Delay",
+              "is_correct": false,
+              "order_index": 2
+            },
+            {
+              "option_text": "Malware Tracking and Termination Database",
+              "is_correct": false,
+              "order_index": 3
+            },
+            {
+              "option_text": "Minimum Time to Deploy",
+              "is_correct": false,
+              "order_index": 4
+            }
+          ]
+        },
+        {
+          "question_text": "Qual tipo de threat intelligence é mais relevante para executivos e tomadores de decisão?",
+          "question_type": "multiple_choice",
+          "points": 1,
+          "explanation": "Strategic Intelligence foca em tendências, impactos no negócio e recomendações de investimento, sendo mais adequada para executivos.",
+          "order_index": 8,
+          "options": [
+            {
+              "option_text": "Strategic Intelligence",
+              "is_correct": true,
+              "order_index": 1
+            },
+            {
+              "option_text": "Technical Intelligence",
+              "is_correct": false,
+              "order_index": 2
+            },
+            {
+              "option_text": "Operational Intelligence",
+              "is_correct": false,
+              "order_index": 3
+            },
+            {
+              "option_text": "Tactical Intelligence",
+              "is_correct": false,
+              "order_index": 4
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

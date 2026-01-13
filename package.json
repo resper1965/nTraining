@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "import:secops": "tsx scripts/import-course.ts --file data/n-secops-course.json",
+    "import:course": "tsx scripts/import-course.ts --file"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
