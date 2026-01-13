@@ -77,6 +77,8 @@ export default async function CourseDetailPage({
                 src={course.thumbnail_url}
                 alt={course.title}
                 fill
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
