@@ -21,7 +21,7 @@
 
 ### Aulas
 1. `lessons/01-fontes-normalizacao-e-parsing.md`
-2. `lessons/02-correlaçao-thresholds-e-qualidade-de-alerta.md`
+2. `lessons/02-correlacao-thresholds-e-qualidade-de-alerta.md`
 3. `lessons/03-dashboards-operacionais-e-casos-de-uso.md`
 
 ### Prática

@@ -3,6 +3,14 @@
 **Duração estimada:** 1.5h  
 **Objetivo:** entender o ciclo de gestão de vulnerabilidades e como priorizar por risco e contexto do negócio.
 
+### Resultados esperados
+- Explicar CVE/CVSS e seus limites (contexto > número)
+- Priorizar backlog por risco real (exposição + ativo crítico + exploitabilidade)
+- Produzir insumo para patch management/tickets (acionável)
+
+### Pré‑requisitos
+- Módulo 09 (inventário) recomendado para priorização consistente
+
 ### Tópicos
 - CVE/CVSS e o que “criticidade” realmente significa
 - Ciclo: descoberta → priorização → remediação → verificação
@@ -11,9 +19,14 @@
 - Relatórios executivos e técnicos
 - Integração com patch management
 
-### Exercício (sugestão)
-Priorizar um backlog de vulnerabilidades considerando:
-- criticidade técnica (CVSS)
-- exposição (internet/interno)
-- ativo crítico (impacto de negócio)
+### Aulas
+1. `lessons/01-cve-cvss-e-contexto.md`
+2. `lessons/02-scan-autenticado-vs-nao-autenticado.md`
+3. `lessons/03-priorizacao-por-risco-e-relatorios.md`
+
+### Prática
+- Priorizar um backlog considerando CVSS + exposição + impacto de negócio.
+
+### Avaliação
+- `quiz.md`
 
