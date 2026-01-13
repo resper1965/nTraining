@@ -24,20 +24,48 @@ export default async function DashboardPage() {
   // requireAuth() will redirect if not authenticated (throws NEXT_REDIRECT)
   // This should NOT be wrapped in try/catch as redirect() throws a special error
   const user = await requireAuth()
-  
+
   // Redirect superadmin to admin panel
   if (user.is_superadmin) {
     const { redirect } = await import('next/navigation')
     redirect('/admin')
   }
-  
+
+  // Add error logging to understand what's failing
   const [progress, courses, mandatoryCourses, certificates, paths] = await Promise.all([
-    getUserProgress().catch(() => []),
-    getCoursesWithProgress({ status: 'published' }).catch(() => []),
-    getUserMandatoryCourses().catch(() => []),
-    getUserCertificates().catch(() => []),
-    getUserPathsWithProgress().catch(() => []),
+    getUserProgress().catch((err) => {
+      console.error('getUserProgress error:', err)
+      return []
+    }),
+    getCoursesWithProgress({ status: 'published' }).catch((err) => {
+      console.error('getCoursesWithProgress error:', err)
+      return []
+    }),
+    getUserMandatoryCourses().catch((err) => {
+      console.error('getUserMandatoryCourses error:', err)
+      return []
+    }),
+    getUserCertificates().catch((err) => {
+      console.error('getUserCertificates error:', err)
+      return []
+    }),
+    getUserPathsWithProgress().catch((err) => {
+      console.error('getUserPathsWithProgress error:', err)
+      return []
+    }),
   ])
+
+  console.log('Dashboard data:', {
+    userId: user.id,
+    userEmail: user.email,
+    organizationId: user.organization_id,
+    isSuperadmin: user.is_superadmin,
+    progressCount: progress?.length || 0,
+    coursesCount: courses?.length || 0,
+    mandatoryCount: mandatoryCourses?.length || 0,
+    certificatesCount: certificates?.length || 0,
+    pathsCount: paths?.length || 0,
+  })
 
     const inProgressCourses = progress?.filter(
       (p: any) => p.status === 'in_progress'
@@ -65,6 +93,23 @@ export default async function DashboardPage() {
             </Button>
           </form>
         </div>
+
+        {/* Debug Info */}
+        <Card className="bg-yellow-950/20 border-yellow-800 mb-8">
+          <CardHeader>
+            <CardTitle className="text-yellow-400">🔍 Debug Info</CardTitle>
+          </CardHeader>
+          <CardContent className="text-white space-y-2">
+            <p><strong>User ID:</strong> {user.id}</p>
+            <p><strong>Email:</strong> {user.email}</p>
+            <p><strong>Organization ID:</strong> {user.organization_id || 'None'}</p>
+            <p><strong>Is Superadmin:</strong> {user.is_superadmin ? 'Yes' : 'No'}</p>
+            <p><strong>Courses Available:</strong> {courses?.length || 0}</p>
+            <p><strong>Progress Records:</strong> {progress?.length || 0}</p>
+            <p><strong>Mandatory Courses:</strong> {mandatoryCourses?.length || 0}</p>
+            <p><strong>Certificates:</strong> {certificates?.length || 0}</p>
+          </CardContent>
+        </Card>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
