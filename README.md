@@ -82,6 +82,15 @@ nTraining/
 └── public/          # Static assets
 ```
 
+## AI tooling (opcional)
+
+Este repositório inclui integração MCP para o Cursor usando `@ai-coders/context`.
+
+- Configuração: `.cursor/mcp.json` (server `ai-context`)
+- CLI (exemplos):
+  - `npx @ai-coders/context`
+  - `npx @ai-coders/context update`
+
 ## License
 
 Private project - ness.
