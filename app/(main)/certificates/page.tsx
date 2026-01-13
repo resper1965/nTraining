@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Award, Download, ExternalLink, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -36,22 +37,19 @@ export default async function CertificatesPage() {
 
         {/* Certificates Grid */}
         {certificates.length === 0 ? (
-          <Card className="bg-slate-900 border-slate-800">
-            <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <Award className="h-16 w-16 text-slate-600 mx-auto mb-4" />
-                <h3 className="font-display text-xl font-medium text-white mb-2">
-                  Nenhum certificado encontrado
-                </h3>
-                <p className="text-slate-400 mb-6">
-                  Complete cursos para receber certificados de conclusão
-                </p>
-                <Link href="/courses">
-                  <Button>Explorar Cursos</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={Award}
+            title="Nenhum certificado encontrado"
+            description="Complete cursos para receber certificados de conclusão e comprovar seu aprendizado"
+            action={{
+              label: 'Explorar Cursos',
+              href: '/courses',
+            }}
+            suggestions={[
+              'Certificados são gerados automaticamente ao concluir 100% do curso',
+              'Você pode baixar seus certificados em PDF a qualquer momento',
+            ]}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {certificates.map((cert: any) => {
