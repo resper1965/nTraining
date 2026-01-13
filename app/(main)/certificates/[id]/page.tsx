@@ -97,6 +97,7 @@ export default async function CertificateDetailPage({
                       src={course.thumbnail_url}
                       alt={course.title}
                       fill
+                      sizes="(max-width: 1024px) 100vw, 400px"
                       className="object-cover"
                     />
                   </div>

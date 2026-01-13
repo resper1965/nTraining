@@ -23,7 +23,7 @@ export async function getCourses(filters?: CourseFilters) {
     if (user.is_superadmin) {
         let query = supabase
             .from('courses')
-            .select('*')
+            .select('id, title, slug, description, thumbnail_url, level, area, duration_hours, status, is_public, created_at, organization_id')
             .order('created_at', { ascending: false });
 
         // Apply filters
@@ -69,7 +69,7 @@ export async function getCourses(filters?: CourseFilters) {
         .select(`
             *,
             courses (
-                *
+                id, title, slug, description, thumbnail_url, level, area, duration_hours, status, is_public, created_at, organization_id
             )
         `)
         .eq('organization_id', user.organization_id)
