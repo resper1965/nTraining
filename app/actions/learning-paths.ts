@@ -20,7 +20,7 @@ export async function getAllLearningPaths(organizationId?: string) {
 
   let query = supabase
     .from('learning_paths')
-    .select('*')
+    .select('id, title, slug, description, estimated_duration_hours, is_mandatory, organization_id, created_at, created_by')
     .order('created_at', { ascending: false })
 
   if (organizationId) {

@@ -13,7 +13,7 @@ export default async function AdminUsersPage() {
 
   const { data: users, error } = await supabase
     .from('users')
-    .select('*')
+    .select('id, full_name, email, role, is_active, created_at, organization_id')
     .order('created_at', { ascending: false })
 
   if (error) {

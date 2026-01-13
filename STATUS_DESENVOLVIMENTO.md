@@ -225,7 +225,7 @@ Tempo restante estimado: ~54h
 
 ## 🔄 SPRINT 4: Performance & UX (EM ANDAMENTO)
 
-**Duração:** 17 horas | **Status:** 🔄 41% completo (~7h de 17h)
+**Duração:** 17 horas | **Status:** 🔄 53% completo (~9h de 17h)
 
 ### Implementado:
 
@@ -298,6 +298,49 @@ Tempo restante estimado: ~54h
   - Resultados esperados
   - Boas práticas aplicadas
   - Futuras otimizações possíveis
+
+---
+
+#### 3. Selective Field Optimization (~2h) ✅
+
+**Status:** Queries críticas otimizadas com select() específico
+
+**Análise realizada:**
+- ✅ Identificadas 14 arquivos usando `select('*')`
+- ✅ Analisadas queries críticas (getCourses, getUserProgress, getLearningPaths)
+- ✅ **Descoberta:** Maioria das queries já otimizadas!
+- ✅ Implementada **Fase 1: Select Optimization** (alto impacto)
+
+**Otimizações implementadas:**
+1. ✅ **app/admin/users/page.tsx**
+   - Antes: `select('*')` - todos os campos
+   - Depois: `select('id, full_name, email, role, is_active, created_at, organization_id')`
+   - Redução estimada: ~40% bandwidth
+
+2. ✅ **app/actions/courses.ts - getCourses()**
+   - Antes: `select('*')` - todos os campos
+   - Depois: `select('id, title, slug, description, thumbnail_url, level, area, duration_hours, status, is_public, created_at, organization_id')`
+   - Aplicado em: superadmin query + organization_course_access query
+   - Redução estimada: ~30% bandwidth
+
+3. ✅ **app/actions/learning-paths.ts - getAllLearningPaths()**
+   - Antes: `select('*')` - todos os campos
+   - Depois: `select('id, title, slug, description, estimated_duration_hours, is_mandatory, organization_id, created_at, created_by')`
+   - Redução estimada: ~30% bandwidth
+
+**Resultados esperados:**
+- ✅ Admin Users Page: ~40% redução de payload
+- ✅ Courses Listing: ~30% redução de payload
+- ✅ Learning Paths: ~30% redução de payload
+- ✅ Benefícios: Menos bandwidth, respostas mais rápidas, menos memória
+
+**Documentação:**
+- ✅ Criar `QUERY_OPTIMIZATION_OPPORTUNITIES.md` detalhando:
+  - Análise completa de todas as queries do sistema
+  - Queries já otimizadas (reports, progress, paths)
+  - Oportunidades identificadas (Fase 1, 2, 3)
+  - Plano de implementação por prioridade
+  - Resultados esperados
 
 ---
 
