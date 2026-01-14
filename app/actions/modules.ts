@@ -1,68 +1,69 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth, requireRole } from '@/lib/supabase/server'
+// ============================================================================
+// Module Server Actions (Refatorado)
+// ============================================================================
+// Esta camada apenas orquestra: Auth → Validação → Service → Response
+
 import { revalidatePath } from 'next/cache'
-import type { Module, ModuleFormData } from '@/lib/types/database'
+import { requireAuth, requireRole } from '@/lib/auth/helpers'
+import { ContentService, ContentServiceError } from '@/lib/services/content.service'
+import {
+  validateModuleCreate,
+  validateModuleUpdate,
+  validateReorderModules,
+  type ModuleCreateInput,
+  type ModuleUpdateInput,
+  type ReorderModulesInput,
+} from '@/lib/validators/content.schema'
+import type { Module } from '@/lib/types/database'
+import { ZodError } from 'zod'
 
 // ============================================================================
 // GET MODULES BY COURSE
 // ============================================================================
 
-export async function getModulesByCourse(courseId: string) {
-  const supabase = createClient()
-  await requireAuth()
+export async function getModulesByCourse(courseId: string): Promise<Module[]> {
+  try {
+    await requireAuth()
 
-  const { data, error } = await supabase
-    .from('modules')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('order_index', { ascending: true })
-
-  if (error) {
-    throw new Error(`Failed to fetch modules: ${error.message}`)
+    const service = new ContentService()
+    return await service.getModulesByCourse(courseId)
+  } catch (error) {
+    if (error instanceof ContentServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  return data as Module[]
 }
 
 // ============================================================================
 // CREATE MODULE
 // ============================================================================
 
-export async function createModule(courseId: string, formData: ModuleFormData) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+export async function createModule(
+  courseId: string,
+  input: unknown
+): Promise<Module> {
+  try {
+    await requireRole('platform_admin')
 
-  // Obter o maior order_index atual
-  const { data: existingModules } = await supabase
-    .from('modules')
-    .select('order_index')
-    .eq('course_id', courseId)
-    .order('order_index', { ascending: false })
-    .limit(1)
+    const validatedInput = validateModuleCreate({ ...(input as any), course_id: courseId })
 
-  const nextOrderIndex = existingModules && existingModules.length > 0
-    ? existingModules[0].order_index + 1
-    : 0
+    const service = new ContentService()
+    const module = await service.createModule(validatedInput)
 
-  const { data, error } = await supabase
-    .from('modules')
-    .insert({
-      course_id: courseId,
-      title: formData.title,
-      description: formData.description || null,
-      order_index: nextOrderIndex,
-    })
-    .select()
-    .single()
-
-  if (error) {
-    throw new Error(`Failed to create module: ${error.message}`)
+    revalidatePath(`/admin/courses/${courseId}/modules`)
+    return module
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('Dados inválidos')
+    }
+    if (error instanceof ContentServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  revalidatePath(`/admin/courses/${courseId}/modules`)
-  return data as Module
 }
 
 // ============================================================================
@@ -71,68 +72,54 @@ export async function createModule(courseId: string, formData: ModuleFormData) {
 
 export async function updateModule(
   moduleId: string,
-  formData: Partial<ModuleFormData>
-) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+  input: unknown
+): Promise<Module> {
+  try {
+    await requireRole('platform_admin')
 
-  const { data, error } = await supabase
-    .from('modules')
-    .update({
-      title: formData.title,
-      description: formData.description || null,
-    })
-    .eq('id', moduleId)
-    .select()
-    .single()
+    const validation = validateModuleUpdate(input)
+    if (!validation.success) {
+      throw new Error('Dados inválidos')
+    }
 
-  if (error) {
-    throw new Error(`Failed to update module: ${error.message}`)
+    const service = new ContentService()
+    const module = await service.updateModule(moduleId, validation.data)
+
+    // Obter course_id para revalidar
+    const modules = await service.getModulesByCourse(module.course_id)
+    const updatedModule = modules.find((m) => m.id === moduleId)
+    if (updatedModule) {
+      revalidatePath(`/admin/courses/${updatedModule.course_id}/modules`)
+    }
+
+    return module
+  } catch (error) {
+    if (error instanceof ContentServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  // Revalidar páginas relacionadas
-  const { data: module } = await supabase
-    .from('modules')
-    .select('course_id')
-    .eq('id', moduleId)
-    .single()
-
-  if (module) {
-    revalidatePath(`/admin/courses/${module.course_id}/modules`)
-  }
-
-  return data as Module
 }
 
 // ============================================================================
 // DELETE MODULE
 // ============================================================================
 
-export async function deleteModule(moduleId: string) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+export async function deleteModule(moduleId: string): Promise<{ success: true }> {
+  try {
+    await requireRole('platform_admin')
 
-  // Obter course_id antes de deletar
-  const { data: module } = await supabase
-    .from('modules')
-    .select('course_id')
-    .eq('id', moduleId)
-    .single()
+    const service = new ContentService()
+    const { courseId } = await service.deleteModule(moduleId)
 
-  const { error } = await supabase
-    .from('modules')
-    .delete()
-    .eq('id', moduleId)
-
-  if (error) {
-    throw new Error(`Failed to delete module: ${error.message}`)
+    revalidatePath(`/admin/courses/${courseId}/modules`)
+    return { success: true }
+  } catch (error) {
+    if (error instanceof ContentServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  if (module) {
-    revalidatePath(`/admin/courses/${module.course_id}/modules`)
-  }
-
-  return { success: true }
 }
 
 // ============================================================================
@@ -142,26 +129,24 @@ export async function deleteModule(moduleId: string) {
 export async function reorderModules(
   courseId: string,
   moduleIds: string[]
-) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+): Promise<{ success: true }> {
+  try {
+    await requireRole('platform_admin')
 
-  // Atualizar order_index de cada módulo
-  const updates = moduleIds.map((moduleId, index) =>
-    supabase
-      .from('modules')
-      .update({ order_index: index })
-      .eq('id', moduleId)
-  )
+    const validatedInput = validateReorderModules({ course_id: courseId, module_ids: moduleIds })
 
-  const results = await Promise.all(updates)
-  const errors = results.filter((r) => r.error)
+    const service = new ContentService()
+    await service.reorderModules(validatedInput)
 
-  if (errors.length > 0) {
-    throw new Error(`Failed to reorder modules: ${errors[0].error?.message}`)
+    revalidatePath(`/admin/courses/${courseId}/modules`)
+    return { success: true }
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('Dados inválidos')
+    }
+    if (error instanceof ContentServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  revalidatePath(`/admin/courses/${courseId}/modules`)
-  return { success: true }
 }
-
