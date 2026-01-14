@@ -1,4 +1,4 @@
-import { requireSuperAdmin } from '@/lib/supabase/server'
+import { requireSuperAdmin } from '@/lib/auth/helpers'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Button } from '@/components/ui/button'
@@ -14,7 +14,7 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   // requireSuperAdmin will redirect if user is not authenticated or not superadmin
-  // We don't wrap it in try/catch because redirect() throws a special error
+  // Uses new auth helpers with request-scoped cache
   const user = await requireSuperAdmin()
 
   return (
