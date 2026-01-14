@@ -13,11 +13,13 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
+  console.log('[AdminLayout] Rendering at:', new Date().toISOString())
   let user
   try {
     user = await requireSuperAdmin()
+    console.log('[AdminLayout] SuperAdmin verified:', user?.email)
   } catch (error) {
-    console.error('Error in AdminLayout requireSuperAdmin:', error)
+    console.error('[AdminLayout] Error in requireSuperAdmin:', error)
     // Se não for superadmin, redirect já foi feito pelo requireSuperAdmin
     // Mas vamos renderizar uma mensagem de erro para debug
     return (

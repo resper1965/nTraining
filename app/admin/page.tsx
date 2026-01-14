@@ -17,11 +17,13 @@ import { Button } from '@/components/ui/button'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
+  console.log('[AdminDashboard] Rendering at:', new Date().toISOString())
   let user
   try {
     user = await requireSuperAdmin()
+    console.log('[AdminDashboard] User loaded:', user?.email, 'is_superadmin:', user?.is_superadmin)
   } catch (error) {
-    console.error('[AdminDashboardPage] Error in requireSuperAdmin:', error)
+    console.error('[AdminDashboard] Error in requireSuperAdmin:', error)
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8">
         <div className="text-center max-w-md">
@@ -48,9 +50,10 @@ export default async function AdminDashboardPage() {
   let activities: Awaited<ReturnType<typeof getRecentActivities>>
   
   try {
+    console.log('[AdminDashboard] Loading metrics...')
     [metrics, activities] = await Promise.all([
       getDashboardMetrics().catch((error) => {
-        console.error('Error in getDashboardMetrics:', error)
+        console.error('[AdminDashboard] Error in getDashboardMetrics:', error)
         return {
           organizations: { total: 0, active: 0, newThisMonth: 0 },
           users: { total: 0, active: 0, newThisMonth: 0 },
@@ -61,12 +64,13 @@ export default async function AdminDashboardPage() {
         }
       }),
       getRecentActivities(5).catch((error) => {
-        console.error('Error in getRecentActivities:', error)
+        console.error('[AdminDashboard] Error in getRecentActivities:', error)
         return []
       }),
     ])
+    console.log('[AdminDashboard] Metrics loaded successfully')
   } catch (error) {
-    console.error('Error loading dashboard metrics:', error)
+    console.error('[AdminDashboard] Error loading dashboard metrics:', error)
     // Return default values if there's an error
     metrics = {
       organizations: { total: 0, active: 0, newThisMonth: 0 },
