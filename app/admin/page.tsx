@@ -13,7 +13,8 @@ import {
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
-export const dynamic = 'force-dynamic'
+// Use revalidate instead of force-dynamic to allow caching and prevent flickering
+export const revalidate = 30 // Revalidate every 30 seconds
 
 export default async function AdminDashboardPage() {
   // User verification is already done in layout - skip to prevent duplicate queries
