@@ -19,21 +19,18 @@ export default async function WaitingRoomPage() {
 
   // IMPORTANTE: Superadmins NUNCA devem estar na waiting room
   // Redirecionar imediatamente para /admin (mesmo se is_active = false)
-  // Verificar explicitamente com === true para garantir
+  // Verificar PRIMEIRO antes de qualquer outra verificação
   if (user.is_superadmin === true) {
     redirect('/admin')
   }
 
   // Se usuário já foi aprovado, redirecionar para dashboard
+  // (mas não superadmin, pois já foi verificado acima)
   if (user.is_active === true) {
     redirect('/dashboard')
   }
 
-  // Se chegou aqui e é superadmin (verificação dupla), redirecionar
-  // Isso é uma proteção extra caso a verificação acima falhe
-  if (user.is_superadmin) {
-    redirect('/admin')
-  }
+  // Se chegou aqui, usuário está pendente de aprovação e não é superadmin
 
   // Se chegou aqui, usuário está pendente de aprovação
   const userData = user

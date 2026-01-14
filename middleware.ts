@@ -109,25 +109,70 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Se está em rota de auth e já autenticado, deixar layout decidir redirect
-    // (layouts vão verificar is_superadmin e is_active)
+    // Se está em rota de auth e já autenticado, redirecionar para página apropriada
+    // Isso evita que usuários autenticados vejam páginas de login/signup
     if (isAuthPath && user) {
-      return response
-    }
-
-    // IMPORTANTE: Verificar se superadmin está tentando acessar waiting-room
-    // Isso evita que superadmins vejam a waiting room mesmo que is_active = false
-    if (user && request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
+      // Verificar rapidamente se é superadmin para redirecionar corretamente
       try {
-        // Query rápida apenas para verificar is_superadmin
         const { data: userData } = await supabase
           .from('users')
-          .select('is_superadmin')
+          .select('is_superadmin, is_active')
           .eq('id', user.id)
           .single()
         
         if (userData?.is_superadmin === true) {
           return NextResponse.redirect(new URL('/admin', request.url))
+        }
+        
+        if (userData?.is_active === true) {
+          return NextResponse.redirect(new URL('/dashboard', request.url))
+        }
+        
+        // Se não está ativo e não é superadmin, pode ir para waiting-room
+        // (mas não redirecionar de waiting-room aqui, deixar a página decidir)
+        if (request.nextUrl.pathname !== '/auth/waiting-room') {
+          return NextResponse.redirect(new URL('/auth/waiting-room', request.url))
+        }
+      } catch (error) {
+        // Se erro, deixar passar - layouts vão verificar
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[middleware] Erro ao verificar userData em auth path:', error)
+        }
+      }
+      
+      return response
+    }
+
+    // IMPORTANTE: Verificar se superadmin está tentando acessar waiting-room
+    // Isso evita que superadmins vejam a waiting room mesmo que is_active = false
+    // E evita loops de redirect
+    if (user && request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
+      try {
+        // Query rápida apenas para verificar is_superadmin
+        const { data: userData, error: queryError } = await supabase
+          .from('users')
+          .select('is_superadmin, is_active')
+          .eq('id', user.id)
+          .single()
+        
+        // Se superadmin, redirecionar imediatamente para /admin
+        if (userData?.is_superadmin === true) {
+          const adminUrl = new URL('/admin', request.url)
+          const redirectResponse = NextResponse.redirect(adminUrl)
+          return redirectResponse
+        }
+        
+        // Se usuário está ativo, redirecionar para dashboard
+        if (userData?.is_active === true) {
+          const dashboardUrl = new URL('/dashboard', request.url)
+          const redirectResponse = NextResponse.redirect(dashboardUrl)
+          return redirectResponse
+        }
+        
+        // Se erro na query mas usuário autenticado, deixar passar
+        // A página waiting-room vai verificar novamente
+        if (queryError && process.env.NODE_ENV === 'development') {
+          console.error('[middleware] Erro ao verificar userData:', queryError)
         }
       } catch (error) {
         // Se erro, deixar passar - a página waiting-room vai verificar

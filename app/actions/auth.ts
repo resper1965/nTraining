@@ -48,7 +48,28 @@ export async function signIn(formData: FormData) {
       return
     }
 
-    // Verificar se usuário está pendente de aprovação
+    // IMPORTANTE: Verificar superadmin PRIMEIRO, antes de verificar is_active
+    // Superadmins SEMPRE vão para /admin, mesmo se is_active = false
+    if (userData?.is_superadmin === true) {
+      // Atualizar last_login_at
+      await supabase
+        .from('users')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', user.id)
+      
+      // Redirect superadmin to admin panel, unless redirectTo is specified
+      if (!redirectTo) {
+        revalidatePath('/')
+        redirect('/admin')
+        return
+      } else {
+        revalidatePath('/')
+        redirect(redirectTo)
+        return
+      }
+    }
+
+    // Verificar se usuário está pendente de aprovação (apenas para não-superadmins)
     if (userData && !userData.is_active) {
       redirect('/auth/waiting-room')
       return
@@ -68,14 +89,6 @@ export async function signIn(formData: FormData) {
       } catch (notifError) {
         console.error('Error creating welcome notification:', notifError)
       }
-    }
-
-    // Redirect superadmin to admin panel, unless redirectTo is specified
-    if (userData?.is_superadmin === true && !redirectTo) {
-      console.log('Redirecting superadmin to /admin')
-      revalidatePath('/')
-      redirect('/admin')
-      return
     }
     
     // Log for debugging
