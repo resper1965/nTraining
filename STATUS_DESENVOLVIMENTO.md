@@ -479,9 +479,9 @@ if (!result.success) {
 
 ---
 
-## ⏳ SPRINT 5: Testes e Correções (PENDENTE)
+## ⏳ SPRINT 5: Testes e Correções (EM ANDAMENTO)
 
-**Duração:** 32 horas | **Status:** ⏳ Não iniciado
+**Duração:** 32 horas | **Status:** ⏳ 0% - Próximo passo
 
 ### A Implementar:
 
@@ -629,24 +629,30 @@ if (!result.success) {
 
 ## 🎯 Próximos Passos Imediatos
 
-### Esta Sessão:
-1. ✅ Sprint 1 (Relatórios) - CONCLUÍDO
-2. ✅ Sprint 2 (Logs) - CONCLUÍDO
-3. 🔄 Sprint 3 (Estabilidade) - EM ANDAMENTO (40%)
-4. 🔄 Sprint 4 (Performance) - EM ANDAMENTO (53%)
-   - ✅ Query Optimization (N+1 elimination)
-   - ✅ Image Optimization (next/image)
-   - ✅ Selective Field Optimization (select queries)
+### Status Atual:
+- ✅ Sprint 1 (Relatórios) - 100% CONCLUÍDO
+- ✅ Sprint 2 (Logs) - 100% CONCLUÍDO
+- ✅ Sprint 3 (Estabilidade) - 100% CONCLUÍDO
+- ✅ Sprint 4 (Performance) - 100% CONCLUÍDO
+- ⏳ **Sprint 5 (Testes e Correções) - 0% - PRÓXIMO PASSO**
 
-### Próxima Sessão:
-5. ⏳ Continuar Sprint 4 (~8h restantes):
-   - Responsividade Mobile (6h)
-   - Acessibilidade básica (2h)
-6. ⏳ Finalizar Sprint 3 (~12h restantes):
-   - Validações com Zod (6h)
-   - Toast notifications padronizadas (3h)
-   - Empty states melhorados (3h)
-7. ⏳ Sprint 5 (Testes) - 32h
+### Próxima Sessão - Sprint 5:
+1. ⏳ **Tarefa 5.1:** Criar TESTING_CHECKLIST.md (~2h)
+   - Documentar fluxos: Superadmin, Student, Org Manager
+   - Checklist completo de funcionalidades
+   
+2. ⏳ **Tarefa 5.2:** Testes Manuais Happy Path (~8h)
+   - Executar em: Chrome, Firefox, Safari (Desktop e Mobile)
+   - Documentar bugs encontrados
+   
+3. ⏳ **Tarefa 5.3:** Correção de Bugs P0 (~12h)
+   - Bugs críticos (impedem uso, perda de dados, erros 500)
+   
+4. ⏳ **Tarefa 5.4:** Correção de Bugs P1 (~8h)
+   - Bugs importantes (UX, validação, layout)
+   
+5. ⏳ **Tarefa 5.5:** Smoke Tests em Produção (~2h)
+   - Build, login, criar curso, player, certificado, email, upload
 
 ---
 
