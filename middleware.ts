@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
     )
   }
 
-  let response = NextResponse.next({
+    let response = NextResponse.next({
     request: {
       headers: new Headers(request.headers),
     },
@@ -162,13 +162,32 @@ export async function middleware(request: NextRequest) {
 
     // Redirect to appropriate dashboard if accessing auth pages while logged in
     if (isAuthPath && user) {
-      // Se não temos userData, deixar layout verificar (evita query duplicada)
+      // Se não temos userData, buscar agora (necessário para decidir redirect)
+      if (!userData) {
+        try {
+          const { data, error: userError } = await supabase
+            .from('users')
+            .select('is_superadmin, is_active')
+            .eq('id', user.id)
+            .single()
+          
+          if (!userError && data) {
+            userData = data
+          }
+        } catch (error) {
+          // Se erro, deixar passar e layout vai verificar
+          return response
+        }
+      }
+      
+      // Se ainda não temos userData, deixar layout verificar
       if (!userData) {
         return response
       }
+      
       const targetUrl = userData.is_superadmin === true ? '/admin' : '/dashboard'
       // Evitar redirect se já está na página correta
-      if (request.nextUrl.pathname !== targetUrl) {
+      if (request.nextUrl.pathname !== targetUrl && request.nextUrl.pathname !== '/') {
         const redirectResponse = NextResponse.redirect(new URL(targetUrl, request.url))
         redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
         return redirectResponse
@@ -184,10 +203,33 @@ export async function middleware(request: NextRequest) {
     
     // Redirect root path based on user status
     if (request.nextUrl.pathname === '/' && user) {
-      // Se não temos userData, deixar layout verificar (evita query duplicada)
+      // Se não temos userData, buscar agora (necessário para decidir redirect)
       if (!userData) {
-        return response
+        try {
+          const { data, error: userError } = await supabase
+            .from('users')
+            .select('is_superadmin, is_active')
+            .eq('id', user.id)
+            .single()
+          
+          if (!userError && data) {
+            userData = data
+          }
+        } catch (error) {
+          // Se erro, redirecionar para dashboard como fallback
+          const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+          redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
+          return redirectResponse
+        }
       }
+      
+      // Se ainda não temos userData, redirecionar para dashboard como fallback
+      if (!userData) {
+        const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+        redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
+        return redirectResponse
+      }
+      
       const targetUrl = userData.is_superadmin === true ? '/admin' : '/dashboard'
       const redirectResponse = NextResponse.redirect(new URL(targetUrl, request.url))
       redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
