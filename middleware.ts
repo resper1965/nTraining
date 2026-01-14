@@ -118,44 +118,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // IMPORTANTE: Verificar se superadmin está tentando acessar waiting-room
-    // Isso evita que superadmins vejam a waiting room mesmo que is_active = false
-    // E evita loops de redirect
-    if (user && request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
-      try {
-        // Query rápida apenas para verificar is_superadmin
-        const { data: userData, error: queryError } = await supabase
-          .from('users')
-          .select('is_superadmin, is_active')
-          .eq('id', user.id)
-          .single()
-        
-        // Se superadmin, redirecionar imediatamente para /admin
-        if (userData?.is_superadmin === true) {
-          const adminUrl = new URL('/admin', request.url)
-          const redirectResponse = NextResponse.redirect(adminUrl)
-          return redirectResponse
-        }
-        
-        // Se usuário está ativo, redirecionar para dashboard
-        if (userData?.is_active === true) {
-          const dashboardUrl = new URL('/dashboard', request.url)
-          const redirectResponse = NextResponse.redirect(dashboardUrl)
-          return redirectResponse
-        }
-        
-        // Se erro na query mas usuário autenticado, deixar passar
-        // A página waiting-room vai verificar novamente
-        if (queryError && process.env.NODE_ENV === 'development') {
-          console.error('[middleware] Erro ao verificar userData:', queryError)
-        }
-      } catch (error) {
-        // Se erro, deixar passar - a página waiting-room vai verificar
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[middleware] Erro ao verificar superadmin:', error)
-        }
-      }
-    }
+    // Não fazer queries no middleware - deixar que as páginas e layouts decidam
+    // A página waiting-room vai verificar is_superadmin e redirecionar se necessário
 
     // Para todas as outras rotas, deixar passar
     // Layouts vão fazer verificações mais específicas (is_active, is_superadmin, etc)

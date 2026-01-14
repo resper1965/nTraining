@@ -31,8 +31,6 @@ export default async function WaitingRoomPage() {
   }
 
   // Se chegou aqui, usuário está pendente de aprovação e não é superadmin
-
-  // Se chegou aqui, usuário está pendente de aprovação
   const userData = user
 
   return (
