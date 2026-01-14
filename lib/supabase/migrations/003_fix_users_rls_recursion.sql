@@ -14,39 +14,10 @@
 -- 5. Permitir que usuários vejam membros da mesma organização (sem recursão)
 -- ============================================================================
 
--- Remover política problemática
+-- Remover todas as políticas problemáticas
 DROP POLICY IF EXISTS "Users can view org members" ON users;
-
--- Política 1: Usuários podem ver seus próprios dados
-CREATE POLICY "Users can view own data"
-  ON users FOR SELECT
-  USING (id = auth.uid());
-
--- Política 2: Superadmins podem ver todos os usuários
--- Será implementada na política combinada abaixo usando função helper
-
--- Política 3: Usuários podem ver membros da mesma organização
--- Usa auth.uid() diretamente sem subquery recursiva
-CREATE POLICY "Users can view org members"
-  ON users FOR SELECT
-  USING (
-    -- Usuário pode ver se:
-    -- 1. É o próprio usuário (já coberto pela política 1, mas incluído para clareza)
-    id = auth.uid() OR
-    -- 2. Tem a mesma organization_id que o usuário autenticado
-    -- Usa uma função que busca organization_id sem causar recursão
-    organization_id IS NOT NULL AND
-    organization_id = (
-      SELECT u.organization_id 
-      FROM users u 
-      WHERE u.id = auth.uid()
-      LIMIT 1
-    )
-  );
-
--- NOTA: A política acima ainda pode causar recursão em alguns casos.
--- Vamos criar uma função helper que bypass RLS para buscar organization_id
--- ============================================================================
+DROP POLICY IF EXISTS "Users can view own data" ON users;
+DROP POLICY IF EXISTS "Superadmins can view all users" ON users;
 
 -- Função helper para buscar organization_id sem causar recursão
 -- Esta função usa SECURITY DEFINER para bypass RLS
@@ -87,21 +58,21 @@ BEGIN
 END;
 $$;
 
--- Recriar política usando a função helper (sem recursão)
-DROP POLICY IF EXISTS "Users can view org members" ON users;
-
-CREATE POLICY "Users can view org members"
+-- Criar política única que cobre todos os casos (sem recursão)
+-- Usa apenas funções helper que bypass RLS
+CREATE POLICY "Users can view appropriate users"
   ON users FOR SELECT
   USING (
-    -- Usuário pode ver seus próprios dados
+    -- Caso 1: Usuário pode ver seus próprios dados
     id = auth.uid() OR
-    -- Ou usuários da mesma organização (usando função helper - sem recursão)
+    -- Caso 2: Superadmin pode ver todos os usuários (usando função helper)
+    is_user_superadmin(auth.uid()) OR
+    -- Caso 3: Usuário pode ver membros da mesma organização (usando função helper)
     (
       organization_id IS NOT NULL AND
+      get_user_organization_id(auth.uid()) IS NOT NULL AND
       organization_id = get_user_organization_id(auth.uid())
-    ) OR
-    -- Ou se for superadmin (usando função helper - sem recursão)
-    is_user_superadmin(auth.uid())
+    )
   );
 
 -- Política para UPDATE: Usuários podem atualizar seus próprios dados
