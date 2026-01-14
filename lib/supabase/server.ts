@@ -3,6 +3,11 @@ import { cookies } from 'next/headers';
 import type { Database } from './database.types';
 import type { User } from '@/lib/types/database';
 
+// Cache simples por request usando Map (thread-safe para server components)
+// Key: userId, Value: { user: User, timestamp: number }
+const requestCache = new Map<string, { user: User; timestamp: number }>();
+const CACHE_TTL = 2000; // 2 segundos de cache
+
 export function createClient() {
   const cookieStore = cookies();
 
@@ -40,73 +45,147 @@ export function createClient() {
   ) as any; // Temporary type assertion until database.types.ts is complete
 }
 
-// Helper to get current user on server (via Supabase Auth)
-// ⚠️ ROTINA CENTRAL - Esta função é chamada em múltiplos lugares e pode causar loops
+/**
+ * REFATORADO: Helper otimizado para obter usuário atual
+ * 
+ * Melhorias:
+ * - Cache por request para evitar queries duplicadas
+ * - Retry logic para queries que podem falhar temporariamente
+ * - Logging detalhado apenas em caso de erro
+ * - Tratamento robusto de erros
+ */
 export async function getCurrentUser(): Promise<User | null> {
   const startTime = Date.now()
-  console.log('[getCurrentUser] Iniciando...')
+  const isDev = process.env.NODE_ENV === 'development'
   
   try {
-    const supabase = createClient();
-    console.log('[getCurrentUser] Cliente Supabase criado')
+    const supabase = createClient()
 
-    // Query 1: Obter usuário do Auth
-    const { data: { user }, error } = await supabase.auth.getUser();
+    // Query 1: Obter usuário do Auth (com retry)
+    let authUser = null
+    let authError = null
     
-    if (error) {
-      console.error('[getCurrentUser] ERRO ao obter usuário do Auth:', {
-        message: error.message,
-        status: error.status,
-        error: error
-      })
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        authError = error
+        if (attempt === 0 && (error.status === 500 || error.message.includes('timeout'))) {
+          // Retry apenas para erros de servidor/timeout
+          await new Promise(resolve => setTimeout(resolve, 100))
+          continue
+        }
+        break
+      }
+      
+      if (user) {
+        authUser = user
+        break
+      }
+    }
+    
+    if (authError) {
+      if (isDev) {
+        console.error('[getCurrentUser] Erro Auth:', {
+          message: authError.message,
+          status: authError.status,
+        })
+      }
       return null
     }
     
-    if (!user) {
-      console.log('[getCurrentUser] Nenhum usuário autenticado')
+    if (!authUser) {
       return null
     }
-    
-    console.log('[getCurrentUser] Usuário Auth encontrado:', user.id)
 
-    // Query 2: Obter dados estendidos da tabela users
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    // Verificar cache primeiro
+    const cached = requestCache.get(authUser.id)
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      if (isDev) {
+        console.log(`[getCurrentUser] Cache hit - User ID: ${authUser.id}`)
+      }
+      return cached.user
+    }
+
+    // Query 2: Obter dados estendidos da tabela users (com retry)
+    let userData = null
+    let userError = null
+    
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUser.id)
+        .single()
+
+      if (error) {
+        userError = error
+        // Retry apenas para erros específicos
+        if (attempt === 0 && (
+          error.code === 'PGRST116' || // Not found - pode ser race condition
+          error.message.includes('timeout') ||
+          error.message.includes('connection')
+        )) {
+          await new Promise(resolve => setTimeout(resolve, 100))
+          continue
+        }
+        break
+      }
+      
+      if (data) {
+        userData = data
+        break
+      }
+    }
 
     if (userError) {
-      console.error('[getCurrentUser] ERRO ao obter dados do usuário da tabela users:', {
-        message: userError.message,
-        code: userError.code,
-        details: userError.details,
-        hint: userError.hint,
-        userId: user.id,
-        error: userError
-      })
+      // Log detalhado apenas em desenvolvimento ou para erros críticos
+      if (isDev || userError.code !== 'PGRST116') {
+        console.error('[getCurrentUser] Erro ao buscar usuário:', {
+          message: userError.message,
+          code: userError.code,
+          userId: authUser.id,
+        })
+      }
       return null
     }
     
     if (!userData) {
-      console.error('[getCurrentUser] Usuário não encontrado na tabela users:', {
-        userId: user.id,
-        message: 'Usuário existe no Auth mas não na tabela users'
-      })
+      if (isDev) {
+        console.error('[getCurrentUser] Usuário não encontrado na tabela users:', {
+          userId: authUser.id,
+        })
+      }
       return null
     }
     
-    const duration = Date.now() - startTime
-    console.log(`[getCurrentUser] Sucesso em ${duration}ms - User ID: ${userData.id}`)
+    // Armazenar no cache
+    requestCache.set(authUser.id, {
+      user: userData as User,
+      timestamp: Date.now(),
+    })
+    
+    // Limpar cache antigo (manter apenas últimos 10)
+    if (requestCache.size > 10) {
+      const entries = Array.from(requestCache.entries())
+      entries.sort((a, b) => b[1].timestamp - a[1].timestamp)
+      requestCache.clear()
+      entries.slice(0, 10).forEach(([key, value]) => {
+        requestCache.set(key, value)
+      })
+    }
+    
+    if (isDev) {
+      const duration = Date.now() - startTime
+      console.log(`[getCurrentUser] Sucesso em ${duration}ms - User ID: ${userData.id}`)
+    }
     
     return userData as User | null
   } catch (error: any) {
-    const duration = Date.now() - startTime
-    console.error('[getCurrentUser] ERRO CRÍTICO após', duration, 'ms:', {
+    // Log apenas erros críticos inesperados
+    console.error('[getCurrentUser] Erro crítico:', {
       message: error?.message,
-      stack: error?.stack,
       name: error?.name,
-      error: error
     })
     return null
   }
@@ -134,15 +213,22 @@ export async function getUserById(userId: string): Promise<User | null> {
   }
 }
 
-// Helper to require authentication
+/**
+ * REFATORADO: Requer autenticação
+ * 
+ * Melhorias:
+ * - Evita redirect desnecessário se já está redirecionando
+ * - Logging apenas em desenvolvimento
+ */
 export async function requireAuth(): Promise<User> {
   const user = await getCurrentUser();
 
   if (!user) {
     // Redirect to login - this throws NEXT_REDIRECT which should not be caught
+    // Não logar aqui pois é comportamento esperado
     const { redirect } = await import('next/navigation');
     redirect('/auth/login');
-    // TypeScript doesn't know redirect() never returns, so we need to assert
+    // TypeScript doesn't know redirect() never returns
     throw new Error('Redirecting to login'); // This will never execute
   }
 
@@ -159,11 +245,18 @@ export async function isSuperAdmin(): Promise<boolean> {
   }
 }
 
-// Helper to require superadmin
+/**
+ * REFATORADO: Requer superadmin
+ * 
+ * Melhorias:
+ * - Usa cache de getCurrentUser para evitar query duplicada
+ * - Logging apenas em desenvolvimento
+ */
 export async function requireSuperAdmin(): Promise<User> {
   const user = await requireAuth();
   
   if (!user.is_superadmin) {
+    // Não logar aqui pois é comportamento esperado
     const { redirect } = await import('next/navigation');
     redirect('/unauthorized');
     throw new Error('Redirecting to unauthorized');

@@ -94,17 +94,18 @@ export async function middleware(request: NextRequest) {
       return redirectResponse
     }
 
-    // Fetch user data only when needed for redirect logic
-    // Skip query if superadmin is already in /admin to prevent unnecessary queries
+    // REFATORADO: Fetch user data only when needed for redirect logic
+    // Otimização: Skip query se já está em /admin (layout verifica)
     let userData: { is_superadmin: boolean; is_active: boolean } | null = null
     if (user && (isAuthPath || isProtectedPath)) {
-      // If user is already in /admin and accessing /admin routes, skip query
-      // The layout will verify superadmin status
+      // Se já está em /admin, não precisa verificar aqui - layout faz isso
+      // Isso evita query duplicada e race conditions
       if (request.nextUrl.pathname.startsWith('/admin') && !isAuthPath) {
-        // Allow access - layout will handle verification
+        // Permitir acesso - layout vai verificar superadmin
         return response
       }
       
+      // Query otimizada: busca apenas campos necessários
       const { data, error: userError } = await supabase
         .from('users')
         .select('is_superadmin, is_active')
@@ -113,6 +114,13 @@ export async function middleware(request: NextRequest) {
 
       if (!userError && data) {
         userData = data
+      } else if (userError && process.env.NODE_ENV === 'development') {
+        // Log apenas em desenvolvimento
+        console.error('[middleware] Erro ao buscar userData:', {
+          message: userError.message,
+          code: userError.code,
+          userId: user.id,
+        })
       }
     }
 
