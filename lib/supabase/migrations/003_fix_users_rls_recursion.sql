@@ -23,16 +23,7 @@ CREATE POLICY "Users can view own data"
   USING (id = auth.uid());
 
 -- Política 2: Superadmins podem ver todos os usuários
--- Usa função helper para evitar recursão
-CREATE POLICY "Superadmins can view all users"
-  ON users FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM users u
-      WHERE u.id = auth.uid()
-      AND u.is_superadmin = true
-    )
-  );
+-- Será implementada na política combinada abaixo usando função helper
 
 -- Política 3: Usuários podem ver membros da mesma organização
 -- Usa auth.uid() diretamente sem subquery recursiva
@@ -77,6 +68,25 @@ BEGIN
 END;
 $$;
 
+-- Função helper para verificar se usuário é superadmin (sem recursão)
+CREATE OR REPLACE FUNCTION is_user_superadmin(user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  is_superadmin BOOLEAN;
+BEGIN
+  SELECT COALESCE(is_superadmin, false) INTO is_superadmin
+  FROM users
+  WHERE id = user_id
+  LIMIT 1;
+  
+  RETURN COALESCE(is_superadmin, false);
+END;
+$$;
+
 -- Recriar política usando a função helper (sem recursão)
 DROP POLICY IF EXISTS "Users can view org members" ON users;
 
@@ -85,19 +95,13 @@ CREATE POLICY "Users can view org members"
   USING (
     -- Usuário pode ver seus próprios dados
     id = auth.uid() OR
-    -- Ou usuários da mesma organização (usando função helper)
+    -- Ou usuários da mesma organização (usando função helper - sem recursão)
     (
       organization_id IS NOT NULL AND
       organization_id = get_user_organization_id(auth.uid())
     ) OR
-    -- Ou se for superadmin (usando função helper)
-    (
-      EXISTS (
-        SELECT 1 FROM users u
-        WHERE u.id = auth.uid()
-        AND u.is_superadmin = true
-      )
-    )
+    -- Ou se for superadmin (usando função helper - sem recursão)
+    is_user_superadmin(auth.uid())
   );
 
 -- Política para UPDATE: Usuários podem atualizar seus próprios dados
@@ -112,6 +116,9 @@ CREATE POLICY "Service role can insert users"
   ON users FOR INSERT
   WITH CHECK (true);
 
--- Comentário explicativo
+-- Comentários explicativos
 COMMENT ON FUNCTION get_user_organization_id(UUID) IS 
   'Helper function to get user organization_id without RLS recursion. Uses SECURITY DEFINER to bypass RLS.';
+
+COMMENT ON FUNCTION is_user_superadmin(UUID) IS 
+  'Helper function to check if user is superadmin without RLS recursion. Uses SECURITY DEFINER to bypass RLS.';
