@@ -1,392 +1,235 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth, requireRole } from '@/lib/supabase/server'
+// ============================================================================
+// Quiz Server Actions (Refatorado)
+// ============================================================================
+// Esta camada apenas orquestra: Auth → Validação → Service → Response
+
 import { revalidatePath } from 'next/cache'
-import type { Quiz, QuizQuestion, QuestionOption } from '@/lib/types/database'
+import { requireAuth, requireRole } from '@/lib/auth/helpers'
+import { QuizService, QuizServiceError } from '@/lib/services/quiz.service'
+import {
+  validateQuizCreate,
+  validateQuizUpdate,
+  validateQuestionCreate,
+  validateQuestionUpdate,
+  validateReorderQuestions,
+  type QuizCreateInput,
+  type QuizUpdateInput,
+  type QuestionCreateInput,
+  type QuestionUpdateInput,
+  type ReorderQuestionsInput,
+} from '@/lib/validators/quiz.schema'
+import type { Quiz, QuizQuestion } from '@/lib/types/database'
+import { ZodError } from 'zod'
 
-/**
- * Get all quizzes (admin) or quizzes for a course
- */
-export async function getQuizzes(courseId?: string) {
-  const supabase = createClient()
-  await requireAuth()
+// ============================================================================
+// GET QUIZZES
+// ============================================================================
 
-  let query = supabase
-    .from('quizzes')
-    .select(`
-      *,
-      courses (
-        id,
-        title,
-        slug
-      )
-    `)
-    .order('created_at', { ascending: false })
+export async function getQuizzes(courseId?: string): Promise<any[]> {
+  try {
+    await requireAuth()
 
-  if (courseId) {
-    query = query.eq('course_id', courseId)
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    throw new Error(`Erro ao buscar quizzes: ${error.message}`)
-  }
-
-  return data
-}
-
-/**
- * Get quiz by ID with questions and options
- */
-export async function getQuizById(quizId: string) {
-  const supabase = createClient()
-  await requireAuth()
-
-  const { data, error } = await supabase
-    .from('quizzes')
-    .select(`
-      *,
-      courses (
-        id,
-        title,
-        slug
-      ),
-      quiz_questions (
-        *,
-        question_options (
-          *
-        )
-      )
-    `)
-    .eq('id', quizId)
-    .single()
-
-  if (error) {
-    throw new Error(`Erro ao buscar quiz: ${error.message}`)
-  }
-
-  // Sort questions by order_index
-  if (data.quiz_questions) {
-    data.quiz_questions.sort((a: any, b: any) => a.order_index - b.order_index)
-    // Sort options by order_index
-    data.quiz_questions.forEach((q: any) => {
-      if (q.question_options) {
-        q.question_options.sort((a: any, b: any) => a.order_index - b.order_index)
-      }
-    })
-  }
-
-  return data as Quiz & {
-    courses: any
-    quiz_questions: (QuizQuestion & { question_options: QuestionOption[] })[]
+    const service = new QuizService()
+    return await service.getQuizzes(courseId)
+  } catch (error) {
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
 }
 
-/**
- * Create a new quiz
- */
-export async function createQuiz(formData: {
-  title: string
-  description?: string
-  course_id: string
-  passing_score?: number
-  max_attempts?: number | null
-  time_limit_minutes?: number | null
-  is_required?: boolean
-}) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+// ============================================================================
+// GET QUIZ BY ID
+// ============================================================================
 
-  const { data, error } = await supabase
-    .from('quizzes')
-    .insert({
-      title: formData.title,
-      description: formData.description || null,
-      course_id: formData.course_id,
-      passing_score: formData.passing_score || 70,
-      max_attempts: formData.max_attempts ?? null,
-      time_limit_minutes: formData.time_limit_minutes ?? null,
-      show_correct_answers: true, // Default
-    })
-    .select()
-    .single()
+export async function getQuizById(quizId: string): Promise<any> {
+  try {
+    await requireAuth()
 
-  if (error) {
-    throw new Error(`Erro ao criar quiz: ${error.message}`)
+    const service = new QuizService()
+    return await service.getQuizById(quizId)
+  } catch (error) {
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  revalidatePath('/admin/quizzes')
-  revalidatePath(`/admin/courses/${formData.course_id}`)
-
-  return data as Quiz
 }
 
-/**
- * Update quiz
- */
-export async function updateQuiz(
-  quizId: string,
-  formData: Partial<{
-    title: string
-    description: string
-    course_id: string
-    passing_score: number
-    max_attempts: number | null
-    time_limit_minutes: number | null
-    show_correct_answers: boolean
-  }>
-) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+// ============================================================================
+// CREATE QUIZ
+// ============================================================================
 
-  // Handle null values for optional fields
-  const updateData: any = { ...formData }
-  if (formData.max_attempts === undefined) {
-    updateData.max_attempts = null
+export async function createQuiz(input: unknown): Promise<Quiz> {
+  try {
+    await requireRole('platform_admin')
+
+    const validatedInput = validateQuizCreate(input)
+
+    const service = new QuizService()
+    const quiz = await service.createQuiz(validatedInput)
+
+    revalidatePath('/admin/quizzes')
+    revalidatePath(`/admin/courses/${validatedInput.course_id}`)
+    return quiz
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('Dados inválidos')
+    }
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-  if (formData.time_limit_minutes === undefined) {
-    updateData.time_limit_minutes = null
-  }
-
-  const { data, error } = await supabase
-    .from('quizzes')
-    .update(updateData)
-    .eq('id', quizId)
-    .select()
-    .single()
-
-  if (error) {
-    throw new Error(`Erro ao atualizar quiz: ${error.message}`)
-  }
-
-  revalidatePath('/admin/quizzes')
-  revalidatePath(`/admin/quizzes/${quizId}`)
-  revalidatePath(`/admin/quizzes/${quizId}/edit`)
-
-  return data as Quiz
 }
 
-/**
- * Delete quiz
- */
-export async function deleteQuiz(quizId: string) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+// ============================================================================
+// UPDATE QUIZ
+// ============================================================================
 
-  const { error } = await supabase
-    .from('quizzes')
-    .delete()
-    .eq('id', quizId)
+export async function updateQuiz(quizId: string, input: unknown): Promise<Quiz> {
+  try {
+    await requireRole('platform_admin')
 
-  if (error) {
-    throw new Error(`Erro ao deletar quiz: ${error.message}`)
+    const validation = validateQuizUpdate(input)
+    if (!validation.success) {
+      throw new Error('Dados inválidos')
+    }
+
+    const service = new QuizService()
+    const quiz = await service.updateQuiz(quizId, validation.data)
+
+    revalidatePath('/admin/quizzes')
+    revalidatePath(`/admin/quizzes/${quizId}`)
+    revalidatePath(`/admin/quizzes/${quizId}/edit`)
+    return quiz
+  } catch (error) {
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  revalidatePath('/admin/quizzes')
 }
 
-/**
- * Create a question for a quiz
- */
+// ============================================================================
+// DELETE QUIZ
+// ============================================================================
+
+export async function deleteQuiz(quizId: string): Promise<void> {
+  try {
+    await requireRole('platform_admin')
+
+    const service = new QuizService()
+    await service.deleteQuiz(quizId)
+
+    revalidatePath('/admin/quizzes')
+  } catch (error) {
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
+  }
+}
+
+// ============================================================================
+// CREATE QUESTION
+// ============================================================================
+
 export async function createQuestion(
   quizId: string,
-  formData: {
-    question_text: string
-    question_type: 'multiple_choice' | 'true_false' | 'scenario'
-    points: number
-    explanation?: string
-    options: Array<{
-      option_text: string
-      is_correct: boolean
-      explanation?: string
-    }>
+  input: unknown
+): Promise<QuizQuestion> {
+  try {
+    await requireRole('platform_admin')
+
+    const validatedInput = validateQuestionCreate({ ...(input as any), quiz_id: quizId })
+
+    const service = new QuizService()
+    const question = await service.createQuestion(validatedInput)
+
+    revalidatePath(`/admin/quizzes/${quizId}`)
+    return question
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('Dados inválidos')
+    }
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
-
-  // Get current max order_index
-  const { data: existingQuestions } = await supabase
-    .from('quiz_questions')
-    .select('order_index')
-    .eq('quiz_id', quizId)
-    .order('order_index', { ascending: false })
-    .limit(1)
-
-  const nextOrderIndex = existingQuestions && existingQuestions.length > 0
-    ? existingQuestions[0].order_index + 1
-    : 0
-
-  // Create question
-  const { data: question, error: questionError } = await supabase
-    .from('quiz_questions')
-    .insert({
-      quiz_id: quizId,
-      question_text: formData.question_text,
-      question_type: formData.question_type,
-      points: formData.points,
-      explanation: formData.explanation || null,
-      order_index: nextOrderIndex,
-    })
-    .select()
-    .single()
-
-  if (questionError) {
-    throw new Error(`Erro ao criar questão: ${questionError.message}`)
-  }
-
-  // Create options
-  const optionsToInsert = formData.options.map((opt, index) => ({
-    question_id: question.id,
-    option_text: opt.option_text,
-    is_correct: opt.is_correct,
-    explanation: opt.explanation || null,
-    order_index: index,
-  }))
-
-  const { error: optionsError } = await supabase
-    .from('question_options')
-    .insert(optionsToInsert)
-
-  if (optionsError) {
-    // Rollback: delete question if options fail
-    await supabase.from('quiz_questions').delete().eq('id', question.id)
-    throw new Error(`Erro ao criar opções: ${optionsError.message}`)
-  }
-
-  revalidatePath(`/admin/quizzes/${quizId}`)
-
-  return question as QuizQuestion
 }
 
-/**
- * Update question
- */
+// ============================================================================
+// UPDATE QUESTION
+// ============================================================================
+
 export async function updateQuestion(
   questionId: string,
-  formData: Partial<{
-    question_text: string
-    question_type: 'multiple_choice' | 'true_false' | 'scenario'
-    points: number
-    explanation: string
-    options: Array<{
-      id?: string
-      option_text: string
-      is_correct: boolean
-      explanation?: string
-    }>
-  }>
-) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+  input: unknown
+): Promise<void> {
+  try {
+    await requireRole('platform_admin')
 
-  // Update question
-  const questionUpdate: any = {}
-  if (formData.question_text !== undefined) questionUpdate.question_text = formData.question_text
-  if (formData.question_type !== undefined) questionUpdate.question_type = formData.question_type
-  if (formData.points !== undefined) questionUpdate.points = formData.points
-  if (formData.explanation !== undefined) questionUpdate.explanation = formData.explanation
-
-  if (Object.keys(questionUpdate).length > 0) {
-    const { error } = await supabase
-      .from('quiz_questions')
-      .update(questionUpdate)
-      .eq('id', questionId)
-
-    if (error) {
-      throw new Error(`Erro ao atualizar questão: ${error.message}`)
+    const validation = validateQuestionUpdate(input)
+    if (!validation.success) {
+      throw new Error('Dados inválidos')
     }
-  }
 
-  // Update options if provided
-  if (formData.options) {
-    // Delete existing options
-    await supabase
-      .from('question_options')
-      .delete()
-      .eq('question_id', questionId)
+    const service = new QuizService()
+    const { quizId } = await service.updateQuestion(questionId, validation.data)
 
-    // Insert new options
-    const optionsToInsert = formData.options.map((opt, index) => ({
-      question_id: questionId,
-      option_text: opt.option_text,
-      is_correct: opt.is_correct,
-      explanation: opt.explanation || null,
-      order_index: index,
-    }))
-
-    const { error: optionsError } = await supabase
-      .from('question_options')
-      .insert(optionsToInsert)
-
-    if (optionsError) {
-      throw new Error(`Erro ao atualizar opções: ${optionsError.message}`)
+    revalidatePath(`/admin/quizzes/${quizId}`)
+  } catch (error) {
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
     }
-  }
-
-  // Get quiz_id for revalidation
-  const { data: question } = await supabase
-    .from('quiz_questions')
-    .select('quiz_id')
-    .eq('id', questionId)
-    .single()
-
-  if (question) {
-    revalidatePath(`/admin/quizzes/${question.quiz_id}`)
+    throw error
   }
 }
 
-/**
- * Delete question
- */
-export async function deleteQuestion(questionId: string) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
+// ============================================================================
+// DELETE QUESTION
+// ============================================================================
 
-  // Get quiz_id before deleting
-  const { data: question } = await supabase
-    .from('quiz_questions')
-    .select('quiz_id')
-    .eq('id', questionId)
-    .single()
+export async function deleteQuestion(questionId: string): Promise<void> {
+  try {
+    await requireRole('platform_admin')
 
-  const { error } = await supabase
-    .from('quiz_questions')
-    .delete()
-    .eq('id', questionId)
+    const service = new QuizService()
+    const { quizId } = await service.deleteQuestion(questionId)
 
-  if (error) {
-    throw new Error(`Erro ao deletar questão: ${error.message}`)
-  }
-
-  if (question) {
-    revalidatePath(`/admin/quizzes/${question.quiz_id}`)
-  }
-}
-
-/**
- * Reorder questions
- */
-export async function reorderQuestions(questionIds: string[]) {
-  const supabase = createClient()
-  await requireRole('platform_admin')
-
-  const updates = questionIds.map((id, index) => ({
-    id,
-    order_index: index,
-  }))
-
-  for (const update of updates) {
-    const { error } = await supabase
-      .from('quiz_questions')
-      .update({ order_index: update.order_index })
-      .eq('id', update.id)
-
-    if (error) {
-      throw new Error(`Erro ao reordenar questões: ${error.message}`)
+    revalidatePath(`/admin/quizzes/${quizId}`)
+  } catch (error) {
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
     }
+    throw error
   }
 }
 
+// ============================================================================
+// REORDER QUESTIONS
+// ============================================================================
+
+export async function reorderQuestions(questionIds: string[]): Promise<void> {
+  try {
+    await requireRole('platform_admin')
+
+    const validatedInput = validateReorderQuestions({ question_ids: questionIds })
+
+    const service = new QuizService()
+    await service.reorderQuestions(validatedInput)
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('Dados inválidos')
+    }
+    if (error instanceof QuizServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
+  }
+}

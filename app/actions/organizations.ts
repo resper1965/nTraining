@@ -1,157 +1,125 @@
 'use server'
 
-import { createClient, requireSuperAdmin } from '@/lib/supabase/server'
+// ============================================================================
+// Organization Server Actions (Refatorado)
+// ============================================================================
+// Esta camada apenas orquestra: Auth → Validação → Service → Response
+
 import { revalidatePath } from 'next/cache'
+import { requireSuperAdmin } from '@/lib/auth/helpers'
+import {
+  OrganizationService,
+  OrganizationServiceError,
+} from '@/lib/services/organization.service'
+import {
+  validateOrganizationFilters,
+  validateOrganizationUpdate,
+  type OrganizationFiltersInput,
+  type OrganizationUpdateInput,
+} from '@/lib/validators/organization.schema'
 import type { Organization } from '@/lib/types/database'
-
-// ============================================================================
-// GET ALL ORGANIZATIONS
-// ============================================================================
-
-export interface OrganizationFilters {
-  search?: string
-  status?: 'active' | 'inactive' | 'all'
-  sortBy?: 'name' | 'created_at' | 'users_count'
-  sortOrder?: 'asc' | 'desc'
-}
+import { ZodError } from 'zod'
 
 // ============================================================================
 // GET PUBLIC ORGANIZATIONS (Public - for signup)
 // ============================================================================
 
-export async function getPublicOrganizations() {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from('organizations')
-    .select('id, name, slug')
-    .order('name', { ascending: true })
-
-  if (error) {
-    throw new Error(`Failed to fetch organizations: ${error.message}`)
+export async function getPublicOrganizations(): Promise<
+  Array<{ id: string; name: string; slug: string }>
+> {
+  try {
+    const service = new OrganizationService()
+    return await service.getPublicOrganizations()
+  } catch (error) {
+    if (error instanceof OrganizationServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  return data || []
 }
 
-export async function getAllOrganizations(filters?: OrganizationFilters) {
-  await requireSuperAdmin()
-  const supabase = createClient()
+// ============================================================================
+// GET ALL ORGANIZATIONS
+// ============================================================================
 
-  let query = supabase
-    .from('organizations')
-    .select(`
-      *,
-      users:users(count)
-    `)
+export async function getAllOrganizations(
+  filters?: OrganizationFiltersInput
+): Promise<(Organization & { users_count: number })[]> {
+  try {
+    await requireSuperAdmin()
 
-  // Apply filters
-  if (filters?.search) {
-    query = query.or(
-      `name.ilike.%${filters.search}%,razao_social.ilike.%${filters.search}%,cnpj.ilike.%${filters.search}%`
-    )
-  }
-
-  if (filters?.status && filters.status !== 'all') {
-    if (filters.status === 'active') {
-      query = query.eq('subscription_status', 'active')
-    } else {
-      query = query.or('subscription_status.is.null,subscription_status.neq.active')
+    const validation = validateOrganizationFilters(filters || {})
+    if (!validation.success) {
+      throw new Error('Filtros inválidos')
     }
+
+    const service = new OrganizationService()
+    return await service.getAllOrganizations(validation.data)
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('Filtros inválidos')
+    }
+    if (error instanceof OrganizationServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  // Sort
-  const sortBy = filters?.sortBy || 'created_at'
-  const sortOrder = filters?.sortOrder || 'desc'
-  query = query.order(sortBy, { ascending: sortOrder === 'asc' })
-
-  const { data, error } = await query
-
-  if (error) {
-    throw new Error(`Failed to fetch organizations: ${error.message}`)
-  }
-
-  // Transform data to include users count
-  const organizations = (data || []).map((org: any) => ({
-    ...org,
-    users_count: Array.isArray(org.users) ? org.users[0]?.count || 0 : 0,
-  }))
-
-  return organizations as (Organization & { users_count: number })[]
 }
 
 // ============================================================================
 // GET ORGANIZATION BY ID
 // ============================================================================
 
-export async function getOrganizationById(organizationId: string) {
-  await requireSuperAdmin()
-  const supabase = createClient()
+export async function getOrganizationById(
+  organizationId: string
+): Promise<Organization & { users_count: number; courses_count: number }> {
+  try {
+    await requireSuperAdmin()
 
-  const { data, error } = await supabase
-    .from('organizations')
-    .select(`
-      *,
-      users:users(count),
-      courses:organization_course_access(count)
-    `)
-    .eq('id', organizationId)
-    .single()
-
-  if (error) {
-    throw new Error(`Failed to fetch organization: ${error.message}`)
+    const service = new OrganizationService()
+    return await service.getOrganizationById(organizationId)
+  } catch (error) {
+    if (error instanceof OrganizationServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  return {
-    ...data,
-    users_count: Array.isArray(data.users) ? data.users[0]?.count || 0 : 0,
-    courses_count: Array.isArray(data.courses) ? data.courses[0]?.count || 0 : 0,
-  } as Organization & { users_count: number; courses_count: number }
 }
 
 // ============================================================================
 // GET ORGANIZATION USERS
 // ============================================================================
 
-export async function getOrganizationUsers(organizationId: string) {
-  await requireSuperAdmin()
-  const supabase = createClient()
+export async function getOrganizationUsers(organizationId: string): Promise<any[]> {
+  try {
+    await requireSuperAdmin()
 
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('organization_id', organizationId)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    throw new Error(`Failed to fetch organization users: ${error.message}`)
+    const service = new OrganizationService()
+    return await service.getOrganizationUsers(organizationId)
+  } catch (error) {
+    if (error instanceof OrganizationServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  return data || []
 }
 
 // ============================================================================
 // GET ORGANIZATION COURSES
 // ============================================================================
 
-export async function getOrganizationCourses(organizationId: string) {
-  await requireSuperAdmin()
-  const supabase = createClient()
+export async function getOrganizationCourses(organizationId: string): Promise<any[]> {
+  try {
+    await requireSuperAdmin()
 
-  const { data, error } = await supabase
-    .from('organization_course_access')
-    .select(`
-      *,
-      courses:courses(*)
-    `)
-    .eq('organization_id', organizationId)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    throw new Error(`Failed to fetch organization courses: ${error.message}`)
+    const service = new OrganizationService()
+    return await service.getOrganizationCourses(organizationId)
+  } catch (error) {
+    if (error instanceof OrganizationServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  return data || []
 }
 
 // ============================================================================
@@ -160,48 +128,50 @@ export async function getOrganizationCourses(organizationId: string) {
 
 export async function updateOrganization(
   organizationId: string,
-  updates: Partial<Organization>
-) {
-  await requireSuperAdmin()
-  const supabase = createClient()
+  input: unknown
+): Promise<Organization> {
+  try {
+    await requireSuperAdmin()
 
-  const { data, error } = await supabase
-    .from('organizations')
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', organizationId)
-    .select()
-    .single()
+    const validation = validateOrganizationUpdate(input)
+    if (!validation.success) {
+      throw new Error('Dados inválidos')
+    }
 
-  if (error) {
-    throw new Error(`Failed to update organization: ${error.message}`)
+    const service = new OrganizationService()
+    const organization = await service.updateOrganization(organizationId, validation.data)
+
+    revalidatePath('/admin/organizations')
+    revalidatePath(`/admin/organizations/${organizationId}`)
+    return organization
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('Dados inválidos')
+    }
+    if (error instanceof OrganizationServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  revalidatePath('/admin/organizations')
-  revalidatePath(`/admin/organizations/${organizationId}`)
-  return data as Organization
 }
 
 // ============================================================================
 // DELETE ORGANIZATION
 // ============================================================================
 
-export async function deleteOrganization(organizationId: string) {
-  await requireSuperAdmin()
-  const supabase = createClient()
+export async function deleteOrganization(organizationId: string): Promise<{ success: true }> {
+  try {
+    await requireSuperAdmin()
 
-  const { error } = await supabase
-    .from('organizations')
-    .delete()
-    .eq('id', organizationId)
+    const service = new OrganizationService()
+    await service.deleteOrganization(organizationId)
 
-  if (error) {
-    throw new Error(`Failed to delete organization: ${error.message}`)
+    revalidatePath('/admin/organizations')
+    return { success: true }
+  } catch (error) {
+    if (error instanceof OrganizationServiceError) {
+      throw new Error(error.message)
+    }
+    throw error
   }
-
-  revalidatePath('/admin/organizations')
-  return { success: true }
 }
-
