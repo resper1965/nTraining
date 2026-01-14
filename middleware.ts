@@ -7,7 +7,6 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Missing Supabase environment variables')
     return NextResponse.json(
       { error: 'Server configuration error' },
       { status: 500 }
@@ -65,13 +64,7 @@ export async function middleware(request: NextRequest) {
 
     const {
       data: { user },
-      error,
     } = await supabase.auth.getUser()
-
-    // If there's an auth error, log it but don't crash
-    if (error) {
-      console.error('Auth error in middleware:', error.message)
-    }
 
     // Protected routes
     const protectedPaths = ['/dashboard', '/courses', '/admin', '/profile', '/search', '/certificates', '/notifications']
@@ -92,21 +85,17 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Fetch user data once if needed for redirect logic (is_superadmin and is_active)
+    // Fetch user data only when needed for redirect logic
     let userData: { is_superadmin: boolean; is_active: boolean } | null = null
-    if (user && (isAuthPath || request.nextUrl.pathname === '/dashboard' || isProtectedPath)) {
-      try {
-        const { data, error: userError } = await supabase
-          .from('users')
-          .select('is_superadmin, is_active')
-          .eq('id', user.id)
-          .single()
+    if (user && (isAuthPath || isProtectedPath)) {
+      const { data, error: userError } = await supabase
+        .from('users')
+        .select('is_superadmin, is_active')
+        .eq('id', user.id)
+        .single()
 
-        if (!userError && data) {
-          userData = data
-        }
-      } catch (error) {
-        // Silent fail - user will be redirected to default dashboard
+      if (!userError && data) {
+        userData = data
       }
     }
 
@@ -133,8 +122,7 @@ export async function middleware(request: NextRequest) {
 
     return response
   } catch (error) {
-    // Log error but don't crash - allow request to continue
-    console.error('Middleware error:', error)
+    // Allow request to continue on error
     return response
   }
 }
