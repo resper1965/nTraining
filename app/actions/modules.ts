@@ -87,9 +87,9 @@ export async function updateModule(
 
     // Obter course_id para revalidar
     const modules = await service.getModulesByCourse(updatedModule.course_id)
-    const updatedModule = modules.find((m) => m.id === moduleId)
-    if (updatedModule) {
-      revalidatePath(`/admin/courses/${updatedModule.course_id}/modules`)
+    const foundModule = modules.find((m) => m.id === moduleId)
+    if (foundModule) {
+      revalidatePath(`/admin/courses/${foundModule.course_id}/modules`)
     }
 
     return updatedModule
