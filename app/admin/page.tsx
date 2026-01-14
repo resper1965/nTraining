@@ -23,23 +23,68 @@ export default async function AdminDashboardPage() {
   // Load metrics and activities with graceful error handling
   // No need to verify auth here - layout already does it
   // Use fallback data if queries fail to prevent flickering
-  const [metrics, activities] = await Promise.all([
-    getDashboardMetrics().catch((error) => {
-      console.error('Error loading dashboard metrics:', error)
-      return {
-        organizations: { total: 0, active: 0, newThisMonth: 0 },
-        users: { total: 0, active: 0, newThisMonth: 0 },
-        courses: { total: 0, published: 0, newThisMonth: 0 },
-        certificates: { total: 0, issuedThisMonth: 0 },
-        licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
-        progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
-      } as DashboardMetrics
-    }),
-    getRecentActivities(5).catch((error) => {
-      console.error('Error loading recent activities:', error)
-      return [] as RecentActivity[]
-    }),
-  ])
+  let metrics: DashboardMetrics
+  let activities: RecentActivity[]
+  
+  try {
+    const startTime = Date.now()
+    console.log('[ADMIN_DASHBOARD] Iniciando carregamento de dados...')
+    
+    const [metricsResult, activitiesResult] = await Promise.all([
+      getDashboardMetrics().catch((error) => {
+        console.error('[ADMIN_DASHBOARD] ERRO em getDashboardMetrics:', {
+          message: error?.message,
+          stack: error?.stack,
+          digest: error?.digest,
+          name: error?.name,
+          error: error
+        })
+        return {
+          organizations: { total: 0, active: 0, newThisMonth: 0 },
+          users: { total: 0, active: 0, newThisMonth: 0 },
+          courses: { total: 0, published: 0, newThisMonth: 0 },
+          certificates: { total: 0, issuedThisMonth: 0 },
+          licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
+          progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
+        } as DashboardMetrics
+      }),
+      getRecentActivities(5).catch((error) => {
+        console.error('[ADMIN_DASHBOARD] ERRO em getRecentActivities:', {
+          message: error?.message,
+          stack: error?.stack,
+          digest: error?.digest,
+          name: error?.name,
+          error: error
+        })
+        return [] as RecentActivity[]
+      }),
+    ])
+    
+    metrics = metricsResult
+    activities = activitiesResult
+    
+    const duration = Date.now() - startTime
+    console.log(`[ADMIN_DASHBOARD] Dados carregados com sucesso em ${duration}ms`)
+  } catch (error: any) {
+    console.error('[ADMIN_DASHBOARD] ERRO CRÍTICO ao carregar dados:', {
+      message: error?.message,
+      stack: error?.stack,
+      digest: error?.digest,
+      name: error?.name,
+      error: error
+    })
+    
+    // Fallback seguro
+    metrics = {
+      organizations: { total: 0, active: 0, newThisMonth: 0 },
+      users: { total: 0, active: 0, newThisMonth: 0 },
+      courses: { total: 0, published: 0, newThisMonth: 0 },
+      certificates: { total: 0, issuedThisMonth: 0 },
+      licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
+      progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
+    }
+    activities = []
+  }
 
   return (
     <div className="space-y-6 min-h-full bg-slate-950">

@@ -44,8 +44,12 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   // We skip verification here to prevent redirect loops and flickering
   // If called from outside admin context, the layout will catch it
   
+  const startTime = Date.now()
+  console.log('[getDashboardMetrics] Iniciando...')
+  
   try {
     const supabase = createClient()
+    console.log('[getDashboardMetrics] Cliente Supabase criado')
 
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -228,9 +232,18 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         completionRate,
       },
     }
-  } catch (error) {
+  } catch (error: any) {
     // Catch any unexpected errors and return safe fallback data
-    console.error('Unexpected error in getDashboardMetrics:', error)
+    const duration = Date.now() - startTime
+    console.error('[getDashboardMetrics] ERRO CRÍTICO após', duration, 'ms:', {
+      message: error?.message,
+      stack: error?.stack,
+      digest: error?.digest,
+      name: error?.name,
+      cause: error?.cause,
+      error: error,
+      timestamp: new Date().toISOString(),
+    })
     return {
       organizations: { total: 0, active: 0, newThisMonth: 0 },
       users: { total: 0, active: 0, newThisMonth: 0 },
@@ -239,6 +252,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
       progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
     }
+  } finally {
+    const duration = Date.now() - startTime
+    console.log(`[getDashboardMetrics] Finalizado em ${duration}ms`)
   }
 }
 
@@ -259,8 +275,12 @@ export async function getRecentActivities(limit: number = 10): Promise<RecentAct
   // We skip verification here to prevent redirect loops and flickering
   // If called from outside admin context, the layout will catch it
   
+  const startTime = Date.now()
+  console.log('[getRecentActivities] Iniciando...')
+  
   try {
     const supabase = createClient()
+    console.log('[getRecentActivities] Cliente Supabase criado')
 
     // Get recent organizations
     const { data: recentOrgs } = await supabase
@@ -322,10 +342,22 @@ export async function getRecentActivities(limit: number = 10): Promise<RecentAct
     return activities
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, limit)
-  } catch (error) {
+  } catch (error: any) {
     // Catch any unexpected errors and return empty array
-    console.error('Unexpected error in getRecentActivities:', error)
+    const duration = Date.now() - startTime
+    console.error('[getRecentActivities] ERRO CRÍTICO após', duration, 'ms:', {
+      message: error?.message,
+      stack: error?.stack,
+      digest: error?.digest,
+      name: error?.name,
+      cause: error?.cause,
+      error: error,
+      timestamp: new Date().toISOString(),
+    })
     return []
+  } finally {
+    const duration = Date.now() - startTime
+    console.log(`[getRecentActivities] Finalizado em ${duration}ms`)
   }
 }
 

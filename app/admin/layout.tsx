@@ -3,6 +3,8 @@ import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { signOut } from '@/app/actions/auth'
+import { ErrorBoundary } from '@/components/error-boundary'
+import { ErrorLogger } from '@/components/admin/error-logger'
 
 // Use revalidate to match child pages and prevent promise resolution issues
 export const revalidate = 30
@@ -18,6 +20,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
+      <ErrorLogger />
       <AdminSidebar />
       
       <div className="flex-1 flex flex-col">
@@ -48,7 +51,25 @@ export default async function AdminLayout({
         <main className="flex-1 overflow-auto bg-slate-950">
           <div className="p-6 min-h-full">
             <AdminBreadcrumbs />
-            {children}
+            <ErrorBoundary
+              onError={(error, errorInfo) => {
+                const errorAny = error as any
+                console.error('[ADMIN_LAYOUT] ErrorBoundary capturou erro:', {
+                  error: {
+                    message: error?.message,
+                    stack: error?.stack,
+                    digest: errorAny?.digest,
+                    name: error?.name,
+                  },
+                  errorInfo: {
+                    componentStack: errorInfo?.componentStack,
+                  },
+                  timestamp: new Date().toISOString(),
+                })
+              }}
+            >
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
       </div>
