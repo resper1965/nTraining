@@ -22,28 +22,33 @@ export default async function AdminDashboardPage() {
 
   // Load metrics and activities with graceful error handling
   // Ensure promises are properly resolved to prevent React Server Components errors
-  const metricsPromise = getDashboardMetrics().catch((error) => {
-    console.error('Error loading dashboard metrics:', error)
-    return {
+  // Note: We don't catch NEXT_REDIRECT errors - they should propagate
+  let metrics: DashboardMetrics
+  let activities: RecentActivity[]
+  
+  try {
+    [metrics, activities] = await Promise.all([
+      getDashboardMetrics(),
+      getRecentActivities(5),
+    ])
+  } catch (error: any) {
+    // Check if it's a redirect error - if so, let it propagate
+    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+      throw error // Re-throw redirect errors - they should not be caught
+    }
+    
+    // For other errors, use fallback data
+    console.error('Error loading dashboard data:', error)
+    metrics = {
       organizations: { total: 0, active: 0, newThisMonth: 0 },
       users: { total: 0, active: 0, newThisMonth: 0 },
       courses: { total: 0, published: 0, newThisMonth: 0 },
       certificates: { total: 0, issuedThisMonth: 0 },
       licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
       progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
-    } as DashboardMetrics
-  })
-
-  const activitiesPromise = getRecentActivities(5).catch((error) => {
-    console.error('Error loading recent activities:', error)
-    return [] as RecentActivity[]
-  })
-
-  // Await promises separately to ensure proper resolution
-  const [metrics, activities] = await Promise.all([
-    metricsPromise,
-    activitiesPromise,
-  ])
+    }
+    activities = []
+  }
 
   return (
     <div className="space-y-6 min-h-full bg-slate-950">
