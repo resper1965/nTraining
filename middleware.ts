@@ -2,14 +2,12 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  console.log('[Middleware] Processing:', request.nextUrl.pathname)
-
   // Check if environment variables are available
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('[Middleware] Missing Supabase environment variables')
+    console.error('Missing Supabase environment variables')
     return NextResponse.json(
       { error: 'Server configuration error' },
       { status: 500 }
@@ -87,12 +85,6 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith(path)
     )
 
-    // Public routes
-    const publicPaths = ['/']
-    const isPublicPath = publicPaths.some((path) =>
-      request.nextUrl.pathname === path
-    )
-
     // Redirect to login if accessing protected route without auth
     if (isProtectedPath && !user) {
       const redirectUrl = new URL('/auth/login', request.url)
@@ -100,56 +92,35 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Redirect to dashboard if accessing auth pages while logged in
-    if (isAuthPath && user) {
-      // Check if user is superadmin and redirect accordingly
+    // Fetch user data once if needed for redirect logic
+    let userData: { is_superadmin: boolean } | null = null
+    if (user && (isAuthPath || request.nextUrl.pathname === '/dashboard')) {
       try {
-        const { data: userData, error: userError } = await supabase
+        const { data, error: userError } = await supabase
           .from('users')
           .select('is_superadmin')
           .eq('id', user.id)
           .single()
-        
-        if (userError) {
-          console.error('Error fetching user in middleware:', userError)
-        }
-        
-        if (userData?.is_superadmin === true) {
-          console.log('Middleware: Redirecting superadmin from auth to /admin')
-          return NextResponse.redirect(new URL('/admin', request.url))
+
+        if (!userError && data) {
+          userData = data
         }
       } catch (error) {
-        console.error('Error checking superadmin status in middleware:', error)
+        // Silent fail - user will be redirected to default dashboard
       }
-      
+    }
+
+    // Redirect to appropriate dashboard if accessing auth pages while logged in
+    if (isAuthPath && user) {
+      if (userData?.is_superadmin === true) {
+        return NextResponse.redirect(new URL('/admin', request.url))
+      }
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
-    
-    // Redirect superadmin from dashboard to admin
-    if (request.nextUrl.pathname === '/dashboard' && user) {
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('is_superadmin')
-          .eq('id', user.id)
-          .single()
-        
-        if (userError) {
-          console.error('Error fetching user in middleware (dashboard):', userError)
-        }
-        
-        // Use strict equality check
-        const isSuperAdmin = userData?.is_superadmin === true || userData?.is_superadmin === 'true'
-        if (isSuperAdmin) {
-          console.log('Middleware: Redirecting superadmin from /dashboard to /admin', {
-            email: user.email,
-            is_superadmin: userData?.is_superadmin
-          })
-          return NextResponse.redirect(new URL('/admin', request.url))
-        }
-      } catch (error) {
-        console.error('Error checking superadmin status in middleware (dashboard):', error)
-      }
+
+    // Redirect superadmin from regular dashboard to admin
+    if (request.nextUrl.pathname === '/dashboard' && user && userData?.is_superadmin === true) {
+      return NextResponse.redirect(new URL('/admin', request.url))
     }
 
     return response

@@ -17,71 +17,21 @@ import { Button } from '@/components/ui/button'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
-  console.log('[AdminDashboard] Rendering at:', new Date().toISOString())
-  let user
-  try {
-    user = await requireSuperAdmin()
-    console.log('[AdminDashboard] User loaded:', user?.email, 'is_superadmin:', user?.is_superadmin)
-  } catch (error) {
-    console.error('[AdminDashboard] Error in requireSuperAdmin:', error)
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8">
-        <div className="text-center max-w-md">
-          <h1 className="text-red-300 text-2xl mb-4 font-bold">Erro ao carregar dashboard</h1>
-          <p className="text-red-400 text-sm mb-2">Não foi possível verificar permissões de superadmin</p>
-          <p className="text-red-500 text-xs">{String(error)}</p>
-        </div>
-      </div>
-    )
-  }
-  
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8">
-        <div className="text-center max-w-md">
-          <h1 className="text-yellow-300 text-2xl mb-4 font-bold">Usuário não encontrado</h1>
-          <p className="text-yellow-400 text-sm">Faça login novamente</p>
-        </div>
-      </div>
-    )
-  }
-  
-  let metrics: Awaited<ReturnType<typeof getDashboardMetrics>>
-  let activities: Awaited<ReturnType<typeof getRecentActivities>>
-  
-  try {
-    console.log('[AdminDashboard] Loading metrics...')
-    [metrics, activities] = await Promise.all([
-      getDashboardMetrics().catch((error) => {
-        console.error('[AdminDashboard] Error in getDashboardMetrics:', error)
-        return {
-          organizations: { total: 0, active: 0, newThisMonth: 0 },
-          users: { total: 0, active: 0, newThisMonth: 0 },
-          courses: { total: 0, published: 0, newThisMonth: 0 },
-          certificates: { total: 0, issuedThisMonth: 0 },
-          licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
-          progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
-        }
-      }),
-      getRecentActivities(5).catch((error) => {
-        console.error('[AdminDashboard] Error in getRecentActivities:', error)
-        return []
-      }),
-    ])
-    console.log('[AdminDashboard] Metrics loaded successfully')
-  } catch (error) {
-    console.error('[AdminDashboard] Error loading dashboard metrics:', error)
-    // Return default values if there's an error
-    metrics = {
+  // User verification is already done in layout
+  const user = await requireSuperAdmin()
+
+  // Load metrics and activities with graceful error handling
+  const [metrics, activities] = await Promise.all([
+    getDashboardMetrics().catch(() => ({
       organizations: { total: 0, active: 0, newThisMonth: 0 },
       users: { total: 0, active: 0, newThisMonth: 0 },
       courses: { total: 0, published: 0, newThisMonth: 0 },
       certificates: { total: 0, issuedThisMonth: 0 },
       licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
       progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
-    }
-    activities = []
-  }
+    })),
+    getRecentActivities(5).catch(() => []),
+  ])
 
   return (
     <div className="space-y-6 min-h-full bg-slate-950">
