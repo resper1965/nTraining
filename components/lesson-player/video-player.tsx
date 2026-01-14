@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
@@ -46,7 +46,7 @@ export function VideoPlayer({
     5000 // 5 seconds debounce
   )
 
-  const handleComplete = async () => {
+  const handleComplete = useCallback(async () => {
     if (videoRef.current) {
       const finalTime = Math.floor(videoRef.current.currentTime)
       try {
@@ -60,7 +60,7 @@ export function VideoPlayer({
         console.error('Error marking lesson complete:', error)
       }
     }
-  }
+  }, [lessonId, onComplete])
 
   useEffect(() => {
     const video = videoRef.current
@@ -126,7 +126,7 @@ export function VideoPlayer({
       video.removeEventListener('play', handlePlay)
       video.removeEventListener('pause', handlePause)
     }
-  }, [src, initialProgress, lessonId, debouncedSaveProgress, onComplete])
+  }, [src, initialProgress, lessonId, debouncedSaveProgress, handleComplete])
 
   const togglePlay = () => {
     const video = videoRef.current

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,48 +35,7 @@ export function QuizPlayer({ quiz, attemptId, timeLimitMinutes }: QuizPlayerProp
   const [isSubmitting, setIsSubmitting] = useState(false)
   const startTimeRef = useRef<number>(Date.now())
 
-  // Timer countdown
-  useEffect(() => {
-    if (timeRemaining === null || timeRemaining <= 0) return
-
-    const interval = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev === null || prev <= 1) {
-          // Time's up - auto submit
-          handleSubmit()
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [timeRemaining])
-
-  const currentQuestion = quiz.quiz_questions[currentQuestionIndex]
-  const totalQuestions = quiz.quiz_questions.length
-  const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100
-
-  const handleAnswerChange = (questionId: string, optionId: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: optionId,
-    }))
-  }
-
-  const handleNext = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1)
-    }
-  }
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1)
-    }
-  }
-
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (isSubmitting) return
 
     // Check if all questions are answered
@@ -112,6 +71,47 @@ export function QuizPlayer({ quiz, attemptId, timeLimitMinutes }: QuizPlayerProp
       console.error('Error submitting quiz:', error)
       alert('Erro ao finalizar quiz. Tente novamente.')
       setIsSubmitting(false)
+    }
+  }, [isSubmitting, quiz, answers, attemptId, pathname, router])
+
+  // Timer countdown
+  useEffect(() => {
+    if (timeRemaining === null || timeRemaining <= 0) return
+
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev === null || prev <= 1) {
+          // Time's up - auto submit
+          handleSubmit()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [timeRemaining, handleSubmit])
+
+  const currentQuestion = quiz.quiz_questions[currentQuestionIndex]
+  const totalQuestions = quiz.quiz_questions.length
+  const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100
+
+  const handleAnswerChange = (questionId: string, optionId: string) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: optionId,
+    }))
+  }
+
+  const handleNext = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1)
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1)
     }
   }
 
