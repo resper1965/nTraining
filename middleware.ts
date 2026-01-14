@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
 
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: new Headers(request.headers),
     },
   })
 
@@ -40,7 +40,7 @@ export async function middleware(request: NextRequest) {
           })
           response = NextResponse.next({
             request: {
-              headers: request.headers,
+              headers: new Headers(request.headers),
             },
           })
           response.cookies.set({
@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
           })
           response = NextResponse.next({
             request: {
-              headers: request.headers,
+              headers: new Headers(request.headers),
             },
           })
           response.cookies.set({
