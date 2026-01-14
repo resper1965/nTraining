@@ -108,7 +108,7 @@ export async function middleware(request: NextRequest) {
     // REFATORADO: Fetch user data only when needed for redirect logic
     // Otimização: Skip query se já está em /admin (layout verifica)
     let userData: { is_superadmin: boolean; is_active: boolean } | null = null
-    if (user && (isAuthPath || isProtectedPath)) {
+    if (user && (isAuthPath || isProtectedPath || isWaitingRoom)) {
       // Se já está em /admin, não precisa verificar aqui - layout faz isso
       // Isso evita query duplicada e race conditions
       if (request.nextUrl.pathname.startsWith('/admin') && !isAuthPath) {
@@ -138,6 +138,13 @@ export async function middleware(request: NextRequest) {
 
         if (!userError && data) {
           userData = data
+          
+          // IMPORTANTE: Se for superadmin e estiver tentando acessar waiting-room, redirecionar imediatamente
+          if (data.is_superadmin === true && isWaitingRoom) {
+            const redirectResponse = NextResponse.redirect(new URL('/admin', request.url))
+            redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
+            return redirectResponse
+          }
         } else if (userError && process.env.NODE_ENV === 'development') {
           // Log apenas em desenvolvimento
           console.error('[middleware] Erro ao buscar userData:', {
@@ -169,9 +176,17 @@ export async function middleware(request: NextRequest) {
     }
     
     // Permitir acesso à waiting-room mesmo se is_active = false
-    // Não verificar is_active para a rota waiting-room
-    if (isWaitingRoom && user) {
+    // MAS: Se temos userData e é superadmin, já redirecionamos acima
+    // Se não temos userData ainda, permitir acesso (página vai verificar)
+    if (isWaitingRoom && user && !userData) {
       return response
+    }
+    
+    // Se temos userData e é superadmin, não deve estar na waiting-room
+    if (isWaitingRoom && user && userData?.is_superadmin === true) {
+      const redirectResponse = NextResponse.redirect(new URL('/admin', request.url))
+      redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
+      return redirectResponse
     }
     
     // Redirect to appropriate dashboard if accessing auth pages while logged in
