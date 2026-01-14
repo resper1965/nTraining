@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`dark ${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
-      <body className="font-sans antialiased">
+      <body className={`${inter.variable} ${montserrat.variable} font-sans antialiased`}>
         <ErrorBoundary>
           {children}
         </ErrorBoundary>

@@ -45,8 +45,19 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-montserrat), system-ui, -apple-system, sans-serif;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+  
+  .font-display {
+    font-family: var(--font-montserrat), system-ui, -apple-system, sans-serif;
   }
 }
 
