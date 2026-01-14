@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
 import { translations, type Locale } from './translations';
 
+export type { Locale } from './translations';
+
 const defaultLocale: Locale = 'pt';
 const supportedLocales: Locale[] = ['pt', 'en'];
 
