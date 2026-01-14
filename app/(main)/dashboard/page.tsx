@@ -25,47 +25,16 @@ export default async function DashboardPage() {
   // This should NOT be wrapped in try/catch as redirect() throws a special error
   const user = await requireAuth()
 
-  // Redirect superadmin to admin panel
-  if (user.is_superadmin) {
-    const { redirect } = await import('next/navigation')
-    redirect('/admin')
-  }
+  // Note: Superadmin redirect is handled by middleware to avoid duplicate redirects
 
-  // Add error logging to understand what's failing
+  // Fetch all dashboard data in parallel
   const [progress, courses, mandatoryCourses, certificates, paths] = await Promise.all([
-    getUserProgress().catch((err) => {
-      console.error('getUserProgress error:', err)
-      return []
-    }),
-    getCoursesWithProgress({ status: 'published' }).catch((err) => {
-      console.error('getCoursesWithProgress error:', err)
-      return []
-    }),
-    getUserMandatoryCourses().catch((err) => {
-      console.error('getUserMandatoryCourses error:', err)
-      return []
-    }),
-    getUserCertificates().catch((err) => {
-      console.error('getUserCertificates error:', err)
-      return []
-    }),
-    getUserPathsWithProgress().catch((err) => {
-      console.error('getUserPathsWithProgress error:', err)
-      return []
-    }),
+    getUserProgress().catch(() => []),
+    getCoursesWithProgress({ status: 'published' }).catch(() => []),
+    getUserMandatoryCourses().catch(() => []),
+    getUserCertificates().catch(() => []),
+    getUserPathsWithProgress().catch(() => []),
   ])
-
-  console.log('Dashboard data:', {
-    userId: user.id,
-    userEmail: user.email,
-    organizationId: user.organization_id,
-    isSuperadmin: user.is_superadmin,
-    progressCount: progress?.length || 0,
-    coursesCount: courses?.length || 0,
-    mandatoryCount: mandatoryCourses?.length || 0,
-    certificatesCount: certificates?.length || 0,
-    pathsCount: paths?.length || 0,
-  })
 
     const inProgressCourses = progress?.filter(
       (p: any) => p.status === 'in_progress'
