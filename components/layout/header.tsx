@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { signOut } from '@/app/actions/auth'
 import { usePathname } from 'next/navigation'
 import { NotificationBell } from '@/components/notifications/notification-bell'
 
-export function Header() {
+function HeaderContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -111,3 +111,27 @@ export function Header() {
   )
 }
 
+export function Header() {
+  return (
+    <Suspense fallback={
+      <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur supports-[backdrop-filter]:bg-slate-950/60">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <span className="font-display text-xl font-medium text-white">
+                n<span className="text-primary">.</span>training
+              </span>
+            </Link>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" disabled>
+                <Search className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+    }>
+      <HeaderContent />
+    </Suspense>
+  )
+}

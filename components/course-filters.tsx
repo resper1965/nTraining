@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { useSearchParams, useRouter } from 'next/navigation'
 import type { CourseLevel } from '@/lib/types/database'
@@ -15,7 +16,7 @@ interface CourseFiltersProps {
   areas?: string[]
 }
 
-export function CourseFilters({ areas = [] }: CourseFiltersProps) {
+function CourseFiltersContent({ areas = [] }: CourseFiltersProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -105,3 +106,21 @@ export function CourseFilters({ areas = [] }: CourseFiltersProps) {
   )
 }
 
+export function CourseFilters({ areas = [] }: CourseFiltersProps) {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        <div>
+          <input
+            type="text"
+            placeholder="Search courses..."
+            disabled
+            className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-md text-slate-500"
+          />
+        </div>
+      </div>
+    }>
+      <CourseFiltersContent areas={areas} />
+    </Suspense>
+  )
+}
