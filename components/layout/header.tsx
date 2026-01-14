@@ -38,8 +38,8 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="font-display text-xl font-bold text-white">
-              n.training
+            <span className="font-display text-xl font-medium text-white">
+              n<span className="text-primary">.</span>training
             </span>
           </Link>
 
