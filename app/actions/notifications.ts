@@ -175,8 +175,8 @@ export async function markAllNotificationsAsRead() {
     throw new Error(`Failed to mark all notifications as read: ${error.message}`)
   }
 
+  revalidatePath('/notifications')
   revalidatePath('/')
-  return { success: true }
 }
 
 // ============================================================================
