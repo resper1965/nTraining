@@ -1,5 +1,5 @@
 import { requireSuperAdmin } from '@/lib/supabase/server'
-import { getCourseById } from '@/app/actions/courses'
+import { getCourseById, type ActionError } from '@/app/actions/courses'
 import { getModulesByCourse } from '@/app/actions/modules'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,8 +13,15 @@ import Link from 'next/link'
 import { ArrowLeft, Plus, GripVertical, Edit, Trash2, BookOpen } from 'lucide-react'
 import { ModuleList } from '@/components/admin/module-list'
 import { CreateModuleDialog } from '@/components/admin/create-module-dialog'
+import { notFound } from 'next/navigation'
+import type { CourseWithModules } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
+
+// Type guard helper
+function isActionError(result: CourseWithModules | ActionError): result is ActionError {
+  return 'code' in result || 'message' in result
+}
 
 export default async function CourseModulesPage({
   params,
@@ -25,10 +32,16 @@ export default async function CourseModulesPage({
 }) {
   await requireSuperAdmin()
 
-  const [course, modules] = await Promise.all([
+  const [courseResult, modules] = await Promise.all([
     getCourseById(params.id),
     getModulesByCourse(params.id),
   ])
+  
+  if (!courseResult || isActionError(courseResult)) {
+    notFound()
+  }
+  
+  const course = courseResult as CourseWithModules
 
   return (
     <div className="space-y-6">

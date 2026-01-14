@@ -1,5 +1,5 @@
 import { requireSuperAdmin } from '@/lib/supabase/server'
-import { getCourseById } from '@/app/actions/courses'
+import { getCourseById, type ActionError } from '@/app/actions/courses'
 import { getModulesByCourse } from '@/app/actions/modules'
 import { getLessonsByModule } from '@/app/actions/lessons'
 import { Button } from '@/components/ui/button'
@@ -14,8 +14,15 @@ import Link from 'next/link'
 import { ArrowLeft, BookOpen, Video, FileText, FileQuestion } from 'lucide-react'
 import { LessonList } from '@/components/admin/lesson-list'
 import { CreateLessonDialog } from '@/components/admin/create-lesson-dialog'
+import { notFound } from 'next/navigation'
+import type { CourseWithModules } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
+
+// Type guard helper
+function isActionError(result: CourseWithModules | ActionError): result is ActionError {
+  return 'code' in result || 'message' in result
+}
 
 export default async function ModuleLessonsPage({
   params,
@@ -26,11 +33,17 @@ export default async function ModuleLessonsPage({
 }) {
   await requireSuperAdmin()
 
-  const [course, modules, lessons] = await Promise.all([
+  const [courseResult, modules, lessons] = await Promise.all([
     getCourseById(params.id),
     getModulesByCourse(params.id),
     getLessonsByModule(params.moduleId),
   ])
+  
+  if (!courseResult || isActionError(courseResult)) {
+    notFound()
+  }
+  
+  const course = courseResult as CourseWithModules
 
   const currentModule = modules.find((m) => m.id === params.moduleId)
 

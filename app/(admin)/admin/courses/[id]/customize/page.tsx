@@ -1,5 +1,5 @@
 import { requireSuperAdmin } from '@/lib/supabase/server'
-import { getCourseById } from '@/app/actions/courses'
+import { getCourseById, type ActionError } from '@/app/actions/courses'
 import { getAllOrganizations } from '@/app/actions/organizations'
 import { customizeCourse } from '@/app/actions/organization-courses'
 import { Button } from '@/components/ui/button'
@@ -14,8 +14,14 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { CustomizeCourseForm } from '@/components/admin/customize-course-form'
+import type { CourseWithModules } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
+
+// Type guard helper
+function isActionError(result: CourseWithModules | ActionError): result is ActionError {
+  return 'code' in result || 'message' in result
+}
 
 export default async function CustomizeCoursePage({
   params,
@@ -24,12 +30,15 @@ export default async function CustomizeCoursePage({
 }) {
   await requireSuperAdmin()
 
-  let course
-  try {
-    course = await getCourseById(params.id)
-  } catch (error) {
+  const courseResult = await getCourseById(params.id)
+  
+  // Type guard: verificar se é ActionError
+  if (!courseResult || isActionError(courseResult)) {
     notFound()
   }
+  
+  // Agora TypeScript sabe que courseResult é CourseWithModules
+  const course = courseResult as CourseWithModules
 
   const organizations = await getAllOrganizations().catch(() => [])
 

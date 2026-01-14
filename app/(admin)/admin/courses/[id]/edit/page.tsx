@@ -1,12 +1,18 @@
 import { requireSuperAdmin } from '@/lib/supabase/server'
-import { getCourseById, updateCourse } from '@/app/actions/courses'
+import { getCourseById, updateCourse, type ActionError } from '@/app/actions/courses'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { redirect } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
 import { ClientEditForm } from './client-form'
+import type { CourseWithModules } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
+
+// Type guard helper
+function isActionError(result: CourseWithModules | ActionError): result is ActionError {
+  return 'code' in result || 'message' in result
+}
 
 export default async function EditCoursePage({
   params,
@@ -17,7 +23,13 @@ export default async function EditCoursePage({
 }) {
   await requireSuperAdmin()
 
-  const course = await getCourseById(params.id)
+  const courseResult = await getCourseById(params.id)
+  
+  if (!courseResult || isActionError(courseResult)) {
+    notFound()
+  }
+  
+  const course = courseResult as CourseWithModules
 
   async function handleUpdateCourse(formData: FormData) {
     'use server'

@@ -1,28 +1,179 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { requireSuperAdmin } from '@/lib/supabase/server'
+// ============================================================================
+// User Server Actions (Refatorado)
+// ============================================================================
+// Esta camada apenas orquestra: Auth → Validação → Service → Response
+// Toda lógica de negócio está em UserService
+// Toda validação está em user.schema.ts
+
 import { revalidatePath } from 'next/cache'
+import { requireSuperAdmin } from '@/lib/auth/helpers'
+import { UserService, UserServiceError } from '@/lib/services/user.service'
+import {
+  validateUserFilters,
+  validateUserId,
+  type UserFiltersInput,
+  type UserIdInput,
+} from '@/lib/validators/user.schema'
+import { ZodError } from 'zod'
+import type { User } from '@/lib/types/database'
+
+// ============================================================================
+// Error Types
+// ============================================================================
+
+export interface ActionError {
+  message: string
+  code?: string
+  fieldErrors?: Record<string, string[]>
+}
+
+// ============================================================================
+// GET USERS (com filtros e paginação)
+// ============================================================================
+
+export async function getUsers(
+  filters?: UserFiltersInput
+): Promise<
+  | {
+      success: true
+      data: {
+        users: User[]
+        total: number
+        page: number
+        limit: number
+        totalPages: number
+      }
+    }
+  | { success: false; error: ActionError }
+> {
+  try {
+    // 1. Auth Check
+    await requireSuperAdmin()
+
+    // 2. Validação
+    const validation = validateUserFilters(filters || {})
+    if (!validation.success) {
+      return {
+        success: false,
+        error: {
+          message: 'Filtros inválidos',
+          code: 'VALIDATION_ERROR',
+          fieldErrors: validation.error.flatten().fieldErrors,
+        },
+      }
+    }
+
+    // 3. Service Call
+    const service = new UserService()
+    const result = await service.getUsers(validation.data)
+
+    // 4. Response
+    return {
+      success: true,
+      data: result,
+    }
+  } catch (error) {
+    if (error instanceof UserServiceError) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+          code: error.code,
+        },
+      }
+    }
+
+    return {
+      success: false,
+      error: {
+        message: 'Erro ao buscar usuários',
+        code: 'UNKNOWN_ERROR',
+      },
+    }
+  }
+}
+
+// ============================================================================
+// GET PENDING USERS
+// ============================================================================
+
+export async function getPendingUsers(): Promise<
+  | {
+      success: true
+      data: Array<{
+        id: string
+        full_name: string | null
+        email: string
+        role: 'platform_admin' | 'org_manager' | 'student'
+        created_at: string
+        organization_id: string | null
+      }>
+    }
+  | { success: false; error: ActionError }
+> {
+  try {
+    // 1. Auth Check
+    await requireSuperAdmin()
+
+    // 2. Service Call (sem validação adicional)
+    const service = new UserService()
+    const users = await service.getPendingUsers()
+
+    // 3. Response
+    return {
+      success: true,
+      data: users,
+    }
+  } catch (error) {
+    if (error instanceof UserServiceError) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+          code: error.code,
+        },
+      }
+    }
+
+    return {
+      success: false,
+      error: {
+        message: 'Erro ao buscar usuários pendentes',
+        code: 'UNKNOWN_ERROR',
+      },
+    }
+  }
+}
 
 // ============================================================================
 // APPROVE USER
 // ============================================================================
 
-export async function approveUser(userId: string) {
+export async function approveUser(userId: string): Promise<{ success: true }> {
+  // 1. Auth Check
   await requireSuperAdmin()
-  const supabase = createClient()
 
-  const { error } = await supabase
-    .from('users')
-    .update({ is_active: true })
-    .eq('id', userId)
-
-  if (error) {
-    throw new Error(`Erro ao aprovar usuário: ${error.message}`)
+  // 2. Validação
+  let validatedUserId: UserIdInput
+  try {
+    validatedUserId = validateUserId(userId)
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('ID de usuário inválido')
+    }
+    throw error
   }
 
+  // 3. Service Call
+  const service = new UserService()
+  await service.approveUser(validatedUserId)
+
+  // 4. Response/Effect
   revalidatePath('/admin/users')
   revalidatePath('/admin/users/pending')
+
   return { success: true }
 }
 
@@ -30,78 +181,28 @@ export async function approveUser(userId: string) {
 // REJECT USER
 // ============================================================================
 
-export async function rejectUser(userId: string) {
+export async function rejectUser(userId: string): Promise<{ success: true }> {
+  // 1. Auth Check
   await requireSuperAdmin()
-  const supabase = createClient()
 
-  // Buscar email do usuário antes de deletar
-  const { data: userData } = await supabase
-    .from('users')
-    .select('email')
-    .eq('id', userId)
-    .single()
-
-  // Deletar da tabela users (cascade deleta do auth.users também devido ao ON DELETE CASCADE)
-  const { error } = await supabase
-    .from('users')
-    .delete()
-    .eq('id', userId)
-
-  if (error) {
-    throw new Error(`Erro ao rejeitar usuário: ${error.message}`)
-  }
-
-  // Se necessário, deletar também do auth.users usando service role
-  if (userData?.email) {
-    try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-      if (supabaseUrl && serviceRoleKey) {
-        const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-        const supabaseAdmin = createServiceClient(supabaseUrl, serviceRoleKey, {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        })
-
-        // Buscar usuário no auth pelo email
-        const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers()
-        const authUser = authUsers?.users.find(u => u.email === userData.email)
-
-        if (authUser) {
-          await supabaseAdmin.auth.admin.deleteUser(authUser.id)
-        }
-      }
-    } catch (error) {
-      console.error('Error deleting user from auth:', error)
-      // Não falhar se não conseguir deletar do auth, já que o cascade deve ter funcionado
+  // 2. Validação
+  let validatedUserId: UserIdInput
+  try {
+    validatedUserId = validateUserId(userId)
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error('ID de usuário inválido')
     }
+    throw error
   }
 
+  // 3. Service Call
+  const service = new UserService()
+  await service.rejectUser(validatedUserId)
+
+  // 4. Response/Effect
   revalidatePath('/admin/users')
   revalidatePath('/admin/users/pending')
+
   return { success: true }
-}
-
-// ============================================================================
-// GET PENDING USERS
-// ============================================================================
-
-export async function getPendingUsers() {
-  await requireSuperAdmin()
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from('users')
-    .select('id, full_name, email, role, created_at, organization_id')
-    .eq('is_active', false)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    throw new Error(`Erro ao buscar usuários pendentes: ${error.message}`)
-  }
-
-  return data || []
 }

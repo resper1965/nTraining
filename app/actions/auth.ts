@@ -1,104 +1,85 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+// ============================================================================
+// Auth Server Actions (Refatorado)
+// ============================================================================
+// Esta camada apenas orquestra: Auth → Validação → Service → Response
+// Toda lógica de negócio está em AuthService
+// Toda validação está em auth.schema.ts
+
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { requireSuperAdmin, getCurrentUser } from '@/lib/auth/helpers'
+import { AuthService, AuthServiceError } from '@/lib/services/auth.service'
+import {
+  validateSignIn,
+  validateSignUp,
+  validateCreateUser,
+  type SignInInput,
+  type SignUpInput,
+  type CreateUserInput,
+} from '@/lib/validators/auth.schema'
+import { ZodError } from 'zod'
+
+// ============================================================================
+// Error Types
+// ============================================================================
+
+export interface AuthActionError {
+  message: string
+  code?: string
+  fieldErrors?: Record<string, string[]>
+}
 
 // ============================================================================
 // SIGN IN
 // ============================================================================
 
 export async function signIn(formData: FormData) {
-  const supabase = createClient()
+  try {
+    // 1. Extrair dados do FormData
+    const rawInput = {
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+      redirectTo: formData.get('redirect') as string | null,
+    }
 
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const redirectTo = formData.get('redirect') as string | null
+    // 2. Validação
+    let validatedInput: SignInInput
+    try {
+      validatedInput = validateSignIn(rawInput)
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const fieldErrors = error.flatten().fieldErrors
+        const firstError = Object.values(fieldErrors)[0]?.[0] || 'Dados inválidos'
+        redirect(`/auth/login?error=${encodeURIComponent(firstError)}&redirect=${encodeURIComponent(rawInput.redirectTo || '')}`)
+        return
+      }
+      throw error
+    }
 
-  if (!email || !password) {
-    redirect('/auth/login?error=Email and password are required')
-  }
+    // 3. Service Call
+    const service = new AuthService()
+    const result = await service.signIn(validatedInput)
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-
-  if (error) {
-    redirect(`/auth/login?error=${encodeURIComponent(error.message)}&redirect=${encodeURIComponent(redirectTo || '')}`)
-  }
-
-  // Update last login and check if superadmin
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (user) {
-    // Buscar dados completos do usuário antes de atualizar
-    const { data: userData, error: userDataError } = await supabase
-      .from('users')
-      .select('last_login_at, full_name, email, is_superadmin, is_active')
-      .eq('id', user.id)
-      .single()
-
-    if (userDataError) {
-      console.error('Error fetching user data:', userDataError)
-      // Se usuário não existe na tabela users, redireciona para sala de espera
-      redirect('/auth/waiting-room')
+    // 4. Response/Effect
+    revalidatePath('/')
+    redirect(result.redirectPath)
+  } catch (error) {
+    if (error instanceof AuthServiceError) {
+      const redirectTo = formData.get('redirect') as string | null
+      redirect(
+        `/auth/login?error=${encodeURIComponent(error.message)}&redirect=${encodeURIComponent(redirectTo || '')}`
+      )
       return
     }
 
-    // IMPORTANTE: Verificar superadmin PRIMEIRO, antes de verificar is_active
-    // Superadmins SEMPRE vão para /admin, mesmo se is_active = false
-    if (userData?.is_superadmin === true) {
-      // Atualizar last_login_at
-      await supabase
-        .from('users')
-        .update({ last_login_at: new Date().toISOString() })
-        .eq('id', user.id)
-      
-      // Redirect superadmin to admin panel, unless redirectTo is specified
-      if (!redirectTo) {
-        revalidatePath('/')
-        redirect('/admin')
-        return
-      } else {
-        revalidatePath('/')
-        redirect(redirectTo)
-        return
-      }
-    }
-
-    // Verificar se usuário está pendente de aprovação (apenas para não-superadmins)
-    if (userData && !userData.is_active) {
-      redirect('/auth/waiting-room')
-      return
-    }
-
-    // Atualizar last_login_at
-    await supabase
-      .from('users')
-      .update({ last_login_at: new Date().toISOString() })
-      .eq('id', user.id)
-
-    // Criar notificação de boas-vindas se for primeiro login
-    if (userData && !userData.last_login_at) {
-      try {
-        const { notifyWelcome } = await import('@/lib/notifications/triggers')
-        await notifyWelcome(user.id, userData.full_name || userData.email)
-      } catch (notifError) {
-        console.error('Error creating welcome notification:', notifError)
-      }
-    }
-    
-    // Log for debugging
-    if (userData) {
-      console.log('User data:', { email: userData.email, is_superadmin: userData.is_superadmin, redirectTo })
-    }
+    // Erro desconhecido
+    const redirectTo = formData.get('redirect') as string | null
+    redirect(
+      `/auth/login?error=${encodeURIComponent('Erro ao fazer login. Tente novamente.')}&redirect=${encodeURIComponent(redirectTo || '')}`
+    )
   }
-
-  revalidatePath('/')
-  redirect(redirectTo || '/dashboard')
 }
 
 // ============================================================================
@@ -106,10 +87,20 @@ export async function signIn(formData: FormData) {
 // ============================================================================
 
 export async function signOut() {
-  const supabase = createClient()
-  await supabase.auth.signOut()
-  revalidatePath('/')
-  redirect('/')
+  try {
+    // 1. Service Call (sem validação adicional)
+    const service = new AuthService()
+    await service.signOut()
+
+    // 2. Response/Effect
+    revalidatePath('/')
+    redirect('/')
+  } catch (error) {
+    // Mesmo se signOut falhar, redirecionar para home
+    // (pode ser que a sessão já tenha expirado)
+    revalidatePath('/')
+    redirect('/')
+  }
 }
 
 // ============================================================================
@@ -117,77 +108,38 @@ export async function signOut() {
 // ============================================================================
 
 export async function signUp(formData: FormData) {
-  'use server'
-  
-  const supabase = createClient()
-  
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const fullName = formData.get('fullName') as string
-  const organizationId = formData.get('organizationId') as string | null
+  try {
+    // 1. Extrair dados do FormData
+    const rawInput = {
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+      fullName: formData.get('fullName') as string,
+      organizationId: formData.get('organizationId') as string | null,
+    }
 
-  if (!email || !password || !fullName) {
-    redirect('/auth/signup?error=Email, senha e nome são obrigatórios')
-  }
+    // 2. Validação
+    const validation = validateSignUp(rawInput)
+    if (!validation.success) {
+      const firstError = Object.values(validation.error.flatten().fieldErrors)[0]?.[0] || 'Dados inválidos'
+      redirect(`/auth/signup?error=${encodeURIComponent(firstError)}`)
+      return
+    }
 
-  if (!organizationId) {
-    redirect('/auth/signup?error=Selecione uma organização')
-  }
+    // 3. Service Call
+    const service = new AuthService()
+    await service.signUp(validation.data)
 
-  if (password.length < 8) {
-    redirect('/auth/signup?error=Senha deve ter pelo menos 8 caracteres')
-  }
+    // 4. Response/Effect
+    redirect('/auth/waiting-room')
+  } catch (error) {
+    if (error instanceof AuthServiceError) {
+      redirect(`/auth/signup?error=${encodeURIComponent(error.message)}`)
+      return
+    }
 
-  // Verificar se organização existe
-  const { data: org, error: orgError } = await supabase
-    .from('organizations')
-    .select('id')
-    .eq('id', organizationId)
-    .single()
-
-  if (orgError || !org) {
-    redirect('/auth/signup?error=Organização inválida')
-  }
-
-  // Criar usuário no Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
-      data: {
-        full_name: fullName,
-      },
-    },
-  })
-
-  if (authError) {
-    redirect(`/auth/signup?error=${encodeURIComponent(authError.message)}`)
-  }
-
-  if (!authData.user) {
+    // Erro desconhecido
     redirect('/auth/signup?error=Erro ao criar conta. Tente novamente.')
   }
-
-  // Criar registro na tabela users com is_active = false (pendente)
-  const { error: userError } = await supabase.from('users').insert({
-    id: authData.user.id,
-    email,
-    full_name: fullName,
-    role: 'student',
-    organization_id: organizationId,
-    is_active: false, // Pendente de aprovação
-  })
-
-  if (userError) {
-    // Se falhar ao criar na tabela users, tenta deletar do auth
-    console.error('Error creating user profile:', userError)
-    // Não podemos deletar do auth aqui sem service role, mas o usuário ficará sem acesso
-    redirect('/auth/signup?error=Erro ao criar perfil. Entre em contato com o suporte.')
-  }
-
-  // Redirecionar para sala de espera
-  redirect('/auth/waiting-room')
 }
 
 // ============================================================================
@@ -195,70 +147,68 @@ export async function signUp(formData: FormData) {
 // ============================================================================
 
 export async function createUser(formData: FormData) {
-  'use server'
-  
-  // Usar service role key para criar usuário via admin API
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  try {
+    // 1. Auth Check
+    await requireSuperAdmin()
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Configuração do servidor incompleta. Verifique SUPABASE_SERVICE_ROLE_KEY.')
-  }
-
-  // Criar cliente com service role para operações admin
-  const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-  const supabaseAdmin = createServiceClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+    // 2. Extrair dados do FormData
+    const rawInput = {
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+      fullName: formData.get('fullName') as string,
+      role: (formData.get('role') as string) || 'student',
+      organizationId: formData.get('organizationId') as string | null,
+      isSuperadmin: formData.get('isSuperadmin') === 'true',
     }
-  })
-  
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const fullName = formData.get('fullName') as string
-  const role = formData.get('role') as string || 'student'
-  const organizationId = formData.get('organizationId') as string | null
 
-  if (!email || !password) {
-    throw new Error('Email e senha são obrigatórios')
+    // 3. Validação
+    let validatedInput: CreateUserInput
+    try {
+      validatedInput = validateCreateUser(rawInput)
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const fieldErrors = error.flatten().fieldErrors
+        const firstError = Object.values(fieldErrors)[0]?.[0] || 'Dados inválidos'
+        throw new Error(firstError)
+      }
+      throw error
+    }
+
+    // 4. Service Call
+    const service = new AuthService()
+    const result = await service.createUser(validatedInput)
+
+    // 5. Log de atividade (opcional, não bloqueia)
+    try {
+      const { logUserCreated } = await import('@/app/actions/activity-logs')
+      const currentUser = await getCurrentUser()
+      if (currentUser) {
+        await logUserCreated(
+          currentUser.id,
+          result.userId,
+          result.email,
+          validatedInput.organizationId
+        )
+      }
+    } catch (logError) {
+      console.error('Error logging user creation:', logError)
+      // Não falhar a criação se log falhar
+    }
+
+    // 6. Response/Effect
+    revalidatePath('/admin/users')
+    return { success: true, userId: result.userId }
+  } catch (error) {
+    if (error instanceof AuthServiceError) {
+      throw new Error(error.message)
+    }
+
+    if (error instanceof ZodError) {
+      const firstError = Object.values(error.flatten().fieldErrors)[0]?.[0] || 'Dados inválidos'
+      throw new Error(firstError)
+    }
+
+    // Re-throw outros erros
+    throw error
   }
-
-  if (password.length < 8) {
-    throw new Error('Senha deve ter pelo menos 8 caracteres')
-  }
-
-  // Criar usuário no Supabase Auth usando admin API
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true, // Auto-confirmar email
-    user_metadata: {
-      full_name: fullName,
-    },
-  })
-
-  if (authError || !authData.user) {
-    throw new Error(`Erro ao criar usuário: ${authError?.message || 'Erro desconhecido'}`)
-  }
-
-  // Criar registro na tabela users
-  const { error: userError } = await supabaseAdmin.from('users').insert({
-    id: authData.user.id,
-    email,
-    full_name: fullName,
-    role: role as 'platform_admin' | 'org_manager' | 'student',
-    organization_id: organizationId || null,
-    is_active: true,
-  })
-
-  if (userError) {
-    // Se falhar ao criar na tabela users, tenta deletar do auth
-    await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
-    throw new Error(`Erro ao criar perfil do usuário: ${userError.message}`)
-  }
-
-  revalidatePath('/admin/users')
-  return { success: true, userId: authData.user.id }
 }
-

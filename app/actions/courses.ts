@@ -1,466 +1,558 @@
-'use server';
+'use server'
 
-import { createClient } from '@/lib/supabase/server';
-import { requireAuth, requireRole } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+// ============================================================================
+// Course Server Actions (Refatorado)
+// ============================================================================
+// Esta camada apenas orquestra: Auth → Validação → Service → Response
+// Toda lógica de negócio está em CourseService
+// Toda validação está em course.schema.ts
+
+import { revalidatePath } from 'next/cache'
+import { getCurrentUser, requireAuth, requireRole } from '@/lib/auth/helpers'
+import { CourseService, CourseServiceError } from '@/lib/services/course.service'
+import {
+  validateCourseCreate,
+  validateCourseUpdate,
+  validateCourseFilters,
+  type CourseCreateInput,
+  type CourseUpdateInput,
+  type CourseFiltersInput,
+} from '@/lib/validators/course.schema'
 import type {
-    Course,
-    CourseWithModules,
-    CourseWithProgress,
-    CourseFilters,
-    CourseFormData
-} from '@/lib/types/database';
+  Course,
+  CourseWithModules,
+  CourseWithProgress,
+} from '@/lib/types/database'
+import { ZodError } from 'zod'
+
+// ============================================================================
+// Error Types
+// ============================================================================
+
+export interface ActionError {
+  message: string
+  code?: string
+  fieldErrors?: Record<string, string[]>
+}
 
 // ============================================================================
 // GET COURSES
 // ============================================================================
 
-export async function getCourses(filters?: CourseFilters) {
-    const supabase = createClient();
-    const user = await requireAuth();
+export async function getCourses(
+  filters?: CourseFiltersInput
+): Promise<Course[] | ActionError> {
+  try {
+    const user = await requireAuth()
 
-    // Se superadmin, pode ver todos os cursos
-    if (user.is_superadmin) {
-        let query = supabase
-            .from('courses')
-            .select('id, title, slug, description, thumbnail_url, level, area, duration_hours, status, is_public, created_at, organization_id')
-            .order('created_at', { ascending: false });
-
-        // Apply filters
-        if (filters?.area) {
-            query = query.eq('area', filters.area);
-        }
-
-        if (filters?.level) {
-            query = query.eq('level', filters.level);
-        }
-
-        if (filters?.status) {
-            query = query.eq('status', filters.status);
-        } else {
-            query = query.eq('status', 'published');
-        }
-
-        if (filters?.is_public !== undefined) {
-            query = query.eq('is_public', filters.is_public);
-        }
-
-        if (filters?.search) {
-            query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-            throw new Error(`Failed to fetch courses: ${error.message}`);
-        }
-
-        return data as Course[];
+    // Validar filtros
+    const validation = validateCourseFilters(filters || {})
+    if (!validation.success) {
+      return {
+        message: 'Filtros inválidos',
+        code: 'VALIDATION_ERROR',
+        fieldErrors: validation.error.flatten().fieldErrors,
+      }
     }
 
-    // Para usuários normais, buscar apenas cursos disponíveis para sua organização
-    if (!user.organization_id) {
-        return []; // Sem organização, sem cursos
+    // Criar serviço e buscar cursos
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
+
+    const courses = await service.getCourses(validation.data)
+    return courses
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        message: error.message,
+        code: error.code,
+      }
     }
-
-    // Buscar cursos disponíveis para a organização via organization_course_access
-    let accessQuery = supabase
-        .from('organization_course_access')
-        .select(`
-            *,
-            courses (
-                id, title, slug, description, thumbnail_url, level, area, duration_hours, status, is_public, created_at, organization_id
-            )
-        `)
-        .eq('organization_id', user.organization_id)
-        .or('valid_until.is.null,valid_until.gt.now()'); // Apenas cursos válidos
-
-    // Se há filtro de status, aplicar no curso
-    if (filters?.status) {
-        accessQuery = accessQuery.eq('courses.status', filters.status);
-    } else {
-        accessQuery = accessQuery.eq('courses.status', 'published');
+    return {
+      message: 'Erro ao buscar cursos',
+      code: 'UNKNOWN_ERROR',
     }
-
-    const { data: accessData, error: accessError } = await accessQuery;
-
-    if (accessError) {
-        throw new Error(`Failed to fetch organization courses: ${accessError.message}`);
-    }
-
-    // Extrair cursos e aplicar filtros adicionais
-    let courses = (accessData || [])
-        .map((access: any) => access.courses)
-        .filter((course: any) => course !== null) as Course[];
-
-    // Aplicar filtros restantes
-    if (filters?.area) {
-        courses = courses.filter((c) => c.area === filters.area);
-    }
-
-    if (filters?.level) {
-        courses = courses.filter((c) => c.level === filters.level);
-    }
-
-    if (filters?.is_public !== undefined) {
-        courses = courses.filter((c) => c.is_public === filters.is_public);
-    }
-
-    if (filters?.search) {
-        const searchLower = filters.search.toLowerCase();
-        courses = courses.filter(
-            (c) =>
-                c.title?.toLowerCase().includes(searchLower) ||
-                c.description?.toLowerCase().includes(searchLower)
-        );
-    }
-
-    return courses;
+  }
 }
 
 // ============================================================================
 // GET COURSE BY ID
 // ============================================================================
 
-export async function getCourseById(courseId: string) {
-    const supabase = createClient();
-    await requireAuth();
+export async function getCourseById(
+  courseId: string
+): Promise<CourseWithModules | ActionError> {
+  try {
+    await requireAuth()
 
-    const { data, error } = await supabase
-        .from('courses')
-        .select(`
-      *,
-      modules (
-        *,
-        lessons (
-          *
-        )
-      )
-    `)
-        .eq('id', courseId)
-        .single();
-
-    if (error) {
-        throw new Error(`Failed to fetch course: ${error.message}`);
+    const user = await getCurrentUser()
+    if (!user) {
+      return {
+        message: 'Usuário não autenticado',
+        code: 'UNAUTHORIZED',
+      }
     }
 
-    return data as CourseWithModules;
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
+
+    const course = await service.getCourseById(courseId)
+    return course
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        message: error.message,
+        code: error.code,
+      }
+    }
+    return {
+      message: 'Erro ao buscar curso',
+      code: 'UNKNOWN_ERROR',
+    }
+  }
 }
 
 // ============================================================================
 // GET COURSE BY SLUG
 // ============================================================================
 
-export async function getCourseBySlug(slug: string) {
-    const supabase = createClient();
-    await requireAuth();
+export async function getCourseBySlug(
+  slug: string
+): Promise<CourseWithModules | ActionError> {
+  try {
+    await requireAuth()
 
-    const { data, error } = await supabase
-        .from('courses')
-        .select(`
-      *,
-      modules (
-        *,
-        lessons (
-          *
-        )
-      )
-    `)
-        .eq('slug', slug)
-        .single();
-
-    if (error) {
-        throw new Error(`Failed to fetch course: ${error.message}`);
+    const user = await getCurrentUser()
+    if (!user) {
+      return {
+        message: 'Usuário não autenticado',
+        code: 'UNAUTHORIZED',
+      }
     }
 
-    return data as CourseWithModules;
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
+
+    const course = await service.getCourseBySlug(slug)
+    return course
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        message: error.message,
+        code: error.code,
+      }
+    }
+    return {
+      message: 'Erro ao buscar curso',
+      code: 'UNKNOWN_ERROR',
+    }
+  }
 }
 
 // ============================================================================
 // GET COURSES WITH PROGRESS
 // ============================================================================
 
-export async function getCoursesWithProgress(filters?: CourseFilters) {
-    const supabase = createClient();
-    const user = await requireAuth();
+export async function getCoursesWithProgress(
+  filters?: CourseFiltersInput
+): Promise<CourseWithProgress[] | ActionError> {
+  try {
+    const user = await requireAuth()
 
-    const courses = await getCourses(filters);
-
-    if (courses.length === 0) {
-        return [];
+    // Validar filtros
+    const validation = validateCourseFilters(filters || {})
+    if (!validation.success) {
+      return {
+        message: 'Filtros inválidos',
+        code: 'VALIDATION_ERROR',
+        fieldErrors: validation.error.flatten().fieldErrors,
+      }
     }
 
-    // Fetch progress for all courses
-    const { data: progressData } = await supabase
-        .from('user_course_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .in('course_id', courses.map((c) => c.id));
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
 
-    // Buscar informações de acesso da organização (para personalizações)
-    let accessData: any[] = [];
-    if (user.organization_id) {
-        const { data } = await supabase
-            .from('organization_course_access')
-            .select('*')
-            .eq('organization_id', user.organization_id)
-            .in('course_id', courses.map((c) => c.id));
-
-        accessData = data || [];
+    const courses = await service.getCoursesWithProgress(validation.data)
+    return courses
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        message: error.message,
+        code: error.code,
+      }
     }
-
-    // Merge progress with courses e aplicar personalizações
-    const coursesWithProgress = courses.map((course) => {
-        const progress = progressData?.find((p: any) => p.course_id === course.id);
-        const access = accessData.find((a: any) => a.course_id === course.id);
-
-        // Aplicar personalizações se houver
-        const displayTitle = access?.custom_title || course.title;
-        const displayDescription = access?.custom_description || course.description;
-        const displayThumbnail = access?.custom_thumbnail_url || course.thumbnail_url;
-
-        return {
-            ...course,
-            title: displayTitle,
-            description: displayDescription,
-            thumbnail_url: displayThumbnail,
-            progress: progress || undefined,
-            access: access || undefined,
-        };
-    }) as CourseWithProgress[];
-
-    return coursesWithProgress;
+    return {
+      message: 'Erro ao buscar cursos com progresso',
+      code: 'UNKNOWN_ERROR',
+    }
+  }
 }
 
 // ============================================================================
 // CREATE COURSE (Admin only)
 // ============================================================================
 
-export async function createCourse(formData: CourseFormData) {
-    const supabase = createClient();
-    const user = await requireRole('platform_admin');
+export async function createCourse(
+  input: unknown
+): Promise<{ success: true; data: Course } | { success: false; error: ActionError }> {
+  try {
+    // 1. Auth Check
+    const user = await requireRole('platform_admin')
 
-    // Preparar dados para inserção (permitir campos opcionais)
-    const insertData: any = {
-        title: formData.title,
-        slug: formData.slug,
-        description: formData.description || null,
-        objectives: formData.objectives || null,
-        thumbnail_url: (formData as any).thumbnail_url || null,
-        level: formData.level,
-        area: formData.area || null,
-        duration_hours: formData.duration_hours || null,
-        status: formData.status,
-        is_public: formData.is_public,
-        created_by: user.id,
-        organization_id: user.organization_id || null,
+    // 2. Validação
+    let validatedInput: CourseCreateInput
+    try {
+      validatedInput = validateCourseCreate(input)
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return {
+          success: false,
+          error: {
+            message: 'Dados inválidos',
+            code: 'VALIDATION_ERROR',
+            fieldErrors: error.flatten().fieldErrors,
+          },
+        }
+      }
+      throw error
     }
 
-    const { data, error } = await supabase
-        .from('courses')
-        .insert(insertData)
-        .select()
-        .single();
+    // 3. Service Call
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
 
-    if (error) {
-        throw new Error(`Failed to create course: ${error.message}`);
+    const course = await service.createCourse(validatedInput)
+
+    // 4. Response/Effect
+    revalidatePath('/admin/courses')
+    revalidatePath('/courses')
+
+    return {
+      success: true,
+      data: course,
+    }
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+          code: error.code,
+        },
+      }
     }
 
-    revalidatePath('/admin/courses');
-    return data as Course;
+    return {
+      success: false,
+      error: {
+        message: 'Erro ao criar curso',
+        code: 'UNKNOWN_ERROR',
+      },
+    }
+  }
 }
 
 // ============================================================================
 // UPDATE COURSE (Admin only)
 // ============================================================================
 
-export async function updateCourse(courseId: string, formData: Partial<CourseFormData> & { thumbnail_url?: string | null }) {
-    const supabase = createClient();
-    await requireRole('platform_admin');
+export async function updateCourse(
+  courseId: string,
+  input: unknown
+): Promise<{ success: true; data: Course } | { success: false; error: ActionError }> {
+  try {
+    // 1. Auth Check
+    await requireRole('platform_admin')
 
-    // Preparar dados para atualização
-    const updateData: any = {
-        title: formData.title,
-        slug: formData.slug,
-        description: formData.description || null,
-        objectives: formData.objectives || null,
-        level: formData.level,
-        area: formData.area || null,
-        duration_hours: formData.duration_hours || null,
-        status: formData.status,
-        is_public: formData.is_public,
+    const user = await getCurrentUser()
+    if (!user) {
+      return {
+        success: false,
+        error: {
+          message: 'Usuário não autenticado',
+          code: 'UNAUTHORIZED',
+        },
+      }
     }
 
-    // Adicionar thumbnail_url se fornecido
-    if (formData.thumbnail_url !== undefined) {
-        updateData.thumbnail_url = formData.thumbnail_url || null
+    // 2. Validação
+    const validation = validateCourseUpdate(input)
+    if (!validation.success) {
+      return {
+        success: false,
+        error: {
+          message: 'Dados inválidos',
+          code: 'VALIDATION_ERROR',
+          fieldErrors: validation.error.flatten().fieldErrors,
+        },
+      }
     }
 
-    const { data, error } = await supabase
-        .from('courses')
-        .update(updateData)
-        .eq('id', courseId)
-        .select()
-        .single();
+    // 3. Service Call
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
 
-    if (error) {
-        throw new Error(`Failed to update course: ${error.message}`);
+    const course = await service.updateCourse(courseId, validation.data)
+
+    // 4. Response/Effect
+    revalidatePath('/admin/courses')
+    revalidatePath(`/courses/${course.slug}`)
+    revalidatePath(`/admin/courses/${courseId}`)
+
+    return {
+      success: true,
+      data: course,
+    }
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+          code: error.code,
+        },
+      }
     }
 
-    revalidatePath('/admin/courses');
-    revalidatePath(`/courses/${data.slug}`);
-    return data as Course;
+    return {
+      success: false,
+      error: {
+        message: 'Erro ao atualizar curso',
+        code: 'UNKNOWN_ERROR',
+      },
+    }
+  }
 }
 
 // ============================================================================
 // PUBLISH COURSE (Admin only)
 // ============================================================================
 
-export async function publishCourse(courseId: string) {
-    const supabase = createClient();
-    await requireRole('platform_admin');
+export async function publishCourse(
+  courseId: string
+): Promise<{ success: true; data: Course } | { success: false; error: ActionError }> {
+  try {
+    // 1. Auth Check
+    await requireRole('platform_admin')
 
-    const { data, error } = await supabase
-        .from('courses')
-        .update({
-            status: 'published',
-            published_at: new Date().toISOString(),
-        })
-        .eq('id', courseId)
-        .select()
-        .single();
-
-    if (error) {
-        throw new Error(`Failed to publish course: ${error.message}`);
+    const user = await getCurrentUser()
+    if (!user) {
+      return {
+        success: false,
+        error: {
+          message: 'Usuário não autenticado',
+          code: 'UNAUTHORIZED',
+        },
+      }
     }
 
-    revalidatePath('/admin/courses');
-    revalidatePath(`/courses/${data.slug}`);
-    return data as Course;
+    // 2. Service Call (sem validação adicional, apenas ID)
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
+
+    const course = await service.publishCourse(courseId)
+
+    // 3. Response/Effect
+    revalidatePath('/admin/courses')
+    revalidatePath(`/courses/${course.slug}`)
+
+    return {
+      success: true,
+      data: course,
+    }
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+          code: error.code,
+        },
+      }
+    }
+
+    return {
+      success: false,
+      error: {
+        message: 'Erro ao publicar curso',
+        code: 'UNKNOWN_ERROR',
+      },
+    }
+  }
 }
 
 // ============================================================================
 // DELETE COURSE (Admin only)
 // ============================================================================
 
-export async function deleteCourse(courseId: string) {
-    const supabase = createClient();
-    await requireRole('platform_admin');
+export async function deleteCourse(
+  courseId: string
+): Promise<{ success: true } | { success: false; error: ActionError }> {
+  try {
+    // 1. Auth Check
+    await requireRole('platform_admin')
 
-    const { error } = await supabase
-        .from('courses')
-        .delete()
-        .eq('id', courseId);
-
-    if (error) {
-        throw new Error(`Failed to delete course: ${error.message}`);
+    const user = await getCurrentUser()
+    if (!user) {
+      return {
+        success: false,
+        error: {
+          message: 'Usuário não autenticado',
+          code: 'UNAUTHORIZED',
+        },
+      }
     }
 
-    revalidatePath('/admin/courses');
-    return { success: true };
+    // 2. Service Call
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
+
+    await service.deleteCourse(courseId)
+
+    // 3. Response/Effect
+    revalidatePath('/admin/courses')
+    revalidatePath('/courses')
+
+    return {
+      success: true,
+    }
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+          code: error.code,
+        },
+      }
+    }
+
+    return {
+      success: false,
+      error: {
+        message: 'Erro ao deletar curso',
+        code: 'UNKNOWN_ERROR',
+      },
+    }
+  }
 }
 
 // ============================================================================
 // ENROLL IN COURSE
 // ============================================================================
 
-export async function enrollInCourse(courseId: string) {
-    const supabase = createClient();
-    const user = await requireAuth();
+export async function enrollInCourse(
+  courseId: string
+): Promise<{ success: true; data: any } | { success: false; error: ActionError }> {
+  try {
+    // 1. Auth Check
+    const user = await requireAuth()
 
-    // Verificar se curso está disponível para a organização do usuário
-    if (user.organization_id) {
-        const { data: access, error: accessError } = await supabase
-            .from('organization_course_access')
-            .select('*')
-            .eq('organization_id', user.organization_id)
-            .eq('course_id', courseId)
-            .single();
-
-        if (accessError || !access) {
-            throw new Error('Curso não disponível para sua organização');
-        }
-
-        // Verificar validade
-        if (access.valid_until && new Date(access.valid_until) < new Date()) {
-            throw new Error('Acesso ao curso expirado');
-        }
-
-        // Verificar licenças disponíveis (se não for ilimitado)
-        if (access.access_type === 'licensed' && access.total_licenses !== null) {
-            if (access.used_licenses >= access.total_licenses) {
-                throw new Error('Sem licenças disponíveis. Entre em contato com o administrador.');
-            }
-        }
+    // 2. Validação básica (apenas ID)
+    if (!courseId || typeof courseId !== 'string') {
+      return {
+        success: false,
+        error: {
+          message: 'ID do curso inválido',
+          code: 'VALIDATION_ERROR',
+        },
+      }
     }
 
-    // Check if already enrolled
-    const { data: existing } = await supabase
-        .from('user_course_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('course_id', courseId)
-        .single();
+    // 3. Service Call
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
 
-    if (existing) {
-        return existing;
+    const enrollment = await service.enrollInCourse(courseId)
+
+    // 4. Response/Effect
+    revalidatePath('/courses')
+    revalidatePath(`/courses/${courseId}`)
+
+    return {
+      success: true,
+      data: enrollment,
+    }
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+          code: error.code,
+        },
+      }
     }
 
-    // Create progress record
-    const { data, error } = await supabase
-        .from('user_course_progress')
-        .insert({
-            user_id: user.id,
-            course_id: courseId,
-            status: 'not_started',
-            completion_percentage: 0,
-        })
-        .select()
-        .single();
-
-    if (error) {
-        throw new Error(`Failed to enroll in course: ${error.message}`);
+    return {
+      success: false,
+      error: {
+        message: 'Erro ao inscrever no curso',
+        code: 'UNKNOWN_ERROR',
+      },
     }
-
-    // Criar atribuição se não existir
-    if (user.organization_id) {
-        await supabase
-            .from('organization_course_assignments')
-            .upsert(
-                {
-                    organization_id: user.organization_id,
-                    course_id: courseId,
-                    user_id: user.id,
-                    assignment_type: 'manual',
-                    is_mandatory: false,
-                },
-                { onConflict: 'organization_id,course_id,user_id' }
-            );
-    }
-
-    revalidatePath('/courses');
-    revalidatePath(`/courses/${courseId}`);
-    return data;
+  }
 }
 
 // ============================================================================
 // GET COURSE AREAS (for filters)
 // ============================================================================
 
-export async function getCourseAreas() {
-    const supabase = createClient();
-
-    const { data, error } = await supabase
-        .from('courses')
-        .select('area')
-        .not('area', 'is', null)
-        .eq('status', 'published');
-
-    if (error) {
-        throw new Error(`Failed to fetch course areas: ${error.message}`);
+export async function getCourseAreas(): Promise<string[] | ActionError> {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return {
+        message: 'Usuário não autenticado',
+        code: 'UNAUTHORIZED',
+      }
     }
 
-    // Get unique areas
-    const uniqueAreas = [...new Set(data.map((c: any) => c.area).filter(Boolean))];
-    return uniqueAreas as string[];
+    const service = new CourseService({
+      userId: user.id,
+      organizationId: user.organization_id,
+      isSuperadmin: user.is_superadmin,
+    })
+
+    const areas = await service.getCourseAreas()
+    return areas
+  } catch (error) {
+    if (error instanceof CourseServiceError) {
+      return {
+        message: error.message,
+        code: error.code,
+      }
+    }
+    return {
+      message: 'Erro ao buscar áreas',
+      code: 'UNKNOWN_ERROR',
+    }
+  }
 }
