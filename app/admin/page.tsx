@@ -1,4 +1,3 @@
-import { requireSuperAdmin } from '@/lib/supabase/server'
 import { getDashboardMetrics, getRecentActivities } from '@/app/actions/admin'
 import { StatsCard } from '@/components/admin/stats-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
