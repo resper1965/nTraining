@@ -15,12 +15,12 @@ export default async function Home() {
     redirect('/auth/login')
   }
 
-  // Superadmin vai para /admin
-  if (user.is_superadmin) {
+  // IMPORTANTE: Superadmin SEMPRE vai para /admin, mesmo se is_active = false
+  if (user.is_superadmin === true) {
     redirect('/admin')
   }
 
-  // Usuário não ativo vai para waiting room
+  // Usuário não ativo vai para waiting room (mas não superadmin)
   if (!user.is_active) {
     redirect('/auth/waiting-room')
   }

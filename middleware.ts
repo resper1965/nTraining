@@ -115,6 +115,28 @@ export async function middleware(request: NextRequest) {
       return response
     }
 
+    // IMPORTANTE: Verificar se superadmin está tentando acessar waiting-room
+    // Isso evita que superadmins vejam a waiting room mesmo que is_active = false
+    if (user && request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
+      try {
+        // Query rápida apenas para verificar is_superadmin
+        const { data: userData } = await supabase
+          .from('users')
+          .select('is_superadmin')
+          .eq('id', user.id)
+          .single()
+        
+        if (userData?.is_superadmin === true) {
+          return NextResponse.redirect(new URL('/admin', request.url))
+        }
+      } catch (error) {
+        // Se erro, deixar passar - a página waiting-room vai verificar
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[middleware] Erro ao verificar superadmin:', error)
+        }
+      }
+    }
+
     // Para todas as outras rotas, deixar passar
     // Layouts vão fazer verificações mais específicas (is_active, is_superadmin, etc)
     return response

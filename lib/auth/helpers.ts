@@ -83,7 +83,11 @@ export async function getCurrentUser(): Promise<User | null> {
 
     if (isDev) {
       const duration = Date.now() - startTime
-      console.log(`[getCurrentUser] Sucesso em ${duration}ms - User ID: ${fullUser.id}`)
+      console.log(`[getCurrentUser] Sucesso em ${duration}ms - User ID: ${fullUser.id}`, {
+        email: fullUser.email,
+        is_superadmin: fullUser.is_superadmin,
+        is_active: fullUser.is_active,
+      })
     }
 
     return fullUser
