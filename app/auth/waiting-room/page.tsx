@@ -1,15 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Clock, CheckCircle } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
+import { redirect } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
+// Usar revalidate em vez de force-dynamic para evitar loops
+export const revalidate = 0
 
 export default async function WaitingRoomPage() {
-  const user = await requireAuth()
+  // Verificar autenticação básica sem requireAuth (evita loops)
   const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Se não autenticado, redirecionar para login
+  if (!user) {
+    redirect('/auth/login')
+  }
 
   // Buscar status do usuário
   const { data: userData, error } = await supabase
@@ -32,8 +41,14 @@ export default async function WaitingRoomPage() {
 
   // Se usuário já foi aprovado, redirecionar para dashboard
   if (userData.is_active) {
-    const { redirect } = await import('next/navigation')
-    redirect('/dashboard')
+    // Verificar se é superadmin para redirecionar corretamente
+    const { getCurrentUser } = await import('@/lib/supabase/server')
+    const currentUser = await getCurrentUser()
+    if (currentUser?.is_superadmin === true) {
+      redirect('/admin')
+    } else {
+      redirect('/dashboard')
+    }
   }
 
   return (

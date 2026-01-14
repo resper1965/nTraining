@@ -86,11 +86,15 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith(path)
     )
 
-    // Auth routes (login, signup, waiting-room)
-    const authPaths = ['/auth/login', '/auth/signup', '/auth/waiting-room']
+    // Auth routes (login, signup)
+    // IMPORTANTE: waiting-room NÃO é uma auth route normal - permite acesso mesmo com is_active = false
+    const authPaths = ['/auth/login', '/auth/signup']
     const isAuthPath = authPaths.some((path) =>
       request.nextUrl.pathname.startsWith(path)
     )
+    
+    // Waiting room é uma rota especial - permite acesso mesmo com is_active = false
+    const isWaitingRoom = request.nextUrl.pathname.startsWith('/auth/waiting-room')
 
     // Redirect to login if accessing protected route without auth
     if (isProtectedPath && !user) {
@@ -151,15 +155,23 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check if user is pending approval (is_active = false)
+    // IMPORTANTE: Permitir acesso à waiting-room mesmo com is_active = false
     if (user && isProtectedPath && userData && !userData.is_active) {
       // User is pending approval, redirect to waiting room
+      // Mas permitir acesso se já está na waiting room
       if (!request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
         const redirectResponse = NextResponse.redirect(new URL('/auth/waiting-room', request.url))
         redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
         return redirectResponse
       }
     }
-
+    
+    // Permitir acesso à waiting-room mesmo se is_active = false
+    // Não verificar is_active para a rota waiting-room
+    if (isWaitingRoom && user) {
+      return response
+    }
+    
     // Redirect to appropriate dashboard if accessing auth pages while logged in
     if (isAuthPath && user) {
       // Se não temos userData, buscar agora (necessário para decidir redirect)
