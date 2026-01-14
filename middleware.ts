@@ -162,15 +162,34 @@ export async function middleware(request: NextRequest) {
 
     // Redirect to appropriate dashboard if accessing auth pages while logged in
     if (isAuthPath && user) {
-      const targetUrl = userData?.is_superadmin === true ? '/admin' : '/dashboard'
-      const redirectResponse = NextResponse.redirect(new URL(targetUrl, request.url))
-      redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
-      return redirectResponse
+      // Se não temos userData, deixar layout verificar (evita query duplicada)
+      if (!userData) {
+        return response
+      }
+      const targetUrl = userData.is_superadmin === true ? '/admin' : '/dashboard'
+      // Evitar redirect se já está na página correta
+      if (request.nextUrl.pathname !== targetUrl) {
+        const redirectResponse = NextResponse.redirect(new URL(targetUrl, request.url))
+        redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
+        return redirectResponse
+      }
     }
 
     // Redirect superadmin from regular dashboard to admin
     if (request.nextUrl.pathname === '/dashboard' && user && userData?.is_superadmin === true) {
       const redirectResponse = NextResponse.redirect(new URL('/admin', request.url))
+      redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
+      return redirectResponse
+    }
+    
+    // Redirect root path based on user status
+    if (request.nextUrl.pathname === '/' && user) {
+      // Se não temos userData, deixar layout verificar (evita query duplicada)
+      if (!userData) {
+        return response
+      }
+      const targetUrl = userData.is_superadmin === true ? '/admin' : '/dashboard'
+      const redirectResponse = NextResponse.redirect(new URL(targetUrl, request.url))
       redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
       return redirectResponse
     }

@@ -1,36 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
+// Usar revalidate em vez de force-dynamic para evitar loops
+export const revalidate = 0
 
 export default async function Home() {
-  // Simplificado: apenas verificar auth básico, deixar middleware/layout fazer o resto
-  // Isso evita loops de redirect
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // If not authenticated, redirect to login
-  if (!user) {
-    redirect('/auth/login')
-    return
-  }
-
-  // Se autenticado, usar getCurrentUser que tem cache e lock
-  // Isso evita múltiplas queries e loops
-  try {
-    const { getCurrentUser } = await import('@/lib/supabase/server')
-    const userData = await getCurrentUser()
-    
-    if (userData?.is_superadmin === true) {
-      redirect('/admin')
-    } else {
-      redirect('/dashboard')
-    }
-  } catch (error) {
-    // Se erro, deixar middleware/layout lidar
-    // Não fazer redirect aqui para evitar loops
-    redirect('/dashboard')
-  }
+  // Simplificado: deixar middleware fazer todo o trabalho de redirect
+  // Isso evita loops e queries duplicadas
+  // O middleware já verifica auth e redireciona para /admin ou /dashboard
+  // Se não autenticado, redireciona para /auth/login
+  
+  // Apenas redirecionar para dashboard como fallback
+  // O middleware vai interceptar e redirecionar corretamente
+  redirect('/dashboard')
 }
