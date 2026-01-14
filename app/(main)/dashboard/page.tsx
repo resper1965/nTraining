@@ -18,7 +18,8 @@ import { GitBranch, Award, Clock, CheckCircle2, PlayCircle } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+// Usar revalidate em vez de force-dynamic para evitar loops
+export const revalidate = 30
 
 export default async function DashboardPage() {
   // requireAuth() will redirect if not authenticated (throws NEXT_REDIRECT)
