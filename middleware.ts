@@ -4,8 +4,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   // Prevent redirect loops - check if we've already processed this request
   const redirectCount = parseInt(request.headers.get('x-redirect-count') || '0', 10)
-  if (redirectCount > 5) {
+  if (redirectCount > 3) {
     // Too many redirects, allow request to continue to prevent infinite loop
+    // Log apenas em desenvolvimento
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[middleware] Muitos redirects detectados, permitindo requisição:', {
+        path: request.nextUrl.pathname,
+        count: redirectCount,
+      })
+    }
     return NextResponse.next()
   }
 
@@ -102,25 +109,44 @@ export async function middleware(request: NextRequest) {
       // Isso evita query duplicada e race conditions
       if (request.nextUrl.pathname.startsWith('/admin') && !isAuthPath) {
         // Permitir acesso - layout vai verificar superadmin
+        // Não fazer query aqui para evitar loops
         return response
       }
       
       // Query otimizada: busca apenas campos necessários
-      const { data, error: userError } = await supabase
-        .from('users')
-        .select('is_superadmin, is_active')
-        .eq('id', user.id)
-        .single()
+      // Timeout de 2 segundos para evitar loops
+      try {
+        const queryPromise = supabase
+          .from('users')
+          .select('is_superadmin, is_active')
+          .eq('id', user.id)
+          .single()
 
-      if (!userError && data) {
-        userData = data
-      } else if (userError && process.env.NODE_ENV === 'development') {
-        // Log apenas em desenvolvimento
-        console.error('[middleware] Erro ao buscar userData:', {
-          message: userError.message,
-          code: userError.code,
-          userId: user.id,
+        // Timeout de 2 segundos
+        const timeoutPromise = new Promise<null>((resolve) => {
+          setTimeout(() => resolve(null), 2000)
         })
+
+        const { data, error: userError } = await Promise.race([
+          queryPromise,
+          timeoutPromise.then(() => ({ data: null, error: { message: 'Timeout' } as any })),
+        ]) as { data: any; error: any }
+
+        if (!userError && data) {
+          userData = data
+        } else if (userError && process.env.NODE_ENV === 'development') {
+          // Log apenas em desenvolvimento
+          console.error('[middleware] Erro ao buscar userData:', {
+            message: userError.message,
+            code: userError.code,
+            userId: user.id,
+          })
+        }
+      } catch (error) {
+        // Em caso de erro, continuar sem userData (layout vai verificar)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[middleware] Erro ao buscar userData (catch):', error)
+        }
       }
     }
 

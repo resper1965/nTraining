@@ -8,6 +8,9 @@ import type { User } from '@/lib/types/database';
 const requestCache = new Map<string, { user: User; timestamp: number }>();
 const CACHE_TTL = 2000; // 2 segundos de cache
 
+// Lock para evitar chamadas concorrentes do mesmo usuário
+const pendingQueries = new Map<string, Promise<User | null>>();
+
 export function createClient() {
   const cookieStore = cookies();
 
@@ -46,9 +49,10 @@ export function createClient() {
 }
 
 /**
- * REFATORADO: Helper otimizado para obter usuário atual
+ * REFATORADO COMPLETO: Helper otimizado para obter usuário atual
  * 
  * Melhorias:
+ * - Lock para evitar chamadas concorrentes (evita loops)
  * - Cache por request para evitar queries duplicadas
  * - Retry logic para queries que podem falhar temporariamente
  * - Logging detalhado apenas em caso de erro
@@ -61,28 +65,8 @@ export async function getCurrentUser(): Promise<User | null> {
   try {
     const supabase = createClient()
 
-    // Query 1: Obter usuário do Auth (com retry)
-    let authUser = null
-    let authError = null
-    
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
-      if (error) {
-        authError = error
-        if (attempt === 0 && (error.status === 500 || error.message.includes('timeout'))) {
-          // Retry apenas para erros de servidor/timeout
-          await new Promise(resolve => setTimeout(resolve, 100))
-          continue
-        }
-        break
-      }
-      
-      if (user) {
-        authUser = user
-        break
-      }
-    }
+    // Query 1: Obter usuário do Auth (sem retry para evitar loops)
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError) {
       if (isDev) {
@@ -94,99 +78,100 @@ export async function getCurrentUser(): Promise<User | null> {
       return null
     }
     
-    if (!authUser) {
+    if (!user) {
       return null
     }
 
+    // Verificar se já existe uma query pendente para este usuário (lock)
+    const pendingQuery = pendingQueries.get(user.id)
+    if (pendingQuery) {
+      if (isDev) {
+        console.log(`[getCurrentUser] Aguardando query pendente - User ID: ${user.id}`)
+      }
+      return await pendingQuery
+    }
+
     // Verificar cache primeiro
-    const cached = requestCache.get(authUser.id)
+    const cached = requestCache.get(user.id)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       if (isDev) {
-        console.log(`[getCurrentUser] Cache hit - User ID: ${authUser.id}`)
+        console.log(`[getCurrentUser] Cache hit - User ID: ${user.id}`)
       }
       return cached.user
     }
 
-    // Query 2: Obter dados estendidos da tabela users (com retry)
-    let userData = null
-    let userError = null
-    
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authUser.id)
-        .single()
+    // Criar promise para lock (evita múltiplas queries simultâneas)
+    const queryPromise = (async () => {
+      try {
+        // Query 2: Obter dados estendidos da tabela users (sem retry para evitar loops)
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single()
 
-      if (error) {
-        userError = error
-        // Retry apenas para erros específicos
-        if (attempt === 0 && (
-          error.code === 'PGRST116' || // Not found - pode ser race condition
-          error.message.includes('timeout') ||
-          error.message.includes('connection')
-        )) {
-          await new Promise(resolve => setTimeout(resolve, 100))
-          continue
+        if (userError) {
+          // Log detalhado apenas em desenvolvimento ou para erros críticos
+          if (isDev || userError.code !== 'PGRST116') {
+            console.error('[getCurrentUser] Erro ao buscar usuário:', {
+              message: userError.message,
+              code: userError.code,
+              userId: user.id,
+            })
+          }
+          return null
         }
-        break
+        
+        if (!userData) {
+          if (isDev) {
+            console.error('[getCurrentUser] Usuário não encontrado na tabela users:', {
+              userId: user.id,
+            })
+          }
+          return null
+        }
+        
+        // Armazenar no cache
+        requestCache.set(user.id, {
+          user: userData as User,
+          timestamp: Date.now(),
+        })
+        
+        // Limpar cache antigo (manter apenas últimos 10)
+        if (requestCache.size > 10) {
+          const entries = Array.from(requestCache.entries())
+          entries.sort((a, b) => b[1].timestamp - a[1].timestamp)
+          requestCache.clear()
+          entries.slice(0, 10).forEach(([key, value]) => {
+            requestCache.set(key, value)
+          })
+        }
+        
+        if (isDev) {
+          const duration = Date.now() - startTime
+          console.log(`[getCurrentUser] Sucesso em ${duration}ms - User ID: ${userData.id}`)
+        }
+        
+        return userData as User | null
+      } finally {
+        // Remover lock após query completar
+        pendingQueries.delete(user.id)
       }
-      
-      if (data) {
-        userData = data
-        break
-      }
-    }
+    })()
 
-    if (userError) {
-      // Log detalhado apenas em desenvolvimento ou para erros críticos
-      if (isDev || userError.code !== 'PGRST116') {
-        console.error('[getCurrentUser] Erro ao buscar usuário:', {
-          message: userError.message,
-          code: userError.code,
-          userId: authUser.id,
-        })
-      }
-      return null
-    }
+    // Armazenar promise no lock
+    pendingQueries.set(user.id, queryPromise)
     
-    if (!userData) {
-      if (isDev) {
-        console.error('[getCurrentUser] Usuário não encontrado na tabela users:', {
-          userId: authUser.id,
-        })
-      }
-      return null
-    }
-    
-    // Armazenar no cache
-    requestCache.set(authUser.id, {
-      user: userData as User,
-      timestamp: Date.now(),
-    })
-    
-    // Limpar cache antigo (manter apenas últimos 10)
-    if (requestCache.size > 10) {
-      const entries = Array.from(requestCache.entries())
-      entries.sort((a, b) => b[1].timestamp - a[1].timestamp)
-      requestCache.clear()
-      entries.slice(0, 10).forEach(([key, value]) => {
-        requestCache.set(key, value)
-      })
-    }
-    
-    if (isDev) {
-      const duration = Date.now() - startTime
-      console.log(`[getCurrentUser] Sucesso em ${duration}ms - User ID: ${userData.id}`)
-    }
-    
-    return userData as User | null
+    return await queryPromise
   } catch (error: any) {
     // Log apenas erros críticos inesperados
-    console.error('[getCurrentUser] Erro crítico:', {
-      message: error?.message,
-      name: error?.name,
-    })
+    if (isDev) {
+      console.error('[getCurrentUser] Erro crítico:', {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack,
+      })
+    }
     return null
   }
 }

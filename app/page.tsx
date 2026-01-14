@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
+  // Simplificado: apenas verificar auth básico, deixar middleware/layout fazer o resto
+  // Isso evita loops de redirect
   const supabase = createClient()
   const {
     data: { user },
@@ -15,15 +17,11 @@ export default async function Home() {
     return
   }
 
-  // If authenticated, let middleware handle the redirect
-  // This prevents double redirects and loops
-  // Middleware will redirect superadmin to /admin and others to /dashboard
+  // Se autenticado, usar getCurrentUser que tem cache e lock
+  // Isso evita múltiplas queries e loops
   try {
-    const { data: userData } = await supabase
-      .from('users')
-      .select('is_superadmin')
-      .eq('id', user.id)
-      .single()
+    const { getCurrentUser } = await import('@/lib/supabase/server')
+    const userData = await getCurrentUser()
     
     if (userData?.is_superadmin === true) {
       redirect('/admin')
@@ -31,7 +29,8 @@ export default async function Home() {
       redirect('/dashboard')
     }
   } catch (error) {
-    // If error, default to dashboard (middleware will handle further redirects)
+    // Se erro, deixar middleware/layout lidar
+    // Não fazer redirect aqui para evitar loops
     redirect('/dashboard')
   }
 }
