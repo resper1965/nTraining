@@ -13,7 +13,15 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await requireSuperAdmin()
+  let user
+  try {
+    user = await requireSuperAdmin()
+  } catch (error) {
+    // If requireSuperAdmin fails, redirect to login
+    const { redirect } = await import('next/navigation')
+    redirect('/auth/login')
+    return null // This will never execute, but satisfies TypeScript
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 flex">

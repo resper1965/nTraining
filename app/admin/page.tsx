@@ -1,4 +1,4 @@
-import { getDashboardMetrics, getRecentActivities } from '@/app/actions/admin'
+import { getDashboardMetrics, getRecentActivities, type DashboardMetrics, type RecentActivity } from '@/app/actions/admin'
 import { StatsCard } from '@/components/admin/stats-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -21,17 +21,39 @@ export default async function AdminDashboardPage() {
   // This prevents the "piscar" (flickering) issue
 
   // Load metrics and activities with graceful error handling
-  const [metrics, activities] = await Promise.all([
-    getDashboardMetrics().catch(() => ({
+  let metrics: DashboardMetrics
+  let activities: RecentActivity[]
+  try {
+    [metrics, activities] = await Promise.all([
+      getDashboardMetrics().catch((error) => {
+        console.error('Error loading dashboard metrics:', error)
+        return {
+          organizations: { total: 0, active: 0, newThisMonth: 0 },
+          users: { total: 0, active: 0, newThisMonth: 0 },
+          courses: { total: 0, published: 0, newThisMonth: 0 },
+          certificates: { total: 0, issuedThisMonth: 0 },
+          licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
+          progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
+        }
+      }),
+      getRecentActivities(5).catch((error) => {
+        console.error('Error loading recent activities:', error)
+        return []
+      }),
+    ])
+  } catch (error) {
+    console.error('Error in AdminDashboardPage:', error)
+    // Fallback to empty data
+    metrics = {
       organizations: { total: 0, active: 0, newThisMonth: 0 },
       users: { total: 0, active: 0, newThisMonth: 0 },
       courses: { total: 0, published: 0, newThisMonth: 0 },
       certificates: { total: 0, issuedThisMonth: 0 },
       licenses: { total: 0, used: 0, available: 0, utilizationRate: 0 },
       progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
-    })),
-    getRecentActivities(5).catch(() => []),
-  ])
+    }
+    activities = []
+  }
 
   return (
     <div className="space-y-6 min-h-full bg-slate-950">
