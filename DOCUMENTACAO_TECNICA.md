@@ -1,10 +1,11 @@
 # 📋 Documentação Técnica - n.training Platform
 
-**Versão:** 0.1.0  
-**Data:** 2024  
+**Versão:** 1.0.0  
+**Data:** 2026-01-14  
 **Framework:** Next.js 14 (App Router)  
 **Linguagem:** TypeScript  
-**Banco de Dados:** Supabase (PostgreSQL)
+**Banco de Dados:** Supabase (PostgreSQL)  
+**Arquitetura:** Service Layer + Validation Layer (Layered Architecture)
 
 ---
 
@@ -28,7 +29,9 @@
 - **`app/page.tsx`**: Página raiz que redireciona baseado no status do usuário (superadmin → `/admin`, ativo → `/dashboard`, pendente → `/auth/waiting-room`)
 - **`app/layout.tsx`**: Layout raiz com configuração de fontes (Inter, Montserrat), ErrorBoundary e Toaster
 - **`middleware.ts`**: Middleware Next.js para proteção de rotas e autenticação básica
-- **`app/actions/*.ts`**: Server Actions (Next.js 14) - todas as operações de negócio são Server Actions, não há API Routes tradicionais
+- **`app/actions/*.ts`**: Server Actions (Control Layer) - orquestram o fluxo: Auth → Validation → Service → Response
+- **`lib/services/*.service.ts`**: Service Layer - contém toda lógica de negócio e queries ao banco
+- **`lib/validators/*.schema.ts`**: Validation Layer - schemas Zod para validação de inputs
 
 ---
 
@@ -91,30 +94,28 @@ n.training/
 │   │   ├── profile/       # Perfil do usuário
 │   │   ├── search/        # Busca
 │   │   └── layout.tsx      # Layout com Header para usuários autenticados
-│   ├── admin/              # Painel administrativo (superadmin)
-│   │   ├── courses/       # CRUD de cursos
-│   │   ├── organizations/ # CRUD de organizações
-│   │   ├── users/         # Gestão de usuários
-│   │   ├── licenses/      # Gestão de licenças
-│   │   ├── paths/         # CRUD de trilhas
-│   │   ├── quizzes/       # CRUD de quizzes
-│   │   ├── reports/       # Relatórios
-│   │   └── layout.tsx      # Layout admin com sidebar
+│   ├── (admin)/            # Painel administrativo (superadmin)
+│   │   └── admin/          # Admin route group
+│   │       ├── courses/   # CRUD de cursos
+│   │       ├── organizations/ # CRUD de organizações
+│   │       ├── users/     # Gestão de usuários
+│   │       ├── licenses/  # Gestão de licenças
+│   │       ├── paths/     # CRUD de trilhas
+│   │       ├── quizzes/   # CRUD de quizzes
+│   │       └── layout.tsx # Layout admin com sidebar
+│   ├── actions/            # Server Actions (Control Layer)
+│   │   ├── auth.ts         # Autenticação (usa AuthService)
+│   │   ├── courses.ts      # Cursos (usa CourseService)
+│   │   ├── users.ts        # Usuários (usa UserService)
+│   │   ├── modules.ts      # Módulos (usa ContentService)
+│   │   ├── lessons.ts      # Aulas (usa ContentService)
+│   │   ├── quizzes.ts      # Quizzes (usa QuizService)
+│   │   ├── organizations.ts # Organizações (usa OrganizationService)
+│   │   └── ...             # Outras actions
 │   ├── auth/               # Autenticação
 │   │   ├── login/         # Página de login
 │   │   ├── signup/        # Página de cadastro
 │   │   └── waiting-room/  # Sala de espera (usuários pendentes)
-│   ├── actions/            # Server Actions (lógica de negócio)
-│   │   ├── auth.ts        # Autenticação (signIn, signOut, signUp)
-│   │   ├── courses.ts     # CRUD de cursos
-│   │   ├── modules.ts     # CRUD de módulos
-│   │   ├── lessons.ts     # CRUD de aulas
-│   │   ├── quizzes.ts     # CRUD de quizzes
-│   │   ├── users.ts       # Gestão de usuários
-│   │   ├── organizations.ts # CRUD de organizações
-│   │   ├── notifications.ts # Sistema de notificações
-│   │   ├── certificates.ts # Geração de certificados
-│   │   └── ...            # Outras actions
 │   ├── api/                # API Routes (mínimo uso)
 │   │   └── profile/       # API para perfil (notificações)
 │   ├── layout.tsx          # Layout raiz
@@ -131,9 +132,24 @@ n.training/
 │   ├── auth/               # Helpers de autenticação
 │   │   ├── helpers.ts     # getCurrentUser, requireAuth, requireSuperAdmin
 │   │   ├── context.ts     # AsyncLocalStorage para cache request-scoped
-│   │   └── types.ts       # Tipos de autenticação
+│   │   ├── types.ts       # Tipos de autenticação
+│   │   └── index.ts       # Public exports
+│   ├── services/           # Service Layer (Lógica de Negócio)
+│   │   ├── auth.service.ts      # Autenticação service
+│   │   ├── course.service.ts    # Cursos service
+│   │   ├── user.service.ts      # Usuários service
+│   │   ├── content.service.ts   # Módulos & Aulas service
+│   │   ├── quiz.service.ts      # Quizzes service
+│   │   └── organization.service.ts # Organizações service
+│   ├── validators/         # Validation Layer (Zod Schemas)
+│   │   ├── auth.schema.ts        # Validação de autenticação
+│   │   ├── course.schema.ts      # Validação de cursos
+│   │   ├── user.schema.ts        # Validação de usuários
+│   │   ├── content.schema.ts     # Validação de módulos & aulas
+│   │   ├── quiz.schema.ts        # Validação de quizzes
+│   │   └── organization.schema.ts # Validação de organizações
 │   ├── supabase/           # Cliente Supabase
-│   │   ├── server.ts      # createClient() para server-side
+│   │   ├── server.ts      # createClient() para server-side (com wrappers de compatibilidade)
 │   │   ├── database.types.ts # Tipos TypeScript do banco
 │   │   ├── schema.sql     # Schema completo do banco
 │   │   └── migrations/    # Migrações SQL (11 arquivos)
@@ -147,25 +163,75 @@ n.training/
 └── middleware.ts             # Middleware Next.js (proteção de rotas)
 ```
 
-### 3.2 Padrão Arquitetural
+### 3.2 Padrão Arquitetural: Layered Architecture
 
-O projeto segue uma **arquitetura híbrida** baseada em:
+O projeto segue uma **arquitetura em camadas (Layered Architecture)** com separação clara de responsabilidades:
 
-1. **Next.js App Router**: Estrutura de pastas baseada em rotas
-2. **Server Actions**: Lógica de negócio em `app/actions/*.ts` (sem API Routes tradicionais)
-3. **Component-Based**: Componentes React reutilizáveis em `components/`
-4. **Separation of Concerns**:
-   - **Pages/Layouts**: Apenas renderização e composição
-   - **Server Actions**: Lógica de negócio e acesso ao banco
-   - **Components**: UI reutilizável
-   - **Lib**: Utilitários e helpers
+#### 3.2.1 Camadas da Arquitetura
+
+1. **Control Layer** (`app/actions/*.ts`)
+   - Server Actions que orquestram o fluxo
+   - Responsabilidades:
+     - ✅ Verificação de autenticação/autorização
+     - ✅ Extração de dados de `FormData`
+     - ✅ Validação de inputs (chama Validation Layer)
+     - ✅ Chamada de services (Service Layer)
+     - ✅ `revalidatePath()` e `redirect()` quando necessário
+   - ❌ **NÃO** contém lógica de negócio
+   - ❌ **NÃO** faz queries diretas ao banco
+
+2. **Validation Layer** (`lib/validators/*.schema.ts`)
+   - Schemas Zod para validação de inputs
+   - Responsabilidades:
+     - ✅ Validação de tipos e formatos
+     - ✅ Sanitização de inputs (previne SQL Injection)
+     - ✅ Mensagens de erro em português
+     - ✅ Exporta tipos TypeScript inferidos
+   - Exemplo: `CourseCreateSchema`, `UserFiltersSchema`
+
+3. **Service Layer** (`lib/services/*.service.ts`)
+   - Lógica de negócio e acesso ao banco de dados
+   - Responsabilidades:
+     - ✅ Todas as queries ao banco de dados
+     - ✅ Lógica de negócio (cálculos, transformações)
+     - ✅ Tratamento de erros tipados
+     - ✅ Retorna dados puros ou lança erros
+   - ❌ **NUNCA** recebe `FormData`
+   - ❌ **NUNCA** usa `redirect()` ou `revalidatePath()`
+   - ❌ **NUNCA** faz validação (delegada para Validation Layer)
+
+4. **Data Layer** (Supabase)
+   - PostgreSQL via Supabase
+   - Row Level Security (RLS) para isolamento multi-tenant
+
+#### 3.2.2 Fluxo de Execução
+
+```
+Client Component
+    ↓ (formAction)
+Server Action (Control Layer)
+    ↓ (1. Auth Check)
+Auth Helpers
+    ↓ (2. Validate)
+Zod Schema (Validation Layer)
+    ↓ (3. Service Call)
+Service (Service Layer)
+    ↓ (4. Query)
+Supabase (Data Layer)
+    ↓ (5. Response)
+Server Action
+    ↓ (6. revalidatePath/redirect)
+Client Component
+```
 
 ### 3.3 Características Arquiteturais
 
+- **Layered Architecture**: Separação clara em 3 camadas (Control, Validation, Service)
 - **Server-First**: Maioria da lógica roda no servidor (Server Components e Server Actions)
-- **Type-Safe**: TypeScript em todo o código, com tipos gerados do Supabase
+- **Type-Safe**: TypeScript em todo o código, com tipos gerados do Supabase e Zod
 - **Multi-tenant**: Isolamento por `organization_id` e RLS policies
 - **Cache Request-Scoped**: `AsyncLocalStorage` para cache de autenticação por request
+- **Clean Code**: Código testável, manutenível e sem duplicação
 
 ---
 
@@ -501,35 +567,104 @@ USING (
 - `/admin/reports` → Relatórios
 - `/admin/activity` → Logs de atividade
 
-### 5.2 Server Actions (Substituem API Routes)
+### 5.2 Arquitetura em Camadas
 
-O projeto **não usa API Routes tradicionais**. Toda a lógica de negócio está em **Server Actions**:
+O projeto **não usa API Routes tradicionais**. Toda a lógica segue o padrão **Layered Architecture**:
 
-#### 5.2.1 Autenticação (`app/actions/auth.ts`)
+#### 5.2.1 Control Layer: Server Actions (`app/actions/*.ts`)
 
-- `signIn(formData: FormData)` → Login
-- `signOut()` → Logout
-- `signUp(formData: FormData)` → Cadastro público (cria usuário com `is_active = false`)
-- `createUser(formData: FormData)` → Criação de usuário (admin only)
+Server Actions orquestram o fluxo: **Auth → Validation → Service → Response**
 
-#### 5.2.2 Cursos (`app/actions/courses.ts`)
+**Exemplo de Server Action (Orquestração):**
 
-- `getCourses(filters?)` → Lista cursos (com filtros de organização)
-- `getCourseBySlug(slug)` → Busca curso por slug
-- `createCourse(formData)` → Cria curso (admin)
-- `updateCourse(id, formData)` → Atualiza curso (admin)
-- `deleteCourse(id)` → Deleta curso (admin)
+```typescript
+// app/actions/courses.ts
+export async function createCourse(formData: FormData) {
+  try {
+    // 1. Auth Check
+    await requireRole('platform_admin')
+    
+    // 2. Extract & Validate
+    const rawInput = { title: formData.get('title'), ... }
+    const validatedInput = validateCourseCreate(rawInput)
+    
+    // 3. Service Call
+    const service = new CourseService()
+    const course = await service.createCourse(validatedInput, user.id, user.organization_id)
+    
+    // 4. Response/Effect
+    revalidatePath('/admin/courses')
+    return { success: true, data: course }
+  } catch (error) {
+    // Error handling
+  }
+}
+```
 
-#### 5.2.3 Módulos e Aulas (`app/actions/modules.ts`, `app/actions/lessons.ts`)
+#### 5.2.2 Validation Layer: Zod Schemas (`lib/validators/*.schema.ts`)
 
-- `getModulesByCourse(courseId)`
-- `createModule(courseId, formData)`
-- `updateModule(id, formData)`
-- `deleteModule(id)`
-- `getLessonsByModule(moduleId)`
-- `createLesson(moduleId, formData)`
-- `updateLesson(id, formData)`
-- `deleteLesson(id)`
+Schemas Zod para validação e sanitização de inputs:
+
+```typescript
+// lib/validators/course.schema.ts
+export const CourseCreateSchema = z.object({
+  title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
+  slug: z.string().regex(/^[a-z0-9-]+$/, 'Slug inválido'),
+  // ...
+})
+
+export function validateCourseCreate(data: unknown): CourseCreateInput {
+  return CourseCreateSchema.parse(data)
+}
+```
+
+#### 5.2.3 Service Layer: Business Logic (`lib/services/*.service.ts`)
+
+Services contêm toda lógica de negócio e queries:
+
+```typescript
+// lib/services/course.service.ts
+export class CourseService {
+  async createCourse(input: CourseCreateInput, createdBy: string, orgId: string | null) {
+    const { data, error } = await this.supabase
+      .from('courses')
+      .insert({ ...input, created_by: createdBy, organization_id: orgId })
+      .select()
+      .single()
+    
+    if (error) {
+      throw new CourseServiceError(`Erro ao criar curso: ${error.message}`)
+    }
+    
+    return data as Course
+  }
+}
+```
+
+#### 5.2.4 Server Actions por Domínio
+
+**Autenticação** (`app/actions/auth.ts` - usa `AuthService`):
+- `signIn(formData)` → Login (usa `AuthService.signIn`)
+- `signOut()` → Logout (usa `AuthService.signOut`)
+- `signUp(formData)` → Cadastro público (usa `AuthService.signUp`)
+- `createUser(formData)` → Criação de usuário admin (usa `AuthService.createUser`)
+
+**Cursos** (`app/actions/courses.ts` - usa `CourseService`):
+- `getCourses(filters?)` → Lista cursos (usa `CourseService.getCourses`)
+- `getCourseBySlug(slug)` → Busca curso por slug (usa `CourseService.getCourseBySlug`)
+- `createCourse(formData)` → Cria curso (usa `CourseService.createCourse`)
+- `updateCourse(id, formData)` → Atualiza curso (usa `CourseService.updateCourse`)
+- `deleteCourse(id)` → Deleta curso (usa `CourseService.deleteCourse`)
+
+**Módulos e Aulas** (`app/actions/modules.ts`, `app/actions/lessons.ts` - usa `ContentService`):
+- `getModulesByCourse(courseId)` → (usa `ContentService.getModulesByCourse`)
+- `createModule(courseId, input)` → (usa `ContentService.createModule`)
+- `updateModule(id, input)` → (usa `ContentService.updateModule`)
+- `deleteModule(id)` → (usa `ContentService.deleteModule`)
+- `getLessonsByModule(moduleId)` → (usa `ContentService.getLessonsByModule`)
+- `createLesson(moduleId, input)` → (usa `ContentService.createLesson`)
+- `updateLesson(id, input)` → (usa `ContentService.updateLesson`)
+- `deleteLesson(id)` → (usa `ContentService.deleteLesson`)
 
 #### 5.2.4 Progresso (`app/actions/progress.ts`, `app/actions/course-progress.ts`)
 
@@ -538,27 +673,25 @@ O projeto **não usa API Routes tradicionais**. Toda a lógica de negócio está
 - `updateLessonProgress(lessonId, progress)` → Atualiza progresso de aula
 - `markLessonComplete(lessonId)` → Marca aula como completa
 
-#### 5.2.5 Quizzes (`app/actions/quizzes.ts`, `app/actions/quiz-attempts.ts`)
+**Quizzes** (`app/actions/quizzes.ts` - usa `QuizService`):
+- `getQuizzes(courseId?)` → (usa `QuizService.getQuizzes`)
+- `getQuizById(quizId)` → (usa `QuizService.getQuizById`)
+- `createQuiz(input)` → (usa `QuizService.createQuiz`)
+- `updateQuiz(id, input)` → (usa `QuizService.updateQuiz`)
+- `deleteQuiz(id)` → (usa `QuizService.deleteQuiz`)
 
-- `getQuizzesByCourse(courseId)`
-- `createQuiz(courseId, formData)`
-- `submitQuizAttempt(quizId, answers)` → Submete tentativa
-- `getQuizAttempt(attemptId)` → Busca tentativa específica
-- `getUserQuizAttempts(quizId)` → Lista tentativas do usuário
+**Organizações** (`app/actions/organizations.ts` - usa `OrganizationService`):
+- `getPublicOrganizations()` → (usa `OrganizationService.getPublicOrganizations`)
+- `getAllOrganizations(filters?)` → (usa `OrganizationService.getAllOrganizations`)
+- `getOrganizationById(id)` → (usa `OrganizationService.getOrganizationById`)
+- `updateOrganization(id, input)` → (usa `OrganizationService.updateOrganization`)
+- `deleteOrganization(id)` → (usa `OrganizationService.deleteOrganization`)
 
-#### 5.2.6 Organizações (`app/actions/organizations.ts`)
-
-- `getPublicOrganizations()` → Lista organizações públicas (para signup)
-- `getOrganizations(filters?)` → Lista organizações (admin)
-- `createOrganization(formData)` → Cria organização (admin)
-- `updateOrganization(id, formData)` → Atualiza organização (admin)
-
-#### 5.2.7 Usuários (`app/actions/users.ts`)
-
-- `getUsers(filters?)` → Lista usuários (admin)
-- `approveUser(userId)` → Aprova usuário pendente
-- `rejectUser(userId)` → Rejeita usuário pendente
-- `getPendingUsers()` → Lista usuários pendentes
+**Usuários** (`app/actions/users.ts` - usa `UserService`):
+- `getUsers(filters?)` → (usa `UserService.getUsers`)
+- `getPendingUsers()` → (usa `UserService.getPendingUsers`)
+- `approveUser(userId)` → (usa `UserService.approveUser`)
+- `rejectUser(userId)` → (usa `UserService.rejectUser`)
 
 #### 5.2.8 Licenças (`app/actions/license-management.ts`, `app/actions/organization-courses.ts`)
 
@@ -724,14 +857,32 @@ export async function getCourses() {
 
 ### 6.6 Onde Reside a Lógica de Negócio?
 
-**Server Actions** (`app/actions/*.ts`) concentram toda a lógica de negócio:
+**Arquitetura em Camadas (Layered Architecture):**
 
-- ✅ Validação de dados
-- ✅ Verificação de permissões
-- ✅ Queries ao banco
-- ✅ Transformação de dados
-- ✅ Criação de notificações
-- ✅ Geração de certificados
+1. **Control Layer** (`app/actions/*.ts`):
+   - ✅ Orquestração do fluxo (Auth → Validation → Service → Response)
+   - ✅ Verificação de permissões (`requireAuth`, `requireRole`, `requireSuperAdmin`)
+   - ✅ Extração de dados de `FormData`
+   - ✅ Chamada de services
+   - ✅ `revalidatePath()` e `redirect()` quando necessário
+   - ❌ **NÃO** contém lógica de negócio
+   - ❌ **NÃO** faz queries diretas ao banco
+
+2. **Validation Layer** (`lib/validators/*.schema.ts`):
+   - ✅ Validação de inputs usando Zod
+   - ✅ Sanitização de dados (previne SQL Injection)
+   - ✅ Mensagens de erro em português
+   - ✅ Exporta tipos TypeScript inferidos
+
+3. **Service Layer** (`lib/services/*.service.ts`):
+   - ✅ **TODA** lógica de negócio
+   - ✅ **TODAS** as queries ao banco de dados
+   - ✅ Transformação de dados
+   - ✅ Criação de notificações (via triggers)
+   - ✅ Geração de certificados
+   - ✅ Tratamento de erros tipados
+   - ❌ **NUNCA** recebe `FormData`
+   - ❌ **NUNCA** usa `redirect()` ou `revalidatePath()`
 
 **Componentes** são "burros" (apresentação apenas):
 - Recebem dados via props
@@ -748,9 +899,10 @@ export async function getCourses() {
 
 #### 7.1.1 Arquitetura
 
-- ⚠️ **Server Actions Misturadas**: Algumas actions fazem muitas coisas (ex: `signIn` faz auth + query + redirect + notificação)
-- ⚠️ **Falta de Camada de Serviço**: Lógica de negócio está diretamente nas Server Actions, sem abstração
-- ⚠️ **Queries Duplicadas**: Algumas queries podem ser otimizadas (ex: `getCurrentUser()` já foi otimizado com cache)
+- ✅ **Arquitetura em Camadas**: Implementada com Service Layer + Validation Layer
+- ✅ **Separação de Responsabilidades**: Control Layer apenas orquestra, Service Layer contém lógica
+- ✅ **Cache Request-Scoped**: `getCurrentUser()` otimizado com `AsyncLocalStorage`
+- ⚠️ **Queries Duplicadas**: Algumas queries podem ser otimizadas (ex: listagens com progresso)
 
 #### 7.1.2 Banco de Dados
 
@@ -788,14 +940,22 @@ export async function getCourses() {
 
 #### 7.2.1 Queries SQL Dinâmicas
 
+**✅ RESOLVIDO**: Busca agora é feita em memória após query segura:
+
 ```typescript
-// app/actions/courses.ts linha 49
-query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+// lib/services/course.service.ts
+// Busca segura: primeiro busca dados, depois filtra em memória
+if (search) {
+  const searchLower = search.toLowerCase()
+  courses = courses.filter(
+    (c) =>
+      c.title?.toLowerCase().includes(searchLower) ||
+      c.description?.toLowerCase().includes(searchLower)
+  )
+}
 ```
 
-**Problema**: Interpolação de string pode ser vulnerável se `filters.search` não for sanitizado.
-
-**Solução**: Usar `.ilike()` com parâmetros ou sanitizar input.
+**Benefício**: Previne SQL Injection completamente, pois não há interpolação de strings na query.
 
 #### 7.2.2 Redirects em Server Actions
 
@@ -823,13 +983,13 @@ return createServerClient<Database>(...) as any;
 
 ### 7.3 Oportunidades de Melhoria
 
-1. **Camada de Serviço**: Criar `lib/services/` para abstrair lógica de negócio das Server Actions
-2. **Validação Centralizada**: Usar Zod schemas para validação de inputs
-3. **Error Handling Unificado**: Criar `lib/errors/` com classes de erro customizadas
-4. **Cache Strategy**: Implementar cache para queries frequentes (ex: Redis ou in-memory)
-5. **Paginação Padrão**: Criar helper para paginação em todas as listagens
-6. **Logging Estruturado**: Usar biblioteca de logging (ex: `pino`) em vez de `console.log`
-7. **Testes**: Adicionar testes unitários e de integração (atualmente não há testes)
+1. ✅ **Camada de Serviço**: **IMPLEMENTADO** - `lib/services/` com 6 services principais
+2. ✅ **Validação Centralizada**: **IMPLEMENTADO** - Zod schemas em `lib/validators/`
+3. ⚠️ **Error Handling Unificado**: Criar `lib/errors/` com classes de erro customizadas (parcialmente implementado nos services)
+4. ⚠️ **Cache Strategy**: Implementar cache para queries frequentes (ex: Redis ou in-memory) - apenas `getCurrentUser()` tem cache
+5. ✅ **Paginação Padrão**: Implementado nos services (ex: `CourseService.getCourses` retorna `GetCoursesResult` com paginação)
+6. ✅ **Logging Estruturado**: Logs condicionados com `NODE_ENV === 'development'` - melhorias aplicadas
+7. ⚠️ **Testes**: Adicionar testes unitários e de integração (atualmente não há testes)
 
 ---
 
@@ -839,19 +999,22 @@ O projeto **n.training** é uma aplicação Next.js 14 moderna com arquitetura b
 
 **Pontos Fortes:**
 - ✅ Arquitetura moderna (Next.js 14 App Router)
-- ✅ Type-safe (TypeScript + tipos do Supabase)
+- ✅ **Arquitetura em Camadas** (Service Layer + Validation Layer)
+- ✅ Type-safe (TypeScript + tipos do Supabase + Zod)
 - ✅ Multi-tenancy bem implementado (RLS)
 - ✅ Cache request-scoped para autenticação
 - ✅ Separação clara entre apresentação e lógica
+- ✅ Código limpo e testável (services isolados)
+- ✅ Validação centralizada com Zod
+- ✅ Prevenção de SQL Injection (busca em memória)
 
 **Pontos de Atenção:**
-- ⚠️ Falta de camada de serviço (lógica nas Server Actions)
-- ⚠️ Tratamento de erros inconsistente
-- ⚠️ Algumas queries podem ser otimizadas
+- ⚠️ Tratamento de erros pode ser mais unificado (classes de erro customizadas)
+- ⚠️ Algumas queries podem ser otimizadas (queries N+1 em listagens)
 - ⚠️ Falta de testes automatizados
-- ⚠️ Documentação inline inconsistente
+- ⚠️ Migração gradual: 76 arquivos ainda usam wrappers de compatibilidade (pode migrar para `lib/auth/helpers` diretamente)
 
 ---
 
-**Documento gerado automaticamente pela análise do código-fonte.**  
-**Última atualização:** 2024
+**Documento atualizado para refletir a arquitetura em camadas (Service Layer + Validation Layer).**  
+**Última atualização:** 2026-01-14
