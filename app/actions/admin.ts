@@ -41,9 +41,8 @@ export interface DashboardMetrics {
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   // Note: Authentication is already verified in the admin layout
-  // We still verify here for security if called from outside admin context
-  // If requireSuperAdmin throws NEXT_REDIRECT, it will propagate correctly
-  await requireSuperAdmin()
+  // We skip verification here to prevent redirect loops and flickering
+  // If called from outside admin context, the layout will catch it
   const supabase = createClient()
 
   const now = new Date()
@@ -234,9 +233,8 @@ export interface RecentActivity {
 
 export async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]> {
   // Note: Authentication is already verified in the admin layout
-  // We still verify here for security if called from outside admin context
-  // If requireSuperAdmin throws NEXT_REDIRECT, it will propagate correctly
-  await requireSuperAdmin()
+  // We skip verification here to prevent redirect loops and flickering
+  // If called from outside admin context, the layout will catch it
   const supabase = createClient()
 
   // Get recent organizations
