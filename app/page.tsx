@@ -9,38 +9,29 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Redirect to dashboard if logged in
-  if (user) {
-    // Check if user is superadmin
-    try {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('is_superadmin')
-        .eq('id', user.id)
-        .single()
-      
-      if (userError) {
-        console.error('Error fetching user in home page:', userError)
-      }
-      
-      // Use strict equality check
-      const isSuperAdmin = userData?.is_superadmin === true || userData?.is_superadmin === 'true'
-      if (isSuperAdmin) {
-        console.log('Home page: Redirecting superadmin to /admin', {
-          email: user.email,
-          is_superadmin: userData?.is_superadmin
-        })
-        redirect('/admin')
-        return
-      }
-    } catch (error) {
-      console.error('Error checking superadmin status in home page:', error)
-    }
-    
-    redirect('/dashboard')
+  // If not authenticated, redirect to login
+  if (!user) {
+    redirect('/auth/login')
     return
   }
 
-  // Redirect to login if not authenticated
-  redirect('/auth/login')
+  // If authenticated, let middleware handle the redirect
+  // This prevents double redirects and loops
+  // Middleware will redirect superadmin to /admin and others to /dashboard
+  try {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_superadmin')
+      .eq('id', user.id)
+      .single()
+    
+    if (userData?.is_superadmin === true) {
+      redirect('/admin')
+    } else {
+      redirect('/dashboard')
+    }
+  } catch (error) {
+    // If error, default to dashboard (middleware will handle further redirects)
+    redirect('/dashboard')
+  }
 }
