@@ -95,8 +95,16 @@ export async function middleware(request: NextRequest) {
     }
 
     // Fetch user data only when needed for redirect logic
+    // Skip query if superadmin is already in /admin to prevent unnecessary queries
     let userData: { is_superadmin: boolean; is_active: boolean } | null = null
     if (user && (isAuthPath || isProtectedPath)) {
+      // If user is already in /admin and accessing /admin routes, skip query
+      // The layout will verify superadmin status
+      if (request.nextUrl.pathname.startsWith('/admin') && !isAuthPath) {
+        // Allow access - layout will handle verification
+        return response
+      }
+      
       const { data, error: userError } = await supabase
         .from('users')
         .select('is_superadmin, is_active')

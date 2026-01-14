@@ -17,8 +17,8 @@ import { Button } from '@/components/ui/button'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
-  // User verification is already done in layout
-  const user = await requireSuperAdmin()
+  // User verification is already done in layout - skip to prevent duplicate queries
+  // This prevents the "piscar" (flickering) issue
 
   // Load metrics and activities with graceful error handling
   const [metrics, activities] = await Promise.all([
@@ -44,7 +44,7 @@ export default async function AdminDashboardPage() {
           Visão geral da plataforma n.training
         </p>
         <p className="text-xs text-slate-500 mt-1">
-          Logado como: {user?.full_name || user?.email} (Superadmin)
+          Painel Administrativo
         </p>
       </div>
 
