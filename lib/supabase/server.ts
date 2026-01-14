@@ -41,31 +41,74 @@ export function createClient() {
 }
 
 // Helper to get current user on server (via Supabase Auth)
+// ⚠️ ROTINA CENTRAL - Esta função é chamada em múltiplos lugares e pode causar loops
 export async function getCurrentUser(): Promise<User | null> {
+  const startTime = Date.now()
+  console.log('[getCurrentUser] Iniciando...')
+  
   try {
     const supabase = createClient();
+    console.log('[getCurrentUser] Cliente Supabase criado')
 
+    // Query 1: Obter usuário do Auth
     const { data: { user }, error } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      return null;
+    
+    if (error) {
+      console.error('[getCurrentUser] ERRO ao obter usuário do Auth:', {
+        message: error.message,
+        status: error.status,
+        error: error
+      })
+      return null
     }
+    
+    if (!user) {
+      console.log('[getCurrentUser] Nenhum usuário autenticado')
+      return null
+    }
+    
+    console.log('[getCurrentUser] Usuário Auth encontrado:', user.id)
 
-    // Get extended user data
+    // Query 2: Obter dados estendidos da tabela users
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('id', user.id)
       .single();
 
-    if (userError || !userData) {
-      return null;
+    if (userError) {
+      console.error('[getCurrentUser] ERRO ao obter dados do usuário da tabela users:', {
+        message: userError.message,
+        code: userError.code,
+        details: userError.details,
+        hint: userError.hint,
+        userId: user.id,
+        error: userError
+      })
+      return null
     }
-
-    return userData as User | null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
+    
+    if (!userData) {
+      console.error('[getCurrentUser] Usuário não encontrado na tabela users:', {
+        userId: user.id,
+        message: 'Usuário existe no Auth mas não na tabela users'
+      })
+      return null
+    }
+    
+    const duration = Date.now() - startTime
+    console.log(`[getCurrentUser] Sucesso em ${duration}ms - User ID: ${userData.id}`)
+    
+    return userData as User | null
+  } catch (error: any) {
+    const duration = Date.now() - startTime
+    console.error('[getCurrentUser] ERRO CRÍTICO após', duration, 'ms:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+      error: error
+    })
+    return null
   }
 }
 
