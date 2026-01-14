@@ -155,10 +155,12 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check if user is pending approval (is_active = false)
+    // IMPORTANTE: Superadmins NUNCA devem ser redirecionados para waiting-room
     // IMPORTANTE: Permitir acesso à waiting-room mesmo com is_active = false
-    if (user && isProtectedPath && userData && !userData.is_active) {
+    if (user && isProtectedPath && userData && !userData.is_active && !userData.is_superadmin) {
       // User is pending approval, redirect to waiting room
       // Mas permitir acesso se já está na waiting room
+      // Superadmins nunca devem ser redirecionados para waiting-room
       if (!request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
         const redirectResponse = NextResponse.redirect(new URL('/auth/waiting-room', request.url))
         redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))

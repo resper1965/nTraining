@@ -20,35 +20,47 @@ export default async function WaitingRoomPage() {
     redirect('/auth/login')
   }
 
-  // Buscar status do usuário
+  // Buscar status do usuário (incluindo is_superadmin)
   const { data: userData, error } = await supabase
     .from('users')
-    .select('is_active, full_name, email, created_at')
+    .select('is_active, is_superadmin, full_name, email, created_at')
     .eq('id', user.id)
     .single()
 
   if (error || !userData) {
+    // Se erro ao buscar dados, verificar se é superadmin usando getCurrentUser
+    try {
+      const { getCurrentUser } = await import('@/lib/supabase/server')
+      const currentUser = await getCurrentUser()
+      if (currentUser?.is_superadmin === true) {
+        redirect('/admin')
+      }
+    } catch {
+      // Se falhar, mostrar erro
+    }
     return (
       <main className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
         <Card className="bg-slate-900 border-slate-800 max-w-md w-full">
           <CardContent className="pt-6">
             <p className="text-red-400 text-center">Erro ao carregar dados do usuário</p>
+            <p className="text-slate-400 text-center text-sm mt-2">
+              {error?.message || 'Usuário não encontrado'}
+            </p>
           </CardContent>
         </Card>
       </main>
     )
   }
 
+  // IMPORTANTE: Superadmins NUNCA devem estar na waiting room
+  // Redirecionar imediatamente para /admin
+  if (userData.is_superadmin === true) {
+    redirect('/admin')
+  }
+
   // Se usuário já foi aprovado, redirecionar para dashboard
   if (userData.is_active) {
-    // Verificar se é superadmin para redirecionar corretamente
-    const { getCurrentUser } = await import('@/lib/supabase/server')
-    const currentUser = await getCurrentUser()
-    if (currentUser?.is_superadmin === true) {
-      redirect('/admin')
-    } else {
-      redirect('/dashboard')
-    }
+    redirect('/dashboard')
   }
 
   return (
