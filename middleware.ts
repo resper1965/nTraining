@@ -109,38 +109,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Se está em rota de auth e já autenticado, redirecionar para página apropriada
-    // Isso evita que usuários autenticados vejam páginas de login/signup
+    // Se está em rota de auth e já autenticado, redirecionar para dashboard
+    // Os layouts vão fazer verificações mais específicas (is_superadmin, is_active)
+    // Não fazer queries aqui para evitar loops e problemas de performance
     if (isAuthPath && user) {
-      // Verificar rapidamente se é superadmin para redirecionar corretamente
-      try {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('is_superadmin, is_active')
-          .eq('id', user.id)
-          .single()
-        
-        if (userData?.is_superadmin === true) {
-          return NextResponse.redirect(new URL('/admin', request.url))
-        }
-        
-        if (userData?.is_active === true) {
-          return NextResponse.redirect(new URL('/dashboard', request.url))
-        }
-        
-        // Se não está ativo e não é superadmin, pode ir para waiting-room
-        // (mas não redirecionar de waiting-room aqui, deixar a página decidir)
-        if (request.nextUrl.pathname !== '/auth/waiting-room') {
-          return NextResponse.redirect(new URL('/auth/waiting-room', request.url))
-        }
-      } catch (error) {
-        // Se erro, deixar passar - layouts vão verificar
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[middleware] Erro ao verificar userData em auth path:', error)
-        }
-      }
-      
-      return response
+      // Redirecionar para dashboard - os layouts vão decidir o destino final
+      // Isso evita queries desnecessárias no middleware
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     // IMPORTANTE: Verificar se superadmin está tentando acessar waiting-room
