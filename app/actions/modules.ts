@@ -51,10 +51,10 @@ export async function createModule(
     const validatedInput = validateModuleCreate({ ...(input as any), course_id: courseId })
 
     const service = new ContentService()
-    const module = await service.createModule(validatedInput)
+    const createdModule = await service.createModule(validatedInput)
 
     revalidatePath(`/admin/courses/${courseId}/modules`)
-    return module
+    return createdModule
   } catch (error) {
     if (error instanceof ZodError) {
       throw new Error('Dados inválidos')
@@ -83,16 +83,16 @@ export async function updateModule(
     }
 
     const service = new ContentService()
-    const module = await service.updateModule(moduleId, validation.data)
+    const updatedModule = await service.updateModule(moduleId, validation.data)
 
     // Obter course_id para revalidar
-    const modules = await service.getModulesByCourse(module.course_id)
+    const modules = await service.getModulesByCourse(updatedModule.course_id)
     const updatedModule = modules.find((m) => m.id === moduleId)
     if (updatedModule) {
       revalidatePath(`/admin/courses/${updatedModule.course_id}/modules`)
     }
 
-    return module
+    return updatedModule
   } catch (error) {
     if (error instanceof ContentServiceError) {
       throw new Error(error.message)
