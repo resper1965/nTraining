@@ -481,16 +481,22 @@ if (!result.success) {
 
 ## ⏳ SPRINT 5: Testes e Correções (EM ANDAMENTO)
 
-**Duração:** 32 horas | **Status:** ⏳ 0% - Próximo passo
+**Duração:** 32 horas | **Status:** ⏳ 6% (2h de 32h) - Tarefa 5.1 completa
+
+### Progresso:
+
+#### 1. ✅ Checklist de Testes (~2h) - COMPLETO
+- ✅ Criar `TESTING_CHECKLIST.md` (567 linhas)
+- ✅ Documentar fluxos completos:
+  - ✅ Superadmin (8 seções: autenticação, organizações, usuários, cursos, trilhas, relatórios, logs, dashboard)
+  - ✅ Student (9 seções: autenticação, dashboard, cursos, player, quizzes, certificados, trilhas, perfil, notificações)
+  - ✅ Org Manager (3 seções: autenticação, usuários, cursos)
+  - ✅ Testes cross-browser (5 browsers)
+  - ✅ Testes de smoke em produção
+  - ✅ Template para registro de bugs
+- ✅ **Total: ~100+ casos de teste documentados**
 
 ### A Implementar:
-
-#### 1. Checklist de Testes (~2h)
-- ⏳ Criar `TESTING_CHECKLIST.md`
-- ⏳ Documentar fluxos:
-  - Superadmin (criar organização, usuário, curso, trilha, relatórios, logs)
-  - Student (dashboard, curso, aula, quiz, certificado, trilha, perfil, notificações)
-  - Org Manager (ver usuários, progresso, cursos)
 
 #### 2. Testes Manuais Happy Path (~8h)
 - ⏳ Executar checklist completo em:
