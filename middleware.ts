@@ -126,20 +126,11 @@ export async function middleware(request: NextRequest) {
       return redirectResponse
     }
 
-    // Redirect superadmin from regular dashboard to admin (only if we have userData)
+    // Redirect superadmin from regular dashboard to admin
     if (request.nextUrl.pathname === '/dashboard' && user && userData?.is_superadmin === true) {
-      // Only redirect if not already in /admin
-      if (!request.nextUrl.pathname.startsWith('/admin')) {
-        const redirectResponse = NextResponse.redirect(new URL('/admin', request.url))
-        redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
-        return redirectResponse
-      }
-    }
-
-    // If superadmin is already in /admin, allow access (no redirect needed)
-    // This check prevents unnecessary processing and loops
-    if (request.nextUrl.pathname.startsWith('/admin') && user && userData?.is_superadmin === true) {
-      return response
+      const redirectResponse = NextResponse.redirect(new URL('/admin', request.url))
+      redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
+      return redirectResponse
     }
 
     return response
