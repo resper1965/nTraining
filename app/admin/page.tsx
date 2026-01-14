@@ -64,13 +64,26 @@ async function DashboardContent() {
     const duration = Date.now() - startTime
     console.log(`[ADMIN_DASHBOARD] Dados carregados com sucesso em ${duration}ms`)
   } catch (error: any) {
-    console.error('[ADMIN_DASHBOARD] ERRO CRÍTICO ao carregar dados:', {
-      message: error?.message,
-      stack: error?.stack,
-      digest: error?.digest,
-      name: error?.name,
-      error: error
-    })
+    // Não logar como ERRO CRÍTICO se for erro esperado de "Dynamic server usage"
+    // Isso acontece durante build estático quando a rota usa cookies
+    const isExpectedError = error?.digest === 'DYNAMIC_SERVER_USAGE' || 
+                           error?.message?.includes('Dynamic server usage')
+    
+    if (isExpectedError) {
+      // Log silencioso para erros esperados durante build estático
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ADMIN_DASHBOARD] Erro esperado (build estático):', error?.message)
+      }
+    } else {
+      // Log apenas erros realmente críticos
+      console.error('[ADMIN_DASHBOARD] ERRO CRÍTICO ao carregar dados:', {
+        message: error?.message,
+        stack: error?.stack,
+        digest: error?.digest,
+        name: error?.name,
+        error: error
+      })
+    }
     
     // Fallback seguro
     metrics = {

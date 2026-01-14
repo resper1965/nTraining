@@ -235,15 +235,29 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   } catch (error: any) {
     // Catch any unexpected errors and return safe fallback data
     const duration = Date.now() - startTime
-    console.error('[getDashboardMetrics] ERRO CRÍTICO após', duration, 'ms:', {
-      message: error?.message,
-      stack: error?.stack,
-      digest: error?.digest,
-      name: error?.name,
-      cause: error?.cause,
-      error: error,
-      timestamp: new Date().toISOString(),
-    })
+    
+    // Não logar como ERRO CRÍTICO se for erro esperado de "Dynamic server usage"
+    // Isso acontece durante build estático quando a rota usa cookies
+    const isExpectedError = error?.digest === 'DYNAMIC_SERVER_USAGE' || 
+                           error?.message?.includes('Dynamic server usage')
+    
+    if (isExpectedError) {
+      // Log silencioso para erros esperados durante build estático
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[getDashboardMetrics] Erro esperado (build estático):', error?.message)
+      }
+    } else {
+      // Log apenas erros realmente críticos
+      console.error('[getDashboardMetrics] ERRO CRÍTICO após', duration, 'ms:', {
+        message: error?.message,
+        stack: error?.stack,
+        digest: error?.digest,
+        name: error?.name,
+        cause: error?.cause,
+        error: error,
+        timestamp: new Date().toISOString(),
+      })
+    }
     return {
       organizations: { total: 0, active: 0, newThisMonth: 0 },
       users: { total: 0, active: 0, newThisMonth: 0 },
@@ -345,15 +359,29 @@ export async function getRecentActivities(limit: number = 10): Promise<RecentAct
   } catch (error: any) {
     // Catch any unexpected errors and return empty array
     const duration = Date.now() - startTime
-    console.error('[getRecentActivities] ERRO CRÍTICO após', duration, 'ms:', {
-      message: error?.message,
-      stack: error?.stack,
-      digest: error?.digest,
-      name: error?.name,
-      cause: error?.cause,
-      error: error,
-      timestamp: new Date().toISOString(),
-    })
+    
+    // Não logar como ERRO CRÍTICO se for erro esperado de "Dynamic server usage"
+    // Isso acontece durante build estático quando a rota usa cookies
+    const isExpectedError = error?.digest === 'DYNAMIC_SERVER_USAGE' || 
+                           error?.message?.includes('Dynamic server usage')
+    
+    if (isExpectedError) {
+      // Log silencioso para erros esperados durante build estático
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[getRecentActivities] Erro esperado (build estático):', error?.message)
+      }
+    } else {
+      // Log apenas erros realmente críticos
+      console.error('[getRecentActivities] ERRO CRÍTICO após', duration, 'ms:', {
+        message: error?.message,
+        stack: error?.stack,
+        digest: error?.digest,
+        name: error?.name,
+        cause: error?.cause,
+        error: error,
+        timestamp: new Date().toISOString(),
+      })
+    }
     return []
   } finally {
     const duration = Date.now() - startTime
