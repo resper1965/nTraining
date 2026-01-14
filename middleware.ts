@@ -2,13 +2,6 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Prevent redirect loops - check if we've already processed this request
-  const redirectCount = parseInt(request.headers.get('x-redirect-count') || '0', 10)
-  if (redirectCount > 5) {
-    // Too many redirects, allow request to continue to prevent infinite loop
-    return NextResponse.next()
-  }
-
   // Check if environment variables are available
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -86,12 +79,10 @@ export async function middleware(request: NextRequest) {
     )
 
     // Redirect to login if accessing protected route without auth
-    if (isProtectedPath && !user) {
+    if (isProtectedPath && !user && request.nextUrl.pathname !== '/auth/login') {
       const redirectUrl = new URL('/auth/login', request.url)
       redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
-      const redirectResponse = NextResponse.redirect(redirectUrl)
-      redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
-      return redirectResponse
+      return NextResponse.redirect(redirectUrl)
     }
 
     // Fetch user data only when needed for redirect logic
@@ -112,25 +103,22 @@ export async function middleware(request: NextRequest) {
     if (user && isProtectedPath && userData && !userData.is_active) {
       // User is pending approval, redirect to waiting room
       if (!request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
-        const redirectResponse = NextResponse.redirect(new URL('/auth/waiting-room', request.url))
-        redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
-        return redirectResponse
+        return NextResponse.redirect(new URL('/auth/waiting-room', request.url))
       }
     }
 
     // Redirect to appropriate dashboard if accessing auth pages while logged in
-    if (isAuthPath && user) {
-      const targetUrl = userData?.is_superadmin === true ? '/admin' : '/dashboard'
-      const redirectResponse = NextResponse.redirect(new URL(targetUrl, request.url))
-      redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
-      return redirectResponse
+    if (isAuthPath && user && userData) {
+      const targetUrl = userData.is_superadmin === true ? '/admin' : '/dashboard'
+      // Only redirect if not already at target
+      if (request.nextUrl.pathname !== targetUrl) {
+        return NextResponse.redirect(new URL(targetUrl, request.url))
+      }
     }
 
     // Redirect superadmin from regular dashboard to admin
     if (request.nextUrl.pathname === '/dashboard' && user && userData?.is_superadmin === true) {
-      const redirectResponse = NextResponse.redirect(new URL('/admin', request.url))
-      redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
-      return redirectResponse
+      return NextResponse.redirect(new URL('/admin', request.url))
     }
 
     return response
