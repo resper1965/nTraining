@@ -16,7 +16,23 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Course } from '@/lib/types/database'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, X } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -32,6 +48,54 @@ interface LearningPathFormProps {
   }
 }
 
+interface SortableCourseItemProps {
+  course: Course
+  onRemove: () => void
+}
+
+function SortableCourseItem({ course, onRemove }: SortableCourseItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: course.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg"
+    >
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+        <GripVertical className="h-5 w-5 text-slate-400" />
+      </div>
+      <div className="flex-1">
+        <p className="text-white font-medium">{course.title}</p>
+        <p className="text-sm text-slate-400">
+          {course.duration_hours}h • {course.level}
+        </p>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onRemove}
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+}
+
 export function LearningPathForm({ courses, initialData }: LearningPathFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,14 +103,23 @@ export function LearningPathForm({ courses, initialData }: LearningPathFormProps
     initialData?.course_ids || []
   )
 
-  const handleDragEnd = (result: any) => {
-    if (!result.destination) return
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
-    const items = Array.from(selectedCourseIds)
-    const [reorderedItem] = items.splice(result.source.index, 1)
-    items.splice(result.destination.index, 0, reorderedItem)
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
 
-    setSelectedCourseIds(items)
+    if (over && active.id !== over.id) {
+      setSelectedCourseIds((items) => {
+        const oldIndex = items.indexOf(active.id as string)
+        const newIndex = items.indexOf(over.id as string)
+        return arrayMove(items, oldIndex, newIndex)
+      })
+    }
   }
 
   const toggleCourse = (courseId: string) => {
@@ -199,48 +272,26 @@ export function LearningPathForm({ courses, initialData }: LearningPathFormProps
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="selected-courses">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                    {selectedCourses.map((course, index) => (
-                      <Draggable
-                        key={course.id}
-                        draggableId={course.id}
-                        index={index}
-                      >
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg"
-                          >
-                            <div {...provided.dragHandleProps}>
-                              <GripVertical className="h-5 w-5 text-slate-400" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-white font-medium">{course.title}</p>
-                              <p className="text-sm text-slate-400">
-                                {course.duration_hours}h • {course.level}
-                              </p>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeCourse(course.id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={selectedCourseIds}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {selectedCourses.map((course) => (
+                    <SortableCourseItem
+                      key={course.id}
+                      course={course}
+                      onRemove={() => removeCourse(course.id)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </CardContent>
         </Card>
       )}
