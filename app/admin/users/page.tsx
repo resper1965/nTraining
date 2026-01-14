@@ -43,9 +43,14 @@ export default async function AdminUsersPage() {
               Gerencie usuários da plataforma e seus papéis
             </p>
           </div>
-          <Link href="/admin/users/new">
-            <Button>Novo Usuário</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/admin/users/pending">
+              <Button variant="outline">Usuários Pendentes</Button>
+            </Link>
+            <Link href="/admin/users/new">
+              <Button>Novo Usuário</Button>
+            </Link>
+          </div>
         </div>
 
         {/* Users Table */}

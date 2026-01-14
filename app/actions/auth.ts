@@ -37,12 +37,21 @@ export async function signIn(formData: FormData) {
     // Buscar dados completos do usuário antes de atualizar
     const { data: userData, error: userDataError } = await supabase
       .from('users')
-      .select('last_login_at, full_name, email, is_superadmin')
+      .select('last_login_at, full_name, email, is_superadmin, is_active')
       .eq('id', user.id)
       .single()
 
     if (userDataError) {
       console.error('Error fetching user data:', userDataError)
+      // Se usuário não existe na tabela users, redireciona para sala de espera
+      redirect('/auth/waiting-room')
+      return
+    }
+
+    // Verificar se usuário está pendente de aprovação
+    if (userData && !userData.is_active) {
+      redirect('/auth/waiting-room')
+      return
     }
 
     // Atualizar last_login_at
@@ -88,6 +97,84 @@ export async function signOut() {
   await supabase.auth.signOut()
   revalidatePath('/')
   redirect('/')
+}
+
+// ============================================================================
+// SIGN UP (Public - creates user with pending approval)
+// ============================================================================
+
+export async function signUp(formData: FormData) {
+  'use server'
+  
+  const supabase = createClient()
+  
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  const fullName = formData.get('fullName') as string
+  const organizationId = formData.get('organizationId') as string | null
+
+  if (!email || !password || !fullName) {
+    redirect('/auth/signup?error=Email, senha e nome são obrigatórios')
+  }
+
+  if (!organizationId) {
+    redirect('/auth/signup?error=Selecione uma organização')
+  }
+
+  if (password.length < 8) {
+    redirect('/auth/signup?error=Senha deve ter pelo menos 8 caracteres')
+  }
+
+  // Verificar se organização existe
+  const { data: org, error: orgError } = await supabase
+    .from('organizations')
+    .select('id')
+    .eq('id', organizationId)
+    .single()
+
+  if (orgError || !org) {
+    redirect('/auth/signup?error=Organização inválida')
+  }
+
+  // Criar usuário no Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
+      data: {
+        full_name: fullName,
+      },
+    },
+  })
+
+  if (authError) {
+    redirect(`/auth/signup?error=${encodeURIComponent(authError.message)}`)
+  }
+
+  if (!authData.user) {
+    redirect('/auth/signup?error=Erro ao criar conta. Tente novamente.')
+  }
+
+  // Criar registro na tabela users com is_active = false (pendente)
+  const { error: userError } = await supabase.from('users').insert({
+    id: authData.user.id,
+    email,
+    full_name: fullName,
+    role: 'student',
+    organization_id: organizationId,
+    is_active: false, // Pendente de aprovação
+  })
+
+  if (userError) {
+    // Se falhar ao criar na tabela users, tenta deletar do auth
+    console.error('Error creating user profile:', userError)
+    // Não podemos deletar do auth aqui sem service role, mas o usuário ficará sem acesso
+    redirect('/auth/signup?error=Erro ao criar perfil. Entre em contato com o suporte.')
+  }
+
+  // Redirecionar para sala de espera
+  redirect('/auth/waiting-room')
 }
 
 // ============================================================================

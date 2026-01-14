@@ -94,22 +94,6 @@ export default async function DashboardPage() {
           </form>
         </div>
 
-        {/* Debug Info */}
-        <Card className="bg-yellow-950/20 border-yellow-800 mb-8">
-          <CardHeader>
-            <CardTitle className="text-yellow-400">🔍 Debug Info</CardTitle>
-          </CardHeader>
-          <CardContent className="text-white space-y-2">
-            <p><strong>User ID:</strong> {user.id}</p>
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Organization ID:</strong> {user.organization_id || 'None'}</p>
-            <p><strong>Is Superadmin:</strong> {user.is_superadmin ? 'Yes' : 'No'}</p>
-            <p><strong>Courses Available:</strong> {courses?.length || 0}</p>
-            <p><strong>Progress Records:</strong> {progress?.length || 0}</p>
-            <p><strong>Mandatory Courses:</strong> {mandatoryCourses?.length || 0}</p>
-            <p><strong>Certificates:</strong> {certificates?.length || 0}</p>
-          </CardContent>
-        </Card>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

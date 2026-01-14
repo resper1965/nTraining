@@ -79,8 +79,8 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith(path)
     )
 
-    // Auth routes (login only)
-    const authPaths = ['/auth/login']
+    // Auth routes (login, signup, waiting-room)
+    const authPaths = ['/auth/login', '/auth/signup', '/auth/waiting-room']
     const isAuthPath = authPaths.some((path) =>
       request.nextUrl.pathname.startsWith(path)
     )
@@ -92,13 +92,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Fetch user data once if needed for redirect logic
-    let userData: { is_superadmin: boolean } | null = null
-    if (user && (isAuthPath || request.nextUrl.pathname === '/dashboard')) {
+    // Fetch user data once if needed for redirect logic (is_superadmin and is_active)
+    let userData: { is_superadmin: boolean; is_active: boolean } | null = null
+    if (user && (isAuthPath || request.nextUrl.pathname === '/dashboard' || isProtectedPath)) {
       try {
         const { data, error: userError } = await supabase
           .from('users')
-          .select('is_superadmin')
+          .select('is_superadmin, is_active')
           .eq('id', user.id)
           .single()
 
@@ -107,6 +107,14 @@ export async function middleware(request: NextRequest) {
         }
       } catch (error) {
         // Silent fail - user will be redirected to default dashboard
+      }
+    }
+
+    // Check if user is pending approval (is_active = false)
+    if (user && isProtectedPath && userData && !userData.is_active) {
+      // User is pending approval, redirect to waiting room
+      if (!request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
+        return NextResponse.redirect(new URL('/auth/waiting-room', request.url))
       }
     }
 

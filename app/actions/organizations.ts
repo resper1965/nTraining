@@ -15,6 +15,25 @@ export interface OrganizationFilters {
   sortOrder?: 'asc' | 'desc'
 }
 
+// ============================================================================
+// GET PUBLIC ORGANIZATIONS (Public - for signup)
+// ============================================================================
+
+export async function getPublicOrganizations() {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('id, name, slug')
+    .order('name', { ascending: true })
+
+  if (error) {
+    throw new Error(`Failed to fetch organizations: ${error.message}`)
+  }
+
+  return data || []
+}
+
 export async function getAllOrganizations(filters?: OrganizationFilters) {
   await requireSuperAdmin()
   const supabase = createClient()
