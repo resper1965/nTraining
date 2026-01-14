@@ -1,10 +1,8 @@
 import { requireSuperAdmin } from '@/lib/supabase/server'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { getCurrentUser } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { signOut } from '@/app/actions/auth'
-import { ErrorBoundary } from '@/components/error-boundary'
 
 // Use revalidate to match child pages and prevent promise resolution issues
 export const revalidate = 30
@@ -50,9 +48,7 @@ export default async function AdminLayout({
         <main className="flex-1 overflow-auto bg-slate-950">
           <div className="p-6 min-h-full">
             <AdminBreadcrumbs />
-            <ErrorBoundary>
-              {children}
-            </ErrorBoundary>
+            {children}
           </div>
         </main>
       </div>
