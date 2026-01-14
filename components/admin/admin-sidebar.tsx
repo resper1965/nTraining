@@ -13,6 +13,7 @@ import {
   Settings,
   Activity,
   GitBranch,
+  Sparkles,
 } from 'lucide-react'
 
 interface NavItem {
@@ -56,6 +57,11 @@ const navItems: NavItem[] = [
     title: 'Relatórios',
     href: '/admin/reports',
     icon: FileText,
+  },
+  {
+    title: 'AI Architect',
+    href: '/admin/ai',
+    icon: Sparkles,
   },
   {
     title: 'Atividades',

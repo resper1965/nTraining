@@ -328,6 +328,8 @@ n.training/
 |----------|-------------|---------|--------------|
 | `NEXT_PUBLIC_APP_URL` | URL da aplicação | `http://localhost:3000` | Email redirects, OAuth callbacks |
 | `RESEND_API_KEY` | API key do Resend | - | Envio de emails |
+| `OPENAI_API_KEY` | API key do OpenAI | `sk-...` | Geração de cursos com IA |
+| `HELICONE_API_KEY` | API key do Helicone (opcional) | `sk-...` | Observabilidade e cache de IA |
 
 ### Environment File Example
 
@@ -342,6 +344,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # Resend (Optional)
 RESEND_API_KEY=re_your_api_key_here
+
+# OpenAI & Helicone (AI Course Architect)
+OPENAI_API_KEY=sk-your_openai_api_key_here
+HELICONE_API_KEY=sk-your_helicone_api_key_here  # Optional: for observability and caching
 ```
 
 ### ⚠️ Security Notes

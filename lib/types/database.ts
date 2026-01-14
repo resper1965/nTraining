@@ -8,6 +8,7 @@ export type ContentType = 'video' | 'text' | 'pdf' | 'quiz' | 'embed';
 export type QuestionType = 'multiple_choice' | 'true_false' | 'scenario';
 export type AssignmentStatus = 'not_started' | 'in_progress' | 'completed' | 'overdue';
 export type CourseStatus = 'draft' | 'published' | 'archived';
+export type KnowledgeSourceStatus = 'processing' | 'completed' | 'failed';
 
 // ============================================================================
 // Database Tables
@@ -541,4 +542,43 @@ export interface CreateNotificationData {
   metadata?: Record<string, any>
   action_url?: string | null
   action_label?: string | null
+}
+
+// ============================================================================
+// AI Course Architect: Knowledge Base Types
+// ============================================================================
+
+export interface KnowledgeSource {
+  id: string
+  title: string
+  filename: string
+  file_url: string
+  file_size: number | null
+  mime_type: string
+  status: KnowledgeSourceStatus
+  error_message: string | null
+  organization_id: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface KnowledgeVector {
+  id: string
+  source_id: string
+  content_chunk: string
+  chunk_index: number
+  token_count: number | null
+  embedding: number[] // Vector(1536) - array de 1536 números
+  metadata: Record<string, any>
+  created_at: string
+}
+
+export interface MatchedDocument {
+  id: string
+  source_id: string
+  content_chunk: string
+  chunk_index: number
+  similarity: number
+  metadata: Record<string, any>
 }

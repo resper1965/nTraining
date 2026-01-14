@@ -117,3 +117,47 @@ USING (
   AND auth.role() = 'authenticated'
 );
 
+-- Criar bucket para knowledge sources (AI Course Architect)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'knowledge-sources',
+  'knowledge-sources',
+  false, -- Privado: apenas admins podem acessar
+  52428800, -- 50MB
+  ARRAY['application/pdf']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Políticas RLS para knowledge-sources (apenas admins)
+CREATE POLICY "Admins can view knowledge sources"
+ON storage.objects FOR SELECT
+USING (
+  bucket_id = 'knowledge-sources' 
+  AND (
+    (SELECT is_superadmin FROM users WHERE id = (SELECT auth.uid())) = true
+    OR
+    (SELECT role FROM users WHERE id = (SELECT auth.uid())) IN ('platform_admin', 'org_manager')
+  )
+);
+
+CREATE POLICY "Admins can upload knowledge sources"
+ON storage.objects FOR INSERT
+WITH CHECK (
+  bucket_id = 'knowledge-sources' 
+  AND (
+    (SELECT is_superadmin FROM users WHERE id = (SELECT auth.uid())) = true
+    OR
+    (SELECT role FROM users WHERE id = (SELECT auth.uid())) IN ('platform_admin', 'org_manager')
+  )
+);
+
+CREATE POLICY "Admins can delete knowledge sources"
+ON storage.objects FOR DELETE
+USING (
+  bucket_id = 'knowledge-sources' 
+  AND (
+    (SELECT is_superadmin FROM users WHERE id = (SELECT auth.uid())) = true
+    OR
+    (SELECT role FROM users WHERE id = (SELECT auth.uid())) IN ('platform_admin', 'org_manager')
+  )
+);
