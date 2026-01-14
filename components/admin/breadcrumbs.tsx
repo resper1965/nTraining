@@ -27,28 +27,29 @@ export function AdminBreadcrumbs() {
   let currentPath = ''
   segments.slice(1).forEach((segment, index) => {
     currentPath += `/${segment}`
-    
+
     // Skip numeric IDs (like organization IDs)
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment)) {
       const label = segment
         .split('-')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ')
-      
+
       breadcrumbs.push({
         label,
-        href: currentPath,
+        href: `/admin${currentPath}`,
       })
     } else {
       // For IDs, try to get a meaningful label from the previous segment
-      const prevSegment = segments[index]
+      const actualIndex = index + 1 // Adjust for slice(1)
+      const prevSegment = segments[actualIndex - 1]
       if (prevSegment) {
         breadcrumbs.push({
           label: prevSegment
             .split('-')
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' '),
-          href: currentPath,
+          href: `/admin${currentPath}`,
         })
       }
     }

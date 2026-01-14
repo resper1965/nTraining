@@ -212,16 +212,42 @@ export async function generateCertificatePDFFile(
     organizations?: { name: string; razao_social?: string }
   }
 ): Promise<string> {
-  // This will be implemented using @react-pdf/renderer
-  // For now, return a placeholder URL
-  // In production, use react-pdf's renderToStream or renderToBuffer
-  // and upload to Supabase Storage
+  const { renderToBuffer } = await import('@react-pdf/renderer')
+  const { createClient } = await import('@/lib/supabase/server')
 
-  // TODO: Implement actual PDF generation
-  // const pdfBlob = await renderToBlob(<CertificatePDF certificate={certificate} />)
-  // Upload to Supabase Storage bucket 'certificates'
-  // Return public URL
+  try {
+    // Generate PDF buffer
+    const pdfBuffer = await renderToBuffer(<CertificatePDF certificate={certificate} />)
 
-  return `certificate-${certificate.id}.pdf`
+    // Create Supabase client
+    const supabase = createClient()
+
+    // Generate filename
+    const fileName = `certificate-${certificate.id}.pdf`
+    const filePath = `certificates/${fileName}`
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('certificates')
+      .upload(filePath, pdfBuffer, {
+        contentType: 'application/pdf',
+        upsert: true, // Overwrite if exists
+      })
+
+    if (uploadError) {
+      console.error('Error uploading certificate:', uploadError)
+      throw new Error('Failed to upload certificate')
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('certificates')
+      .getPublicUrl(filePath)
+
+    return urlData.publicUrl
+  } catch (error) {
+    console.error('Error generating certificate PDF:', error)
+    throw error
+  }
 }
 

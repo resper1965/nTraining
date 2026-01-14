@@ -10,7 +10,7 @@ export default async function DownloadCertificatePage({
 }: {
   params: { id: string }
 }) {
-  await requireAuth()
+  const user = await requireAuth()
 
   let certificate
   try {
@@ -19,12 +19,15 @@ export default async function DownloadCertificatePage({
     notFound()
   }
 
-  // Generate PDF URL (for now, redirect to view page)
-  // TODO: Implement actual PDF download when PDF generation is complete
+  // Verify certificate belongs to user (or user is admin)
+  if (certificate.user_id !== user.id && user.role !== 'platform_admin') {
+    notFound()
+  }
+
+  // Generate PDF and upload to storage
   const pdfUrl = await generateCertificatePDFFile(certificate)
 
-  // For now, redirect to certificate view
-  // In production, this would download the PDF file
-  redirect(`/certificates/${params.id}`)
+  // Redirect to the PDF URL for download
+  redirect(pdfUrl)
 }
 

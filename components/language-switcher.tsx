@@ -1,54 +1,45 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useState, useEffect } from 'react'
+import { Languages } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useTranslations } from '@/hooks/use-translations'
 
 export function LanguageSwitcher() {
   const router = useRouter()
-  const pathname = usePathname()
-  const [locale, setLocale] = useState<'pt' | 'en'>('pt')
-
-  useEffect(() => {
-    // Get locale from cookie
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('locale='))
-      ?.split('=')[1] as 'pt' | 'en' | undefined
-    
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    }
-  }, [])
+  const { locale, setLocale } = useTranslations()
 
   const switchLanguage = async (newLocale: 'pt' | 'en') => {
-    // Set cookie
+    // Set cookie and localStorage
     document.cookie = `locale=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}`
     setLocale(newLocale)
-    
-    // Reload page to apply new language
-    router.refresh()
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant={locale === 'pt' ? 'default' : 'outline'}
-        size="sm"
-        onClick={() => switchLanguage('pt')}
-        className="min-w-[40px]"
-      >
-        PT
-      </Button>
-      <Button
-        variant={locale === 'en' ? 'default' : 'outline'}
-        size="sm"
-        onClick={() => switchLanguage('en')}
-        className="min-w-[40px]"
-      >
-        EN
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-2">
+          <Languages className="h-4 w-4" />
+          <span className="uppercase">{locale}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => switchLanguage('pt')}>
+          <span className="mr-2">🇧🇷</span>
+          Português
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => switchLanguage('en')}>
+          <span className="mr-2">🇺🇸</span>
+          English
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
