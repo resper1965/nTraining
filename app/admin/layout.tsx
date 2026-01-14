@@ -6,22 +6,17 @@ import { Button } from '@/components/ui/button'
 import { signOut } from '@/app/actions/auth'
 import { ErrorBoundary } from '@/components/error-boundary'
 
-export const dynamic = 'force-dynamic'
+// Use revalidate to match child pages and prevent promise resolution issues
+export const revalidate = 30
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  let user
-  try {
-    user = await requireSuperAdmin()
-  } catch (error) {
-    // If requireSuperAdmin fails, redirect to login
-    const { redirect } = await import('next/navigation')
-    redirect('/auth/login')
-    return null // This will never execute, but satisfies TypeScript
-  }
+  // requireSuperAdmin will redirect if user is not authenticated or not superadmin
+  // We don't wrap it in try/catch because redirect() throws a special error
+  const user = await requireSuperAdmin()
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
