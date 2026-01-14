@@ -29,10 +29,12 @@ export function NotificationBell() {
         getUnreadNotificationCount(),
         getUserNotifications({ limit: 5 }),
       ])
-      setUnreadCount(count)
-      setNotifications(notifs)
+      setUnreadCount(count ?? 0)
+      setNotifications(notifs ?? [])
     } catch (error) {
-      console.error('Error loading notifications:', error)
+      // Silently fail - set defaults
+      setUnreadCount(0)
+      setNotifications([])
     }
   }
 
