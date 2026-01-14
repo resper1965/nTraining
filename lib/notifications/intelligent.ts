@@ -43,7 +43,9 @@ export async function createIntelligentNotification(
   // Verificar rate limit
   const canSend = await checkRateLimit(userId, type)
   if (!canSend) {
-    console.log(`Rate limit exceeded for notification type ${type} for user ${userId}`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Rate limit exceeded for notification type ${type} for user ${userId}`)
+    }
     return null
   }
 
@@ -126,7 +128,9 @@ export async function learnFromUserBehavior(userId: string): Promise<void> {
     const readRate = stats.read / stats.total
     if (readRate < 0.2 && stats.total >= 5) {
       // Taxa de leitura muito baixa - usuário provavelmente não quer essas notificações
-      console.log(`User ${userId} has low engagement with ${type} notifications (${(readRate * 100).toFixed(1)}% read rate)`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`User ${userId} has low engagement with ${type} notifications (${(readRate * 100).toFixed(1)}% read rate)`)
+      }
       // Em uma versão mais avançada, poderíamos atualizar automaticamente as preferências
     }
   }

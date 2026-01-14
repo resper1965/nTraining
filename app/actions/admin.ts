@@ -45,11 +45,18 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   // If called from outside admin context, the layout will catch it
   
   const startTime = Date.now()
-  console.log('[getDashboardMetrics] Iniciando...')
+  const isDev = process.env.NODE_ENV === 'development'
+  
+  if (isDev) {
+    console.log('[getDashboardMetrics] Iniciando...')
+  }
   
   try {
     const supabase = createClient()
-    console.log('[getDashboardMetrics] Cliente Supabase criado')
+    
+    if (isDev) {
+      console.log('[getDashboardMetrics] Cliente Supabase criado')
+    }
 
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -267,8 +274,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       progress: { coursesInProgress: 0, coursesCompleted: 0, completionRate: 0 },
     }
   } finally {
-    const duration = Date.now() - startTime
-    console.log(`[getDashboardMetrics] Finalizado em ${duration}ms`)
+    if (isDev) {
+      const duration = Date.now() - startTime
+      console.log(`[getDashboardMetrics] Finalizado em ${duration}ms`)
+    }
   }
 }
 
@@ -290,11 +299,18 @@ export async function getRecentActivities(limit: number = 10): Promise<RecentAct
   // If called from outside admin context, the layout will catch it
   
   const startTime = Date.now()
-  console.log('[getRecentActivities] Iniciando...')
+  const isDev = process.env.NODE_ENV === 'development'
+  
+  if (isDev) {
+    console.log('[getRecentActivities] Iniciando...')
+  }
   
   try {
     const supabase = createClient()
-    console.log('[getRecentActivities] Cliente Supabase criado')
+    
+    if (isDev) {
+      console.log('[getRecentActivities] Cliente Supabase criado')
+    }
 
     // Get recent organizations
     const { data: recentOrgs } = await supabase
@@ -384,8 +400,10 @@ export async function getRecentActivities(limit: number = 10): Promise<RecentAct
     }
     return []
   } finally {
-    const duration = Date.now() - startTime
-    console.log(`[getRecentActivities] Finalizado em ${duration}ms`)
+    if (isDev) {
+      const duration = Date.now() - startTime
+      console.log(`[getRecentActivities] Finalizado em ${duration}ms`)
+    }
   }
 }
 

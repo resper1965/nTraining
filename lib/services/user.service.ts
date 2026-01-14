@@ -198,7 +198,7 @@ export class UserService {
     // TODO: Criar notificação de aprovação quando tipo 'user_approved' for adicionado
     // Por enquanto, apenas logamos (opcional, não bloqueia)
     if (process.env.NODE_ENV === 'development') {
-      console.log(`User ${userId} approved`)
+      // User approved successfully
     }
   }
 
