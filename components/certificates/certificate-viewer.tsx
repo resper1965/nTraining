@@ -31,7 +31,7 @@ export function CertificateViewer({ certificate }: CertificateViewerProps) {
   const organizationName =
     certificate.organizations?.razao_social ||
     certificate.organizations?.name ||
-    'n.training Platform'
+    'n.training'
   const issuedDate = new Date(certificate.issued_at)
 
   return (

@@ -74,7 +74,7 @@ export function getWelcomeEmailTemplate(userName: string, loginUrl: string) {
         </div>
         <p style="color: #94a3b8; font-size: 14px; margin-top: 30px;">Se você não criou esta conta, pode ignorar este email.</p>
       </div>
-      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Todos os direitos reservados</p>
+      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Powered by <span style="color: #00ade8;">ness.</span> Todos os direitos reservados</p>
     </body>
     </html>
   `
@@ -117,7 +117,7 @@ export function getCourseAssignedEmailTemplate(
           <a href="${courseUrl}" style="display: inline-block; background-color: #00ade8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Ver Curso</a>
         </div>
       </div>
-      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Todos os direitos reservados</p>
+      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Powered by <span style="color: #00ade8;">ness.</span> Todos os direitos reservados</p>
     </body>
     </html>
   `
@@ -149,7 +149,7 @@ export function getDeadlineApproachingEmailTemplate(
           <a href="${courseUrl}" style="display: inline-block; background-color: #fbbf24; color: #0f172a; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Continuar Curso</a>
         </div>
       </div>
-      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Todos os direitos reservados</p>
+      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Powered by <span style="color: #00ade8;">ness.</span> Todos os direitos reservados</p>
     </body>
     </html>
   `
@@ -181,7 +181,7 @@ export function getCourseCompletedEmailTemplate(
           <a href="${courseUrl}" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Ver Certificado</a>
         </div>
       </div>
-      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Todos os direitos reservados</p>
+      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Powered by <span style="color: #00ade8;">ness.</span> Todos os direitos reservados</p>
     </body>
     </html>
   `
@@ -214,7 +214,7 @@ export function getCertificateAvailableEmailTemplate(
           <a href="${certificateUrl}" style="display: inline-block; background-color: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Ver Certificado</a>
         </div>
       </div>
-      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Todos os direitos reservados</p>
+      <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">© ${new Date().getFullYear()} n.training - Powered by <span style="color: #00ade8;">ness.</span> Todos os direitos reservados</p>
     </body>
     </html>
   `

@@ -1,4 +1,4 @@
-# nTraining
+# n.training
 
 Professional training platform powered by ness.
 
@@ -74,7 +74,7 @@ Configure these variables in your Vercel project settings:
 ## Project Structure
 
 ```
-nTraining/
+n.training/
 ├── app/              # Next.js App Router pages
 ├── components/       # React components
 │   └── ui/          # shadcn/ui components

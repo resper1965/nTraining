@@ -54,7 +54,7 @@ export default async function VerifyCertificatePage({
             Certificado Verificado
           </h1>
           <p className="text-slate-400">
-            Este certificado é válido e foi emitido pela plataforma n.training
+            Este certificado é válido e foi emitido por n.training
           </p>
         </div>
 

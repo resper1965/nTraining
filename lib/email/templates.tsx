@@ -16,7 +16,7 @@ export function EmailWrapper({ children }: { children: React.ReactNode }) {
         {children}
       </div>
       <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
-        <p>© {new Date().getFullYear()} n.training. Todos os direitos reservados.</p>
+        <p>© {new Date().getFullYear()} n.training - Powered by <span style={{ color: '#00ade8' }}>ness.</span> Todos os direitos reservados.</p>
       </div>
     </div>
   )

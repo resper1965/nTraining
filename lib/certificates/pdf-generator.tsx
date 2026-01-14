@@ -124,7 +124,7 @@ export function CertificatePDF({ certificate }: CertificatePDFProps) {
   const organizationName =
     certificate.organizations?.razao_social ||
     certificate.organizations?.name ||
-    'n.training Platform'
+    'n.training'
   const issuedDate = new Date(certificate.issued_at).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
