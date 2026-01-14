@@ -161,14 +161,30 @@ export async function middleware(request: NextRequest) {
       }
     }
 
+    // IMPORTANTE: Verificar superadmin ANTES de verificar is_active
+    // Se for superadmin, nunca redirecionar para waiting-room
+    if (userData?.is_superadmin === true) {
+      // Superadmin tentando acessar waiting-room? Redirecionar para /admin
+      if (isWaitingRoom) {
+        const redirectResponse = NextResponse.redirect(new URL('/admin', request.url))
+        redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
+        return redirectResponse
+      }
+      // Superadmin em rota protegida? Permitir acesso (não verificar is_active)
+      if (isProtectedPath) {
+        return response
+      }
+    }
+    
     // Check if user is pending approval (is_active = false)
     // IMPORTANTE: Superadmins NUNCA devem ser redirecionados para waiting-room
     // IMPORTANTE: Permitir acesso à waiting-room mesmo com is_active = false
+    // Só verificar is_active se NÃO for superadmin
     if (user && isProtectedPath && userData && !userData.is_active && !userData.is_superadmin) {
       // User is pending approval, redirect to waiting room
       // Mas permitir acesso se já está na waiting room
       // Superadmins nunca devem ser redirecionados para waiting-room
-      if (!request.nextUrl.pathname.startsWith('/auth/waiting-room')) {
+      if (!isWaitingRoom) {
         const redirectResponse = NextResponse.redirect(new URL('/auth/waiting-room', request.url))
         redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
         return redirectResponse
@@ -178,15 +194,14 @@ export async function middleware(request: NextRequest) {
     // Permitir acesso à waiting-room mesmo se is_active = false
     // MAS: Se temos userData e é superadmin, já redirecionamos acima
     // Se não temos userData ainda, permitir acesso (página vai verificar)
-    if (isWaitingRoom && user && !userData) {
+    if (isWaitingRoom && user) {
+      // Se não temos userData, permitir acesso (página vai verificar e redirecionar se necessário)
+      if (!userData) {
+        return response
+      }
+      // Se temos userData e é superadmin, já redirecionamos acima
+      // Se não é superadmin, permitir acesso à waiting-room
       return response
-    }
-    
-    // Se temos userData e é superadmin, não deve estar na waiting-room
-    if (isWaitingRoom && user && userData?.is_superadmin === true) {
-      const redirectResponse = NextResponse.redirect(new URL('/admin', request.url))
-      redirectResponse.headers.set('x-redirect-count', String(redirectCount + 1))
-      return redirectResponse
     }
     
     // Redirect to appropriate dashboard if accessing auth pages while logged in
