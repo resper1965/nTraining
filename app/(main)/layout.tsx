@@ -24,12 +24,13 @@ export default async function MainLayout({
     redirect('/auth/login')
   }
 
-  // Superadmin não deve estar em rotas main
-  if (user.is_superadmin) {
+  // IMPORTANTE: Superadmin SEMPRE vai para /admin, mesmo se is_active = false
+  // Verificar PRIMEIRO antes de qualquer outra verificação
+  if (user.is_superadmin === true) {
     redirect('/admin')
   }
 
-  // Usuário não ativo deve estar na waiting room
+  // Se não é superadmin e não está ativo, deve estar na waiting room
   if (!user.is_active) {
     redirect('/auth/waiting-room')
   }

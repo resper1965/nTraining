@@ -16,15 +16,16 @@ export default async function Home() {
   }
 
   // IMPORTANTE: Superadmin SEMPRE vai para /admin, mesmo se is_active = false
+  // Verificar PRIMEIRO antes de qualquer outra verificação
   if (user.is_superadmin === true) {
     redirect('/admin')
   }
 
-  // Usuário não ativo vai para waiting room (mas não superadmin)
+  // Se não é superadmin e não está ativo, vai para waiting room
   if (!user.is_active) {
     redirect('/auth/waiting-room')
   }
 
-  // Usuário normal vai para dashboard
+  // Usuário normal e ativo vai para dashboard
   redirect('/dashboard')
 }
