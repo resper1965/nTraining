@@ -9,9 +9,7 @@ import { z } from 'zod'
 // Enums e Constantes
 // ============================================================================
 
-export const ContentTypeSchema = z.enum(['video', 'text', 'pdf', 'quiz', 'embed'], {
-  errorMap: () => ({ message: 'Tipo de conteúdo inválido' }),
-})
+export const ContentTypeSchema = z.enum(['video', 'text', 'pdf', 'quiz', 'embed'])
 
 // ============================================================================
 // Module Schemas

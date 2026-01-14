@@ -25,7 +25,7 @@ export default async function SignUpPage({
   searchParams: { message?: string; error?: string }
 }) {
   // Buscar organizações disponíveis
-  let organizations = []
+  let organizations: Array<{ id: string; name: string; slug: string }> = []
   try {
     organizations = await getPublicOrganizations()
   } catch (error) {

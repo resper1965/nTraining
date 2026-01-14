@@ -29,13 +29,15 @@ export default async function DashboardPage() {
   // Note: Superadmin redirect is handled by middleware to avoid duplicate redirects
 
   // Fetch all dashboard data in parallel
-  const [progress, courses, mandatoryCourses, certificates, paths] = await Promise.all([
+  const [progress, coursesResult, mandatoryCourses, certificates, paths] = await Promise.all([
     getUserProgress().catch(() => []),
-    getCoursesWithProgress({ status: 'published' }).catch(() => []),
+    getCoursesWithProgress({ status: 'published' }),
     getUserMandatoryCourses().catch(() => []),
     getUserCertificates().catch(() => []),
     getUserPathsWithProgress().catch(() => []),
   ])
+  
+  const courses = 'message' in coursesResult ? [] : coursesResult
 
     const inProgressCourses = progress?.filter(
       (p: any) => p.status === 'in_progress'

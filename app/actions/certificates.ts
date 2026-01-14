@@ -29,7 +29,13 @@ async function checkCourseCompletionRequirements(
   const supabase = createClient()
 
   // Get course details
-  const course = await getCourseById(courseId)
+  const courseResult = await getCourseById(courseId)
+  
+  if ('message' in courseResult) {
+    return false
+  }
+  
+  const course = courseResult
   
   // Get course progress
   const progress = await getCourseProgress(courseId)
@@ -99,7 +105,12 @@ export async function generateCertificate(courseId: string) {
   }
 
   // Check if course is certifiable
-  const course = await getCourseById(courseId)
+  const courseResult = await getCourseById(courseId)
+  if ('message' in courseResult) {
+    throw new Error('Curso não encontrado')
+  }
+  
+  const course = courseResult
   if (!course.is_certifiable) {
     throw new Error('Este curso não emite certificado')
   }

@@ -10,13 +10,9 @@ import { z } from 'zod'
 // Enums e Constantes
 // ============================================================================
 
-export const CourseLevelSchema = z.enum(['beginner', 'intermediate', 'advanced'], {
-  errorMap: () => ({ message: 'Nível deve ser: beginner, intermediate ou advanced' }),
-})
+export const CourseLevelSchema = z.enum(['beginner', 'intermediate', 'advanced'])
 
-export const CourseStatusSchema = z.enum(['draft', 'published', 'archived'], {
-  errorMap: () => ({ message: 'Status deve ser: draft, published ou archived' }),
-})
+export const CourseStatusSchema = z.enum(['draft', 'published', 'archived'])
 
 // ============================================================================
 // Schema de Slug (validação customizada)
@@ -114,9 +110,12 @@ export const CourseFiltersSchema = z.object({
       if (!val) return undefined
       // Remove caracteres que podem causar problemas em queries SQL
       return val.replace(/[%_\\]/g, '').trim() || undefined
-    }),
+    })
+    .or(z.undefined()),
   is_public: z.boolean().optional(),
-})
+  page: z.coerce.number().int().min(1).default(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(10).optional(),
+}).partial()
 
 // ============================================================================
 // Tipos Inferidos (exportados para uso em outras camadas)

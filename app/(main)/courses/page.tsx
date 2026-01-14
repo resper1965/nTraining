@@ -20,10 +20,13 @@ export default async function CoursesPage({
     status: 'published' as const,
   }
 
-  const [courses, areas] = await Promise.all([
-    getCoursesWithProgress(filters).catch(() => []),
-    getCourseAreas().catch(() => []),
+  const [coursesResult, areasResult] = await Promise.all([
+    getCoursesWithProgress(filters),
+    getCourseAreas(),
   ])
+  
+  const courses = 'message' in coursesResult ? [] : coursesResult
+  const areas = 'message' in areasResult ? [] : areasResult
 
   return (
     <main className="min-h-screen bg-slate-950">

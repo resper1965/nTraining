@@ -73,15 +73,23 @@ export async function updateLessonProgress(
     if (data.is_completed) {
       try {
         const { getCourseById } = await import('./courses')
-        const course = await getCourseById(
-          (await supabase
-            .from('lessons')
-            .select('module_id, modules!inner(course_id)')
-            .eq('id', lessonId)
-            .single()).data?.modules as any
-        )
+        const courseId = (await supabase
+          .from('lessons')
+          .select('module_id, modules!inner(course_id)')
+          .eq('id', lessonId)
+          .single()).data?.modules as any
         
-        if (course?.is_certifiable) {
+        if (!courseId) {
+          return
+        }
+        
+        const courseResult = await getCourseById(courseId)
+        if ('message' in courseResult) {
+          return
+        }
+        
+        const course = courseResult
+        if (course.is_certifiable) {
           // Check if all required lessons are completed
           const { data: allRequiredLessons } = await supabase
             .from('lessons')

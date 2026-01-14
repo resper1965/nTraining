@@ -51,9 +51,9 @@ export async function signIn(formData: FormData) {
     } catch (error) {
       if (error instanceof ZodError) {
         const fieldErrors = error.flatten().fieldErrors
-        const firstError = Object.values(fieldErrors)[0]?.[0] || 'Dados inválidos'
+        const firstErrorArray = Object.values(fieldErrors)[0]
+        const firstError = (Array.isArray(firstErrorArray) ? firstErrorArray[0] : undefined) || 'Dados inválidos'
         redirect(`/auth/login?error=${encodeURIComponent(firstError)}&redirect=${encodeURIComponent(rawInput.redirectTo || '')}`)
-        return
       }
       throw error
     }
@@ -120,9 +120,10 @@ export async function signUp(formData: FormData) {
     // 2. Validação
     const validation = validateSignUp(rawInput)
     if (!validation.success) {
-      const firstError = Object.values(validation.error.flatten().fieldErrors)[0]?.[0] || 'Dados inválidos'
+      const fieldErrors = validation.error.flatten().fieldErrors
+      const firstErrorArray = Object.values(fieldErrors)[0]
+      const firstError = (Array.isArray(firstErrorArray) ? firstErrorArray[0] : undefined) || 'Dados inválidos'
       redirect(`/auth/signup?error=${encodeURIComponent(firstError)}`)
-      return
     }
 
     // 3. Service Call
@@ -168,7 +169,8 @@ export async function createUser(formData: FormData) {
     } catch (error) {
       if (error instanceof ZodError) {
         const fieldErrors = error.flatten().fieldErrors
-        const firstError = Object.values(fieldErrors)[0]?.[0] || 'Dados inválidos'
+        const firstErrorArray = Object.values(fieldErrors)[0]
+        const firstError = (Array.isArray(firstErrorArray) ? firstErrorArray[0] : undefined) || 'Dados inválidos'
         throw new Error(firstError)
       }
       throw error
@@ -204,7 +206,9 @@ export async function createUser(formData: FormData) {
     }
 
     if (error instanceof ZodError) {
-      const firstError = Object.values(error.flatten().fieldErrors)[0]?.[0] || 'Dados inválidos'
+      const fieldErrors = error.flatten().fieldErrors
+      const firstErrorArray = Object.values(fieldErrors)[0]
+      const firstError = (Array.isArray(firstErrorArray) ? firstErrorArray[0] : undefined) || 'Dados inválidos'
       throw new Error(firstError)
     }
 

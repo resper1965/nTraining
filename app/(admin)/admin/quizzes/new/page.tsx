@@ -22,7 +22,8 @@ export const dynamic = 'force-dynamic'
 export default async function NewQuizPage() {
   await requireSuperAdmin()
 
-  const courses = await getCourses()
+  const coursesResult = await getCourses()
+  const courses = 'message' in coursesResult ? [] : coursesResult
 
   async function handleCreateQuiz(formData: FormData) {
     'use server'

@@ -23,7 +23,18 @@ export default async function AdminCoursesPage({
 }) {
   await requireSuperAdmin()
 
-  const courses = await getCourses({ status: undefined }) // Get all courses
+  const coursesResult = await getCourses() // Get all courses (no filters)
+  
+  // Handle error case
+  if ('message' in coursesResult) {
+    return (
+      <div className="p-4 bg-red-950/50 border border-red-800 rounded-lg text-sm text-red-300">
+        Erro ao carregar cursos: {coursesResult.message}
+      </div>
+    )
+  }
+  
+  const courses = coursesResult
 
   return (
     <div className="space-y-6">

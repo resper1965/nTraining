@@ -34,7 +34,8 @@ export default async function EditQuizPage({
     notFound()
   }
 
-  const courses = await getCourses()
+  const coursesResult = await getCourses()
+  const courses = 'message' in coursesResult ? [] : coursesResult
 
   async function handleUpdateQuiz(formData: FormData) {
     'use server'

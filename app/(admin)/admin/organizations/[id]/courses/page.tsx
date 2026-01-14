@@ -33,10 +33,14 @@ export default async function OrganizationCoursesPage({
     notFound()
   }
 
-  const [organizationCourses, allCourses] = await Promise.all([
+  const [organizationCoursesResult, allCoursesResult] = await Promise.all([
     getOrganizationCourses(params.id).catch(() => []),
-    getCourses().catch(() => []),
+    getCourses(),
   ])
+
+  // Handle getCourses error
+  const allCourses = 'message' in allCoursesResult ? [] : allCoursesResult
+  const organizationCourses = Array.isArray(organizationCoursesResult) ? organizationCoursesResult : []
 
   // Get courses not yet assigned
   const assignedCourseIds = new Set(organizationCourses.map((oc: any) => oc.course_id))

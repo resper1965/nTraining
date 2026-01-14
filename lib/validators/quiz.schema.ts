@@ -9,9 +9,7 @@ import { z } from 'zod'
 // Enums e Constantes
 // ============================================================================
 
-export const QuestionTypeSchema = z.enum(['multiple_choice', 'true_false', 'scenario'], {
-  errorMap: () => ({ message: 'Tipo de questão inválido' }),
-})
+export const QuestionTypeSchema = z.enum(['multiple_choice', 'true_false', 'scenario'])
 
 // ============================================================================
 // Quiz Schemas

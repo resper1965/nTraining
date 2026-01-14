@@ -7,7 +7,7 @@ import { ProgressBar } from '@/components/progress-bar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { CheckCircle2, Circle, Play, BookOpen, Clock, FileText } from 'lucide-react'
 import type { CourseWithModules } from '@/lib/types/database'
 
@@ -20,12 +20,13 @@ export default async function CourseDetailPage({
 }) {
   const user = await requireAuth()
 
-  let course: CourseWithModules
-  try {
-    course = await getCourseBySlug(params.slug)
-  } catch (error) {
+  const courseResult = await getCourseBySlug(params.slug)
+  
+  if ('message' in courseResult) {
     notFound()
   }
+  
+  const course = courseResult
 
   // Get course progress and quizzes
   const [lessonsProgress, completionPercentage, quizzes] = await Promise.all([
@@ -165,7 +166,17 @@ export default async function CourseDetailPage({
                 </Button>
               </Link>
             ) : (
-              <form action={enrollInCourse.bind(null, course.id)}>
+              <form action={async () => {
+                'use server'
+                const result = await enrollInCourse(course.id)
+                if (result.success) {
+                  // Redirect to first module/lesson or course page
+                  redirect(`/courses/${params.slug}`)
+                } else {
+                  // Handle error (could redirect with error message)
+                  redirect(`/courses/${params.slug}?error=${encodeURIComponent(result.error.message)}`)
+                }
+              }}>
                 <Button size="lg" className="w-full md:w-auto">
                   <Play className="h-4 w-4 mr-2" />
                   Iniciar Curso

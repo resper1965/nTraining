@@ -14,7 +14,8 @@ export default async function NewLearningPathPage({
 }) {
   await requireSuperAdmin()
 
-  const courses = await getCourses().catch(() => [])
+  const coursesResult = await getCourses()
+  const courses = 'message' in coursesResult ? [] : coursesResult
 
   async function handleCreate(formData: FormData) {
     'use server'

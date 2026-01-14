@@ -19,12 +19,13 @@ export default async function LessonPage({
 }) {
   const user = await requireAuth()
 
-  let course
-  try {
-    course = await getCourseBySlug(params.slug)
-  } catch (error) {
+  const courseResult = await getCourseBySlug(params.slug)
+  
+  if ('message' in courseResult) {
     notFound()
   }
+  
+  const course = courseResult
 
   // Find the lesson
   const courseModule = course.modules?.find((m) => m.id === params.moduleId)

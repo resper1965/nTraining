@@ -10,6 +10,7 @@ import { requireSuperAdmin } from '@/lib/auth/helpers'
 import {
   OrganizationService,
   OrganizationServiceError,
+  type OrganizationWithCount,
 } from '@/lib/services/organization.service'
 import {
   validateOrganizationFilters,
@@ -72,7 +73,7 @@ export async function getAllOrganizations(
 
 export async function getOrganizationById(
   organizationId: string
-): Promise<Organization & { users_count: number; courses_count: number }> {
+): Promise<OrganizationWithCount> {
   try {
     await requireSuperAdmin()
 

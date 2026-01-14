@@ -19,10 +19,12 @@ export default async function EditLearningPathPage({
 }) {
   await requireSuperAdmin()
 
-  const [path, courses] = await Promise.all([
+  const [path, coursesResult] = await Promise.all([
     getLearningPathWithCourses(params.id).catch(() => null),
-    getCourses().catch(() => []),
+    getCourses(),
   ])
+
+  const courses = 'message' in coursesResult ? [] : coursesResult
 
   if (!path) {
     redirect('/admin/paths')

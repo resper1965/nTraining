@@ -24,16 +24,19 @@ export default async function QuizResultPage({
 }) {
   await requireAuth()
 
-  let quiz, course, attempt
-  try {
-    [quiz, course, attempt] = await Promise.all([
-      getQuizById(params.quizId),
-      getCourseBySlug(params.slug),
-      getQuizAttemptById(params.attemptId),
-    ])
-  } catch (error) {
+  const [quizResult, courseResult, attemptResult] = await Promise.all([
+    getQuizById(params.quizId),
+    getCourseBySlug(params.slug),
+    getQuizAttemptById(params.attemptId),
+  ])
+  
+  if ('message' in quizResult || 'message' in courseResult || 'message' in attemptResult) {
     notFound()
   }
+  
+  const quiz = quizResult
+  const course = courseResult
+  const attempt = attemptResult
 
   if (!attempt.completed_at) {
     // Redirect to attempt page if not completed

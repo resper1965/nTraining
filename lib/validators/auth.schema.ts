@@ -9,9 +9,7 @@ import { z } from 'zod'
 // Enums e Constantes
 // ============================================================================
 
-export const UserRoleSchema = z.enum(['platform_admin', 'org_manager', 'student'], {
-  errorMap: () => ({ message: 'Role deve ser: platform_admin, org_manager ou student' }),
-})
+export const UserRoleSchema = z.enum(['platform_admin', 'org_manager', 'student'])
 
 // ============================================================================
 // Schema de Sign In

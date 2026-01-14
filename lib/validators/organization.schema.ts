@@ -9,13 +9,9 @@ import { z } from 'zod'
 // Enums e Constantes
 // ============================================================================
 
-export const OrganizationStatusSchema = z.enum(['active', 'inactive', 'all'], {
-  errorMap: () => ({ message: 'Status deve ser: active, inactive ou all' }),
-})
+export const OrganizationStatusSchema = z.enum(['active', 'inactive', 'all'])
 
-export const OrganizationSortBySchema = z.enum(['name', 'created_at', 'users_count'], {
-  errorMap: () => ({ message: 'Campo de ordenação inválido' }),
-})
+export const OrganizationSortBySchema = z.enum(['name', 'created_at', 'users_count'])
 
 // ============================================================================
 // Organization Filters Schema
@@ -102,7 +98,7 @@ export const OrganizationUpdateSchema = z.object({
     .max(100000, 'Número máximo de usuários muito alto')
     .optional(),
 
-  settings: z.record(z.any()).optional(),
+  settings: z.record(z.string(), z.any()).optional(),
 })
 
 // ============================================================================
