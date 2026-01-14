@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
     )
   }
 
-    let response = NextResponse.next({
+  let response = NextResponse.next({
     request: {
       headers: new Headers(request.headers),
     },
