@@ -207,16 +207,105 @@ export function LessonEditor({
 
   const insertVideo = () => {
     const url = window.prompt('URL do vídeo (YouTube/Vimeo):')
-    if (url) {
-      // Criar iframe para vídeo
+    if (!url) return
+
+    // Validar e sanitizar URL
+    let sanitizedUrl: string | null = null
+
+    try {
+      const urlObj = new URL(url.trim())
+      const hostname = urlObj.hostname.toLowerCase()
+
+      // Permitir apenas domínios seguros
+      const allowedDomains = [
+        'youtube.com',
+        'www.youtube.com',
+        'youtu.be',
+        'vimeo.com',
+        'www.vimeo.com',
+        'player.vimeo.com',
+      ]
+
+      const isAllowed = allowedDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))
+
+      if (!isAllowed) {
+        alert('Apenas URLs do YouTube e Vimeo são permitidas.')
+        return
+      }
+
+      // Converter URLs do YouTube para formato embed se necessário
+      if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+        const videoId = extractYouTubeId(url)
+        if (videoId) {
+          sanitizedUrl = `https://www.youtube.com/embed/${videoId}`
+        } else {
+          alert('URL do YouTube inválida. Use o formato: https://www.youtube.com/watch?v=VIDEO_ID ou https://youtu.be/VIDEO_ID')
+          return
+        }
+      } else if (hostname.includes('vimeo.com')) {
+        // Extrair ID do Vimeo
+        const vimeoId = extractVimeoId(url)
+        if (vimeoId) {
+          sanitizedUrl = `https://player.vimeo.com/video/${vimeoId}`
+        } else {
+          alert('URL do Vimeo inválida. Use o formato: https://vimeo.com/VIDEO_ID')
+          return
+        }
+      } else {
+        // Fallback: usar URL original se já estiver no formato embed
+        if (urlObj.pathname.includes('/embed/') || urlObj.pathname.includes('/video/')) {
+          sanitizedUrl = urlObj.toString()
+        } else {
+          alert('URL inválida. Use uma URL do YouTube ou Vimeo.')
+          return
+        }
+      }
+    } catch (error) {
+      alert('URL inválida. Por favor, insira uma URL válida.')
+      return
+    }
+
+    if (sanitizedUrl) {
+      // Criar iframe para vídeo com URL sanitizada
       editor
         .chain()
         .focus()
         .insertContent(
-          `<div class="video-embed rounded-lg overflow-hidden my-4"><iframe src="${url}" frameborder="0" allowfullscreen class="w-full aspect-video"></iframe></div>`
+          `<div class="video-embed rounded-lg overflow-hidden my-4"><iframe src="${sanitizedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full aspect-video"></iframe></div>`
         )
         .run()
     }
+  }
+
+  // Helper functions para extrair IDs de vídeo
+  const extractYouTubeId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+    ]
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern)
+      if (match && match[1]) {
+        return match[1]
+      }
+    }
+    return null
+  }
+
+  const extractVimeoId = (url: string): string | null => {
+    const patterns = [
+      /vimeo\.com\/(\d+)/,
+      /player\.vimeo\.com\/video\/(\d+)/,
+    ]
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern)
+      if (match && match[1]) {
+        return match[1]
+      }
+    }
+    return null
   }
 
   // Slash Commands
