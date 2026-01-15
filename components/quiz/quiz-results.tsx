@@ -7,22 +7,13 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { CheckCircle2, XCircle, Info } from 'lucide-react'
-import type { Quiz, QuizQuestion, QuestionOption } from '@/lib/types/database'
+import type { Quiz, QuizQuestion, QuestionOption, UserQuizAttemptWithAnswers } from '@/lib/types/database'
 
 interface QuizResultsProps {
   quiz: Quiz & {
     quiz_questions: (QuizQuestion & { question_options: QuestionOption[] })[]
   }
-  attempt: {
-    user_answers: Array<{
-      question_id: string
-      selected_option_id: string | null
-      is_correct: boolean
-      points_earned: number
-      question_options?: QuestionOption
-      quiz_questions?: QuizQuestion & { question_options: QuestionOption[] }
-    }>
-  }
+  attempt: Pick<UserQuizAttemptWithAnswers, 'user_answers'>
   showCorrectAnswers: boolean
 }
 

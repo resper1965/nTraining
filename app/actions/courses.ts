@@ -522,6 +522,39 @@ export async function enrollInCourse(
 }
 
 // ============================================================================
+// ENROLL IN COURSE (Form Action Wrapper)
+// ============================================================================
+// Wrapper function para uso em form actions
+// Retorna void para compatibilidade com Next.js form actions
+// Redireciona com erro se a inscrição falhar
+// ============================================================================
+
+export async function enrollInCourseAction(
+  courseId: string,
+  courseSlug?: string
+): Promise<void> {
+  const result = await enrollInCourse(courseId)
+  
+  if (!result.success) {
+    // Redirecionar para a página do curso com mensagem de erro
+    // O revalidatePath já foi chamado dentro de enrollInCourse
+    const { redirect } = await import('next/navigation')
+    
+    // Se temos o slug, redirecionar para a página específica do curso
+    // Caso contrário, redirecionar para a listagem
+    if (courseSlug) {
+      redirect(`/courses/${courseSlug}?error=${encodeURIComponent(result.error.message)}`)
+    } else {
+      redirect(`/courses?error=${encodeURIComponent(result.error.message)}`)
+    }
+    return
+  }
+  
+  // Se sucesso, o revalidatePath já foi chamado e a página será atualizada
+  // Não precisamos redirecionar, a página será revalidada automaticamente
+}
+
+// ============================================================================
 // GET COURSE AREAS (for filters)
 // ============================================================================
 

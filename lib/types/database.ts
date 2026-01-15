@@ -370,8 +370,11 @@ export interface QuizQuestionWithOptions extends QuizQuestion {
 
 export interface UserQuizAttemptWithAnswers extends UserQuizAttempt {
     user_answers: (UserAnswer & {
-        question: QuizQuestion;
-        selected_option: QuestionOption | null;
+        // A query do Supabase retorna os relacionamentos como:
+        // - question_options: QuestionOption (relacionamento via selected_option_id)
+        // - quiz_questions: QuizQuestion (relacionamento via question_id)
+        question_options?: QuestionOption;
+        quiz_questions?: QuizQuestion;
     })[];
 }
 

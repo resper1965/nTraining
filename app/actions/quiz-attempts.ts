@@ -3,7 +3,22 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { Quiz, QuizQuestion, QuestionOption } from '@/lib/types/database'
+import type {
+  Quiz,
+  QuizQuestion,
+  QuestionOption,
+  UserQuizAttemptWithAnswers,
+} from '@/lib/types/database'
+
+// ============================================================================
+// Error Types
+// ============================================================================
+
+export interface ActionError {
+  message: string
+  code?: string
+  fieldErrors?: Record<string, string[]>
+}
 
 /**
  * Get user's quiz attempts
@@ -29,33 +44,52 @@ export async function getUserQuizAttempts(quizId: string) {
 /**
  * Get quiz attempt by ID
  */
-export async function getQuizAttemptById(attemptId: string) {
-  const supabase = createClient()
-  const user = await requireAuth()
+export async function getQuizAttemptById(
+  attemptId: string
+): Promise<UserQuizAttemptWithAnswers | ActionError> {
+  try {
+    const supabase = createClient()
+    const user = await requireAuth()
 
-  const { data, error } = await supabase
-    .from('user_quiz_attempts')
-    .select(`
-      *,
-      user_answers (
+    const { data, error } = await supabase
+      .from('user_quiz_attempts')
+      .select(`
         *,
-        question_options (
-          *
-        ),
-        quiz_questions (
-          *
+        user_answers (
+          *,
+          question_options (
+            *
+          ),
+          quiz_questions (
+            *
+          )
         )
-      )
-    `)
-    .eq('id', attemptId)
-    .eq('user_id', user.id)
-    .single()
+      `)
+      .eq('id', attemptId)
+      .eq('user_id', user.id)
+      .single()
 
-  if (error) {
-    throw new Error(`Erro ao buscar tentativa: ${error.message}`)
+    if (error) {
+      return {
+        message: `Erro ao buscar tentativa: ${error.message}`,
+        code: 'ATTEMPT_NOT_FOUND',
+      }
+    }
+
+    if (!data) {
+      return {
+        message: 'Tentativa não encontrada',
+        code: 'ATTEMPT_NOT_FOUND',
+      }
+    }
+
+    return data as UserQuizAttemptWithAnswers
+  } catch (error) {
+    return {
+      message: 'Erro ao buscar tentativa',
+      code: 'UNKNOWN_ERROR',
+    }
   }
-
-  return data
 }
 
 /**
@@ -252,4 +286,3 @@ export async function submitQuizAttempt(
     passed,
   }
 }
-

@@ -72,29 +72,35 @@ export async function updateLessonProgress(
     // Check if course is completed and generate certificate if applicable
     if (data.is_completed) {
       try {
-        const { getCourseById } = await import('./courses')
-        const courseId = (await supabase
+        // Get course_id from lesson's module
+        const { data: lessonData } = await supabase
           .from('lessons')
           .select('module_id, modules!inner(course_id)')
           .eq('id', lessonId)
-          .single()).data?.modules as any
+          .single()
         
-        if (!courseId) {
-          return
+        if (!lessonData?.modules || typeof (lessonData.modules as any).course_id !== 'string') {
+          return // Can't determine course_id, skip certificate generation
         }
         
+        const courseId = (lessonData.modules as any).course_id
+        
+        const { getCourseById } = await import('./courses')
         const courseResult = await getCourseById(courseId)
+        
+        // Handle ActionError
         if ('message' in courseResult) {
-          return
+          return // Error fetching course, skip certificate generation
         }
         
         const course = courseResult
+        
         if (course.is_certifiable) {
           // Check if all required lessons are completed
           const { data: allRequiredLessons } = await supabase
             .from('lessons')
             .select('id, module_id, modules!inner(course_id)')
-            .eq('modules.course_id', (course as any).id)
+            .eq('modules.course_id', course.id)
             .eq('is_required', true)
 
           if (allRequiredLessons && allRequiredLessons.length > 0) {
@@ -109,7 +115,7 @@ export async function updateLessonProgress(
             if (completedLessons?.length === allRequiredLessons.length) {
               const { generateCertificate } = await import('./certificates')
               try {
-                await generateCertificate((course as any).id)
+                await generateCertificate(course.id)
               } catch (certError) {
                 // Certificate generation failed, but don't fail the progress update
                 console.error('Error generating certificate:', certError)

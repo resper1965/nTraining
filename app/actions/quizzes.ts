@@ -21,7 +21,18 @@ import {
   type ReorderQuestionsInput,
 } from '@/lib/validators/quiz.schema'
 import type { Quiz, QuizQuestion } from '@/lib/types/database'
+import type { QuizWithQuestions } from '@/lib/services/quiz.service'
 import { ZodError } from 'zod'
+
+// ============================================================================
+// Error Types
+// ============================================================================
+
+export interface ActionError {
+  message: string
+  code?: string
+  fieldErrors?: Record<string, string[]>
+}
 
 // ============================================================================
 // GET QUIZZES
@@ -45,17 +56,26 @@ export async function getQuizzes(courseId?: string): Promise<any[]> {
 // GET QUIZ BY ID
 // ============================================================================
 
-export async function getQuizById(quizId: string): Promise<any> {
+export async function getQuizById(
+  quizId: string
+): Promise<QuizWithQuestions | ActionError> {
   try {
     await requireAuth()
 
     const service = new QuizService()
-    return await service.getQuizById(quizId)
+    const quiz = await service.getQuizById(quizId)
+    return quiz
   } catch (error) {
     if (error instanceof QuizServiceError) {
-      throw new Error(error.message)
+      return {
+        message: error.message,
+        code: error.code,
+      }
     }
-    throw error
+    return {
+      message: 'Erro ao buscar quiz',
+      code: 'UNKNOWN_ERROR',
+    }
   }
 }
 
