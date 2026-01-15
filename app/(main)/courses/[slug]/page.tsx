@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { CheckCircle2, Circle, Play, BookOpen, Clock, FileText, AlertCircle, CheckCircle } from 'lucide-react'
+import { CheckCircle2, Circle, Play, BookOpen, Clock, FileText, AlertCircle } from 'lucide-react'
 import type { CourseWithModules } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -18,7 +18,7 @@ export default async function CourseDetailPage({
   searchParams,
 }: {
   params: { slug: string }
-  searchParams: { error?: string; success?: string }
+  searchParams: { error?: string }
 }) {
   const user = await requireAuth()
 
@@ -72,16 +72,6 @@ export default async function CourseDetailPage({
   return (
     <main className="min-h-screen bg-slate-950">
       <div className="container mx-auto px-4 py-8">
-        {/* Success Message */}
-        {searchParams.success && (
-          <div className="mb-6 p-4 bg-green-950/50 border border-green-800 rounded-lg flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-green-300">Sucesso!</p>
-              <p className="text-sm text-green-400 mt-1">{searchParams.success}</p>
-            </div>
-          </div>
-        )}
         {/* Error Message */}
         {searchParams.error && (
           <div className="mb-6 p-4 bg-red-950/50 border border-red-800 rounded-lg flex items-start gap-3">
