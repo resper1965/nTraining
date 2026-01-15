@@ -76,6 +76,7 @@ export default async function SignUpPage({
                   id="fullName"
                   name="fullName"
                   type="text"
+                  autoComplete="name"
                   required
                   className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="Seu nome completo"
@@ -93,6 +94,7 @@ export default async function SignUpPage({
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="seu@email.com"
@@ -110,6 +112,7 @@ export default async function SignUpPage({
                   id="password"
                   name="password"
                   type="password"
+                  autoComplete="new-password"
                   required
                   minLength={8}
                   className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
