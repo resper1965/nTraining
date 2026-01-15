@@ -53,11 +53,27 @@ export function CustomizeCourseForm({ course, organizations }: CustomizeCourseFo
                 <SelectValue placeholder="Selecione uma organização" />
               </SelectTrigger>
               <SelectContent>
-                {organizations.map((org) => (
-                  <SelectItem key={org.id} value={org.id}>
-                    {org.name}
-                  </SelectItem>
-                ))}
+                {organizations
+                  .filter((org) => {
+                    return !!(
+                      org &&
+                      org.id &&
+                      typeof org.id === 'string' &&
+                      org.id.trim().length > 0
+                    )
+                  })
+                  .map((org) => {
+                    const orgId = org.id.trim()
+                    if (!orgId || orgId.length === 0) {
+                      return null
+                    }
+                    return (
+                      <SelectItem key={orgId} value={orgId}>
+                        {org.name || 'Sem nome'}
+                      </SelectItem>
+                    )
+                  })
+                  .filter((item): item is JSX.Element => item !== null)}
               </SelectContent>
             </Select>
             <input type="hidden" name="organization_id" value={selectedOrg} />

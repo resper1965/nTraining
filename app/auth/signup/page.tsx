@@ -130,24 +130,42 @@ export default async function SignUpPage({
                 >
                   Organização *
                 </label>
-                <Select name="organizationId" required>
-                  <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white">
-                    <SelectValue placeholder="Selecione uma organização" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.length === 0 ? (
-                      <SelectItem value="" disabled>
-                        Nenhuma organização disponível
-                      </SelectItem>
-                    ) : (
-                      organizations.map((org: { id: string; name: string }) => (
-                        <SelectItem key={org.id} value={org.id}>
-                          {org.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                {organizations.length === 0 ? (
+                  <div className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-slate-400 text-sm">
+                    Nenhuma organização disponível. Contate o administrador.
+                  </div>
+                ) : (
+                  <Select name="organizationId" required>
+                    <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder="Selecione uma organização" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations
+                        .filter((org): org is { id: string; name: string; slug: string } => {
+                          // Type guard: garantir que o ID seja válido e não vazio
+                          return !!(
+                            org &&
+                            org.id &&
+                            typeof org.id === 'string' &&
+                            org.id.trim().length > 0
+                          )
+                        })
+                        .map((org) => {
+                          const orgId = org.id.trim()
+                          // Validação extra antes de renderizar
+                          if (!orgId || orgId.length === 0) {
+                            return null
+                          }
+                          return (
+                            <SelectItem key={orgId} value={orgId}>
+                              {org.name || 'Sem nome'}
+                            </SelectItem>
+                          )
+                        })
+                        .filter((item): item is JSX.Element => item !== null)}
+                    </SelectContent>
+                  </Select>
+                )}
                 <p className="text-xs text-slate-500">
                   Selecione a organização à qual deseja se vincular
                 </p>

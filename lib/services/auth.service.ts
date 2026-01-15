@@ -94,11 +94,13 @@ export class AuthService {
       )
     }
 
-    if (!authData.user) {
+    if (!authData.user || !authData.session) {
       throw new AuthServiceError('Falha na autenticação', 'AUTH_FAILED')
     }
 
-    // 2. Buscar dados completos do usuário
+    // 2. Buscar dados completos do usuário usando o ID diretamente
+    // O signInWithPassword já configura a sessão e os cookies automaticamente
+    // Não precisamos chamar setSession novamente, pois isso pode interferir na sessão já estabelecida
     const { data: userData, error: userDataError } = await this.supabase
       .from('users')
       .select('*')
@@ -106,13 +108,25 @@ export class AuthService {
       .single()
 
     if (userDataError || !userData) {
-      // Log detalhado para debug (apenas em desenvolvimento)
-      if (process.env.NODE_ENV === 'development') {
-        console.error('User profile not found:', {
-          authUserId: authData.user.id,
-          email: input.email,
-          error: userDataError,
-        })
+      // Log detalhado para debug (sempre logar em caso de erro)
+      console.error('❌ User profile not found after login:', {
+        authUserId: authData.user.id,
+        email: input.email,
+        error: userDataError,
+        errorCode: userDataError?.code,
+        errorMessage: userDataError?.message,
+        errorDetails: userDataError?.details,
+        hasSession: !!authData.session,
+        sessionUserId: authData.session?.user?.id,
+      })
+      
+      // Verificar se é um erro de RLS
+      if (userDataError?.code === 'PGRST301' || userDataError?.message?.includes('permission denied') || userDataError?.message?.includes('row-level security')) {
+        throw new AuthServiceError(
+          'Erro de permissão ao acessar perfil. Entre em contato com o suporte.',
+          'RLS_ERROR',
+          userDataError
+        )
       }
       
       // Se usuário não existe na tabela users, é um estado inválido

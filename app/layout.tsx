@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "n.training - Training Platform",
   description: "Professional training platform powered by ness.",
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon.svg',
   },
 }
 

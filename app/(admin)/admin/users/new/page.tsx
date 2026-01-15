@@ -24,11 +24,11 @@ export default async function NewUserPage() {
   async function createUserAction(formData: FormData) {
     'use server'
     
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
-    const fullName = formData.get('fullName') as string
-    const role = formData.get('role') as string
+    // Converter "none" para string vazia (que será tratada como null no backend)
     const organizationId = formData.get('organizationId') as string | null
+    if (organizationId === 'none') {
+      formData.delete('organizationId')
+    }
 
     try {
       await createUser(formData)
@@ -122,12 +122,29 @@ export default async function NewUserPage() {
                     <SelectValue placeholder="Selecione uma organização" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma</SelectItem>
-                    {tenants.map((tenant) => (
-                      <SelectItem key={tenant.id} value={tenant.id}>
-                        {tenant.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    {tenants
+                      .filter((tenant) => {
+                        return !!(
+                          tenant &&
+                          tenant.id &&
+                          typeof tenant.id === 'string' &&
+                          tenant.id.trim().length > 0 &&
+                          tenant.id !== 'none'
+                        )
+                      })
+                      .map((tenant) => {
+                        const tenantId = tenant.id.trim()
+                        if (!tenantId || tenantId.length === 0 || tenantId === 'none') {
+                          return null
+                        }
+                        return (
+                          <SelectItem key={tenantId} value={tenantId}>
+                            {tenant.name || 'Sem nome'}
+                          </SelectItem>
+                        )
+                      })
+                      .filter((item): item is JSX.Element => item !== null)}
                   </SelectContent>
                 </Select>
               </div>

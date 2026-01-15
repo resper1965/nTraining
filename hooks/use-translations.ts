@@ -1,17 +1,34 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getTranslations, type Locale } from '@/lib/i18n'
 
 export function useTranslations() {
   const [locale, setLocaleState] = useState<Locale>('pt')
   const [mounted, setMounted] = useState(false)
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
+    isMountedRef.current = true
+    
     // Get locale from localStorage or default to 'pt'
-    const savedLocale = (localStorage.getItem('locale') as Locale) || 'pt'
-    setLocaleState(savedLocale)
-    setMounted(true)
+    // Usar try/catch para evitar erros em SSR
+    try {
+      const savedLocale = (localStorage.getItem('locale') as Locale) || 'pt'
+      if (isMountedRef.current) {
+        setLocaleState(savedLocale)
+        setMounted(true)
+      }
+    } catch (error) {
+      // localStorage pode não estar disponível em SSR
+      if (isMountedRef.current) {
+        setMounted(true)
+      }
+    }
+    
+    return () => {
+      isMountedRef.current = false
+    }
   }, [])
 
   const setLocale = (newLocale: Locale) => {

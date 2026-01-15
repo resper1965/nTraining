@@ -69,7 +69,14 @@ export class OrganizationService {
       )
     }
 
-    return (data || []) as Array<{ id: string; name: string; slug: string }>
+    // Filtrar organizações com ID válido e não-nulo
+    return ((data || []) as Array<{ id: string | null; name: string | null; slug: string | null }>)
+      .filter((org) => org.id && typeof org.id === 'string' && org.id.trim() !== '')
+      .map((org) => ({
+        id: org.id!.trim(),
+        name: org.name || 'Sem nome',
+        slug: org.slug || '',
+      })) as Array<{ id: string; name: string; slug: string }>
   }
 
   /**

@@ -3,7 +3,7 @@
 ## 📋 Informações do Projeto
 
 - **Projeto GCP**: `ntraining-484414` (nTraining)
-- **URL Supabase**: `https://qaekhnagfzpwprvaxqwt.supabase.co`
+- **URL Supabase (NOVO PROJETO)**: `https://srrbomtdkghjxdhpeyel.supabase.co`
 - **URL Produção**: `https://n-training.vercel.app`
 
 ## 🚀 Passo a Passo Detalhado
@@ -30,7 +30,7 @@
 Clique em **"+ ADD URI"** e adicione **uma por vez**:
 
 ```
-https://qaekhnagfzpwprvaxqwt.supabase.co
+https://srrbomtdkghjxdhpeyel.supabase.co
 https://n-training.vercel.app
 http://localhost:3000
 ```
@@ -39,15 +39,18 @@ http://localhost:3000
 - Estas são as **origens** (domínios base)
 - **NÃO** inclua caminhos como `/auth/callback`
 - Use `https://` para produção, `http://` apenas para localhost
+- **URL ATUALIZADA** para o novo projeto Supabase
 
 **Authorized redirect URIs (URIs de Redirecionamento Autorizadas):**
 Clique em **"+ ADD URI"** e adicione **uma por vez**:
 
 ```
-https://qaekhnagfzpwprvaxqwt.supabase.co/auth/v1/callback
+https://srrbomtdkghjxdhpeyel.supabase.co/auth/v1/callback
 https://n-training.vercel.app/auth/callback
 http://localhost:3000/auth/callback
 ```
+
+⚠️ **URLS ATUALIZADAS** para o novo projeto Supabase
 
 ⚠️ **ATENÇÃO**:
 - Estas são as **URLs completas** incluindo o caminho
@@ -67,7 +70,7 @@ http://localhost:3000/auth/callback
 ### Passo 5: Configurar no Supabase
 
 1. Acesse o Supabase Dashboard e vá em: **Authentication** → **Providers** → **Google**
-   (Ou acesse diretamente: https://supabase.com/dashboard/project/[seu-project-id]/auth/providers)
+   - URL direta: https://supabase.com/dashboard/project/srrbomtdkghjxdhpeyel/auth/providers
 2. Clique em **"Google"**
 3. Preencha:
    - **Enable Google provider**: Ative (toggle ON)
@@ -79,14 +82,14 @@ http://localhost:3000/auth/callback
 
 ### Authorized JavaScript origins:
 ```
-https://qaekhnagfzpwprvaxqwt.supabase.co
+https://srrbomtdkghjxdhpeyel.supabase.co
 https://n-training.vercel.app
 http://localhost:3000
 ```
 
 ### Authorized redirect URIs:
 ```
-https://qaekhnagfzpwprvaxqwt.supabase.co/auth/v1/callback
+https://srrbomtdkghjxdhpeyel.supabase.co/auth/v1/callback
 https://n-training.vercel.app/auth/callback
 http://localhost:3000/auth/callback
 ```

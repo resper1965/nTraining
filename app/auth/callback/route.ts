@@ -5,9 +5,29 @@ import { cookies } from 'next/headers'
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') || '/dashboard'
+  let next = requestUrl.searchParams.get('next') || '/dashboard'
   const error = requestUrl.searchParams.get('error')
   const errorDescription = requestUrl.searchParams.get('error_description')
+
+  // Normalizar o parâmetro 'next' para garantir que seja um caminho relativo
+  // Se contiver localhost ou outra origem, extrair apenas o caminho
+  if (next.startsWith('http://') || next.startsWith('https://')) {
+    try {
+      const nextUrl = new URL(next)
+      next = nextUrl.pathname + nextUrl.search
+    } catch {
+      // Se não for uma URL válida, usar apenas o caminho ou default
+      next = '/dashboard'
+    }
+  }
+
+  // Garantir que 'next' seja um caminho válido (começando com /)
+  if (!next.startsWith('/')) {
+    next = '/' + next
+  }
+
+  // Usar sempre o origin da requisição atual (não confiar no parâmetro next)
+  const currentOrigin = requestUrl.origin
 
   // Se houver erro do OAuth, redireciona para login com mensagem
   if (error) {
@@ -15,7 +35,7 @@ export async function GET(request: Request) {
       ? decodeURIComponent(errorDescription)
       : 'Erro ao autenticar com Google'
     return NextResponse.redirect(
-      new URL(`/auth/login?error=${encodeURIComponent(errorMessage)}`, requestUrl.origin)
+      new URL(`/auth/login?error=${encodeURIComponent(errorMessage)}`, currentOrigin)
     )
   }
 
@@ -27,7 +47,7 @@ export async function GET(request: Request) {
       if (exchangeError) {
         console.error('Error exchanging code for session:', exchangeError)
         return NextResponse.redirect(
-          new URL(`/auth/login?error=${encodeURIComponent(exchangeError.message)}`, requestUrl.origin)
+          new URL(`/auth/login?error=${encodeURIComponent(exchangeError.message)}`, currentOrigin)
         )
       }
 
@@ -45,19 +65,20 @@ export async function GET(request: Request) {
           console.error('Error checking user profile:', profileError)
         }
 
-        // Redirecionar para a página solicitada ou dashboard
-        return NextResponse.redirect(new URL(next, requestUrl.origin))
+        // Redirecionar para a página solicitada usando o origin atual
+        // Nunca usar o origin do parâmetro next - sempre usar o origin da requisição
+        return NextResponse.redirect(new URL(next, currentOrigin))
       }
     } catch (error) {
       console.error('Unexpected error in OAuth callback:', error)
       return NextResponse.redirect(
-        new URL('/auth/login?error=Erro inesperado ao processar autenticação', requestUrl.origin)
+        new URL('/auth/login?error=Erro inesperado ao processar autenticação', currentOrigin)
       )
     }
   }
 
   // Se não houver code nem error, algo está errado
   return NextResponse.redirect(
-    new URL('/auth/login?error=Erro ao autenticar com Google', requestUrl.origin)
+    new URL('/auth/login?error=Erro ao autenticar com Google', currentOrigin)
   )
 }

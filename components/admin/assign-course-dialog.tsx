@@ -111,11 +111,27 @@ export function AssignCourseDialog({
                 <SelectValue placeholder="Selecione um curso" />
               </SelectTrigger>
               <SelectContent>
-                {availableCourses.map((course) => (
-                  <SelectItem key={course.id} value={course.id}>
-                    {course.title}
-                  </SelectItem>
-                ))}
+                {availableCourses
+                  .filter((course) => {
+                    return !!(
+                      course &&
+                      course.id &&
+                      typeof course.id === 'string' &&
+                      course.id.trim().length > 0
+                    )
+                  })
+                  .map((course) => {
+                    const courseId = course.id.trim()
+                    if (!courseId || courseId.length === 0) {
+                      return null
+                    }
+                    return (
+                      <SelectItem key={courseId} value={courseId}>
+                        {course.title || 'Sem título'}
+                      </SelectItem>
+                    )
+                  })
+                  .filter((item): item is JSX.Element => item !== null)}
               </SelectContent>
             </Select>
           </div>

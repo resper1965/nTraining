@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { getUserNotifications, getUnreadNotificationCount, markNotificationAsRead } from '@/app/actions/notifications'
 import type { Notification } from '@/lib/types/database'
 import Link from 'next/link'
@@ -16,22 +16,39 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [open, setOpen] = useState(false)
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
+    isMountedRef.current = true
+    
     loadNotifications()
     const interval = setInterval(loadNotifications, 30000)
-    return () => clearInterval(interval)
+    
+    return () => {
+      isMountedRef.current = false
+      clearInterval(interval)
+    }
   }, [])
 
   async function loadNotifications() {
+    // Verificar se ainda está montado antes de fazer a requisição
+    if (!isMountedRef.current) return
+    
     try {
       const [count, notifs] = await Promise.all([
         getUnreadNotificationCount(),
         getUserNotifications({ limit: 5 }),
       ])
+      
+      // Verificar novamente antes de atualizar estado
+      if (!isMountedRef.current) return
+      
       setUnreadCount(count ?? 0)
       setNotifications(notifs ?? [])
     } catch (error) {
+      // Verificar novamente antes de atualizar estado
+      if (!isMountedRef.current) return
+      
       // Silently fail - set defaults
       setUnreadCount(0)
       setNotifications([])

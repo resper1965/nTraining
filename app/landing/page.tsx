@@ -36,6 +36,9 @@ export default function LandingPage() {
               <Link href="/privacy" className="text-slate-400 hover:text-white text-sm transition-colors">
                 Política de Privacidade
               </Link>
+              <Link href="/terms" className="text-slate-400 hover:text-white text-sm transition-colors">
+                Termos de Serviço
+              </Link>
               <Link href="/auth/login">
                 <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
                   Entrar
@@ -244,6 +247,9 @@ export default function LandingPage() {
             <div className="flex items-center gap-6 text-sm text-slate-400">
               <Link href="/privacy" className="hover:text-white transition-colors">
                 Política de Privacidade
+              </Link>
+              <Link href="/terms" className="hover:text-white transition-colors">
+                Termos de Serviço
               </Link>
               <Link href="/auth/login" className="hover:text-white transition-colors">
                 Entrar
