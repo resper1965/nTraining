@@ -22,12 +22,13 @@ export default async function QuizQuestionsPage({
 }) {
   await requireSuperAdmin()
 
-  let quiz
-  try {
-    quiz = await getQuizById(params.id)
-  } catch (error) {
+  const quizResult = await getQuizById(params.id)
+  
+  if ('message' in quizResult) {
     notFound()
   }
+  
+  const quiz = quizResult
 
   return (
     <div className="space-y-6 p-6">

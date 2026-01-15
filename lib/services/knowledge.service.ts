@@ -14,7 +14,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import pdfParse from 'pdf-parse/lib/pdf-parse.js'
 import { generateEmbeddingsBatch } from './ai-client'
 import type {
   KnowledgeSource,
@@ -173,6 +172,7 @@ export class KnowledgeService {
         .eq('id', source.id)
 
       // 6. Extrair texto do PDF
+      const pdfParse = require('pdf-parse')
       const pdfData = await pdfParse(fileBuffer)
       const text = pdfData.text
 

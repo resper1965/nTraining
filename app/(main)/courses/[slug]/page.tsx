@@ -1,4 +1,4 @@
-import { getCourseBySlug, enrollInCourse } from '@/app/actions/courses'
+import { getCourseBySlug, enrollInCourseAction } from '@/app/actions/courses'
 import { requireAuth } from '@/lib/supabase/server'
 import { getCourseLessonsProgress, getCourseCompletionPercentage } from '@/app/actions/course-progress'
 import { getQuizzes } from '@/app/actions/quizzes'
@@ -7,16 +7,18 @@ import { ProgressBar } from '@/components/progress-bar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
-import { CheckCircle2, Circle, Play, BookOpen, Clock, FileText } from 'lucide-react'
+import { notFound } from 'next/navigation'
+import { CheckCircle2, Circle, Play, BookOpen, Clock, FileText, AlertCircle } from 'lucide-react'
 import type { CourseWithModules } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CourseDetailPage({
   params,
+  searchParams,
 }: {
   params: { slug: string }
+  searchParams: { error?: string }
 }) {
   const user = await requireAuth()
 
@@ -70,6 +72,16 @@ export default async function CourseDetailPage({
   return (
     <main className="min-h-screen bg-slate-950">
       <div className="container mx-auto px-4 py-8">
+        {/* Error Message */}
+        {searchParams.error && (
+          <div className="mb-6 p-4 bg-red-950/50 border border-red-800 rounded-lg flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-300">Erro ao inscrever no curso</p>
+              <p className="text-sm text-red-400 mt-1">{searchParams.error}</p>
+            </div>
+          </div>
+        )}
         {/* Course Header */}
         <div className="mb-8">
           {course.thumbnail_url && (
@@ -166,17 +178,7 @@ export default async function CourseDetailPage({
                 </Button>
               </Link>
             ) : (
-              <form action={async () => {
-                'use server'
-                const result = await enrollInCourse(course.id)
-                if (result.success) {
-                  // Redirect to first module/lesson or course page
-                  redirect(`/courses/${params.slug}`)
-                } else {
-                  // Handle error (could redirect with error message)
-                  redirect(`/courses/${params.slug}?error=${encodeURIComponent(result.error.message)}`)
-                }
-              }}>
+              <form action={enrollInCourseAction.bind(null, course.id, course.slug)}>
                 <Button size="lg" className="w-full md:w-auto">
                   <Play className="h-4 w-4 mr-2" />
                   Iniciar Curso
@@ -350,4 +352,3 @@ export default async function CourseDetailPage({
     </main>
   )
 }
-

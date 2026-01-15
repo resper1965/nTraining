@@ -76,8 +76,19 @@ export class AuthService {
       })
 
     if (authError) {
+      // Mensagens de erro mais específicas
+      let errorMessage = authError.message
+      
+      if (authError.message.includes('Invalid login credentials')) {
+        errorMessage = 'Email ou senha incorretos. Verifique suas credenciais.'
+      } else if (authError.message.includes('Email not confirmed')) {
+        errorMessage = 'Email não confirmado. Verifique sua caixa de entrada.'
+      } else if (authError.message.includes('User not found')) {
+        errorMessage = 'Usuário não encontrado. Verifique se o email está correto.'
+      }
+      
       throw new AuthServiceError(
-        authError.message,
+        errorMessage,
         'AUTH_ERROR',
         authError
       )
@@ -95,6 +106,15 @@ export class AuthService {
       .single()
 
     if (userDataError || !userData) {
+      // Log detalhado para debug (apenas em desenvolvimento)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('User profile not found:', {
+          authUserId: authData.user.id,
+          email: input.email,
+          error: userDataError,
+        })
+      }
+      
       // Se usuário não existe na tabela users, é um estado inválido
       throw new AuthServiceError(
         'Perfil de usuário não encontrado. Entre em contato com o suporte.',

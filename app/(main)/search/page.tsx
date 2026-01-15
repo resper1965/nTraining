@@ -16,8 +16,8 @@ export default async function SearchPage({
   await requireAuth()
 
   const query = searchParams.q || ''
-  const coursesResult = query ? await getCourses({ search: query }) : null
-  const courses = coursesResult && 'message' in coursesResult ? [] : (coursesResult || [])
+  const coursesResult = query ? await getCourses({ search: query }) : []
+  const courses = Array.isArray(coursesResult) ? coursesResult : []
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -121,4 +121,3 @@ export default async function SearchPage({
     </div>
   )
 }
-

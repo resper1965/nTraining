@@ -51,32 +51,39 @@ vi.mock('next/headers', () => ({
 // Mock Supabase Client
 // ============================================================================
 
+// Helper para criar query builder encadeável
+function createQueryBuilder(data: any = null, error: any = null) {
+  const builder = {
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    neq: vi.fn().mockReturnThis(),
+    gt: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lt: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
+    like: vi.fn().mockReturnThis(),
+    ilike: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
+    contains: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    range: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data, error }),
+    maybeSingle: vi.fn().mockResolvedValue({ data, error }),
+    then: vi.fn((onResolve) => Promise.resolve({ data, error }).then(onResolve)),
+  }
+  return builder
+}
+
+const defaultQueryBuilder = createQueryBuilder()
+
 const mockSupabaseClient = {
-  from: vi.fn(() => mockSupabaseClient),
-  select: vi.fn(() => mockSupabaseClient),
-  insert: vi.fn(() => mockSupabaseClient),
-  update: vi.fn(() => mockSupabaseClient),
-  delete: vi.fn(() => mockSupabaseClient),
-  eq: vi.fn(() => mockSupabaseClient),
-  neq: vi.fn(() => mockSupabaseClient),
-  gt: vi.fn(() => mockSupabaseClient),
-  gte: vi.fn(() => mockSupabaseClient),
-  lt: vi.fn(() => mockSupabaseClient),
-  lte: vi.fn(() => mockSupabaseClient),
-  like: vi.fn(() => mockSupabaseClient),
-  ilike: vi.fn(() => mockSupabaseClient),
-  is: vi.fn(() => mockSupabaseClient),
-  in: vi.fn(() => mockSupabaseClient),
-  contains: vi.fn(() => mockSupabaseClient),
-  order: vi.fn(() => mockSupabaseClient),
-  limit: vi.fn(() => mockSupabaseClient),
-  range: vi.fn(() => mockSupabaseClient),
-  single: vi.fn(() => Promise.resolve({ data: null, error: null })),
-  maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
-  then: vi.fn((onResolve) => {
-    const result = { data: null, error: null }
-    return Promise.resolve(result).then(onResolve)
-  }),
+  from: vi.fn(() => defaultQueryBuilder),
   rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
   storage: {
     from: vi.fn(() => ({
@@ -110,6 +117,10 @@ vi.mock('@/lib/supabase/server', () => ({
 // ============================================================================
 // Mock OpenAI/Helicone Client
 // ============================================================================
+
+// Mock OPENAI_API_KEY para evitar erro no setup
+process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-key'
+process.env.HELICONE_API_KEY = process.env.HELICONE_API_KEY || 'test-key'
 
 const mockOpenAI = {
   embeddings: {
@@ -145,9 +156,15 @@ const mockOpenAI = {
   },
 }
 
-vi.mock('openai', () => ({
-  default: vi.fn(() => mockOpenAI),
-}))
+vi.mock('openai', () => {
+  return {
+    default: class {
+      constructor() {
+        return mockOpenAI
+      }
+    },
+  }
+})
 
 vi.mock('@/lib/services/ai-client', () => ({
   generateEmbedding: vi.fn(() => Promise.resolve(new Array(1536).fill(0.5))),

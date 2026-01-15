@@ -15,12 +15,13 @@ export default async function EditQuestionPage({
 }) {
   await requireSuperAdmin()
 
-  let quiz
-  try {
-    quiz = await getQuizById(params.id)
-  } catch (error) {
+  const quizResult = await getQuizById(params.id)
+  
+  if ('message' in quizResult) {
     notFound()
   }
+  
+  const quiz = quizResult
 
   const question = quiz.quiz_questions?.find((q: any) => q.id === params.questionId)
   if (!question) {

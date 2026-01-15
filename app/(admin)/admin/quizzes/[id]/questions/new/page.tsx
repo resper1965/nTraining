@@ -25,12 +25,13 @@ export default async function NewQuestionPage({
 }) {
   await requireSuperAdmin()
 
-  let quiz
-  try {
-    quiz = await getQuizById(params.id)
-  } catch (error) {
+  const quizResult = await getQuizById(params.id)
+  
+  if ('message' in quizResult) {
     notFound()
   }
+  
+  const quiz = quizResult
 
   async function handleCreateQuestion(formData: FormData) {
     'use server'

@@ -27,12 +27,13 @@ export default async function EditQuizPage({
 }) {
   await requireSuperAdmin()
 
-  let quiz
-  try {
-    quiz = await getQuizById(params.id)
-  } catch (error) {
+  const quizResult = await getQuizById(params.id)
+  
+  if ('message' in quizResult) {
     notFound()
   }
+  
+  const quiz = quizResult
 
   const coursesResult = await getCourses()
   const courses = 'message' in coursesResult ? [] : coursesResult
@@ -246,4 +247,3 @@ export default async function EditQuizPage({
     </div>
   )
 }
-

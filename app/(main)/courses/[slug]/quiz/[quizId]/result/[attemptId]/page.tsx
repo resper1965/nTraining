@@ -29,11 +29,21 @@ export default async function QuizResultPage({
     getCourseBySlug(params.slug),
     getQuizAttemptById(params.attemptId),
   ])
-  
-  if ('message' in quizResult || 'message' in courseResult || 'message' in attemptResult) {
+
+  // Type guards: verificar cada resultado separadamente para type narrowing adequado
+  if ('message' in quizResult) {
     notFound()
   }
   
+  if ('message' in courseResult) {
+    notFound()
+  }
+  
+  if ('message' in attemptResult) {
+    notFound()
+  }
+  
+  // Após as verificações, TypeScript entende que não são ActionError
   const quiz = quizResult
   const course = courseResult
   const attempt = attemptResult
@@ -150,4 +160,3 @@ export default async function QuizResultPage({
     </div>
   )
 }
-

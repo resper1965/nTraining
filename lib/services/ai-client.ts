@@ -19,7 +19,7 @@ const HELICONE_API_KEY = process.env.HELICONE_API_KEY
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const HELICONE_BASE_URL = 'https://oai.hconeai.com/v1'
 
-if (!OPENAI_API_KEY) {
+if (!OPENAI_API_KEY && process.env.NODE_ENV !== 'test') {
   throw new Error(
     'OPENAI_API_KEY não configurada. Configure a variável de ambiente OPENAI_API_KEY.'
   )

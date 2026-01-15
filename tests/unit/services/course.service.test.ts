@@ -34,12 +34,41 @@ const mockCourseCreateInput: CourseCreateInput = {
   is_certifiable: false,
 }
 
-// Use fixture instead
-
 const mockCourseServiceOptions = {
   userId: mockUser.id,
   organizationId: mockUser.organization_id,
   isSuperadmin: mockUser.is_superadmin,
+}
+
+// ============================================================================
+// Helper: Create QueryBuilder Mock
+// ============================================================================
+
+function createQueryBuilderMock(data: any = null, error: any = null) {
+  const mockBuilder = {
+    select: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    neq: vi.fn().mockReturnThis(),
+    gt: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lt: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
+    like: vi.fn().mockReturnThis(),
+    ilike: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
+    contains: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    range: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data, error }),
+    maybeSingle: vi.fn().mockResolvedValue({ data, error }),
+    then: vi.fn((onResolve) => Promise.resolve({ data, error }).then(onResolve)),
+  }
+  return mockBuilder
 }
 
 // ============================================================================
@@ -55,37 +84,60 @@ describe('CourseService', () => {
     it('should create a course with valid data', async () => {
       // Arrange
       const service = new CourseService(mockCourseServiceOptions)
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient)
-      const mockQuery = {
-        then: vi.fn((onResolve) => Promise.resolve({ data: [mockCourse], error: null }).then(onResolve)),
-      }
-      mockSupabaseClient.select.mockReturnValue(mockQuery)
-      mockSupabaseClient.eq = vi.fn().mockReturnValue(mockQuery)
-      mockSupabaseClient.order = vi.fn().mockReturnValue(mockQuery)
+      
+      // Mock para verificar se slug existe (retorna null - slug não existe)
+      const checkSlugBuilder = createQueryBuilderMock(null, null)
+      
+      // Mock para inserir o curso (retorna o curso criado)
+      const insertBuilder = createQueryBuilderMock(mockCourse, null)
+      
+      // Configurar .from() para retornar builders diferentes baseado na ordem de chamadas
+      let callCount = 0
+      mockSupabaseClient.from.mockImplementation(() => {
+        callCount++
+        // Primeira chamada: verificar slug
+        if (callCount === 1) return checkSlugBuilder as any
+        // Segunda chamada: inserir curso
+        return insertBuilder as any
+      })
 
       // Act
       const result = await service.createCourse(mockCourseCreateInput)
 
       // Assert
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('courses')
-      expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
+      expect(checkSlugBuilder.select).toHaveBeenCalledWith('id')
+      expect(checkSlugBuilder.eq).toHaveBeenCalledWith('slug', mockCourseCreateInput.slug)
+      expect(checkSlugBuilder.single).toHaveBeenCalled()
+      expect(insertBuilder.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           title: mockCourseCreateInput.title,
           slug: mockCourseCreateInput.slug,
         })
       )
+      expect(insertBuilder.select).toHaveBeenCalled()
+      expect(insertBuilder.single).toHaveBeenCalled()
       expect(result).toEqual(mockCourse)
     })
 
     it('should throw error if insert fails', async () => {
       // Arrange
       const service = new CourseService(mockCourseServiceOptions)
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.select.mockResolvedValue({
-        data: null,
-        error: { message: 'Database error', code: 'PGRST116' },
+      
+      // Mock para verificar slug (retorna null - slug não existe)
+      const checkSlugBuilder = createQueryBuilderMock(null, null)
+      
+      // Mock para inserir (retorna erro)
+      const insertBuilder = createQueryBuilderMock(null, {
+        message: 'Database error',
+        code: 'PGRST116',
+      })
+      
+      let callCount = 0
+      mockSupabaseClient.from.mockImplementation(() => {
+        callCount++
+        if (callCount === 1) return checkSlugBuilder as any
+        return insertBuilder as any
       })
 
       // Act & Assert
@@ -101,18 +153,25 @@ describe('CourseService', () => {
         organizationId: 'org-456',
         isSuperadmin: false,
       })
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.select.mockResolvedValue({
-        data: [{ ...mockCourse, organization_id: 'org-456' }],
-        error: null,
+      
+      const checkSlugBuilder = createQueryBuilderMock(null, null)
+      const insertBuilder = createQueryBuilderMock(
+        { ...mockCourse, organization_id: 'org-456' },
+        null
+      )
+      
+      let callCount = 0
+      mockSupabaseClient.from.mockImplementation(() => {
+        callCount++
+        if (callCount === 1) return checkSlugBuilder as any
+        return insertBuilder as any
       })
 
       // Act
       await orgManagerService.createCourse(mockCourseCreateInput)
 
       // Assert
-      expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
+      expect(insertBuilder.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           organization_id: 'org-456',
         })
@@ -129,22 +188,19 @@ describe('CourseService', () => {
         level: 'beginner' as const,
       }
       
-      // Create a promise chain that resolves correctly
-      const mockQuery = {
-        then: vi.fn((onResolve) => Promise.resolve({ data: [mockCourse], error: null }).then(onResolve)),
-      }
-      
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.select.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.eq.mockReturnValue(mockQuery)
+      const mockBuilder = createQueryBuilderMock([mockCourse], null)
+      mockSupabaseClient.from.mockReturnValue(mockBuilder as any)
 
       // Act
       const result = await service.getCourses(filters)
 
       // Assert
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('courses')
-      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('status', 'published')
+      expect(mockBuilder.select).toHaveBeenCalled()
+      expect(mockBuilder.order).toHaveBeenCalled()
+      expect(mockBuilder.eq).toHaveBeenCalledWith('status', 'published')
       expect(Array.isArray(result)).toBe(true)
+      expect(result.length).toBeGreaterThan(0)
     })
 
     it('should handle search filter safely (in-memory filtering)', async () => {
@@ -153,17 +209,9 @@ describe('CourseService', () => {
       const filters = {
         search: 'security',
       }
-      // Mock the query chain properly for superadmin flow
-      const mockQueryChain = {
-        then: vi.fn((onResolve) => {
-          return Promise.resolve({ data: mockCourses, error: null }).then(onResolve)
-        }),
-      }
       
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.select.mockReturnValue(mockQueryChain)
-      mockSupabaseClient.eq = vi.fn().mockReturnValue(mockQueryChain)
-      mockSupabaseClient.order = vi.fn().mockReturnValue(mockQueryChain)
+      const mockBuilder = createQueryBuilderMock(mockCourses, null)
+      mockSupabaseClient.from.mockReturnValue(mockBuilder as any)
 
       // Act
       const result = await service.getCourses(filters)
@@ -171,6 +219,7 @@ describe('CourseService', () => {
       // Assert
       // Search is done in-memory, so should filter results
       expect(Array.isArray(result)).toBe(true)
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('courses')
     })
   })
 
@@ -178,32 +227,28 @@ describe('CourseService', () => {
     it('should fetch a course by ID', async () => {
       // Arrange
       const service = new CourseService(mockCourseServiceOptions)
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.select.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.eq.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.single.mockResolvedValue({
-        data: mockCourse,
-        error: null,
-      })
+      const mockBuilder = createQueryBuilderMock(mockCourse, null)
+      mockSupabaseClient.from.mockReturnValue(mockBuilder as any)
 
       // Act
       const result = await service.getCourseById('course-123')
 
       // Assert
-      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', 'course-123')
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('courses')
+      expect(mockBuilder.select).toHaveBeenCalled()
+      expect(mockBuilder.eq).toHaveBeenCalledWith('id', 'course-123')
+      expect(mockBuilder.single).toHaveBeenCalled()
       expect(result).toEqual(mockCourse)
     })
 
     it('should throw error if course not found', async () => {
       // Arrange
       const service = new CourseService(mockCourseServiceOptions)
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.select.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.eq.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.single.mockResolvedValue({
-        data: null,
-        error: { message: 'Course not found', code: 'PGRST116' },
+      const mockBuilder = createQueryBuilderMock(null, {
+        message: 'Course not found',
+        code: 'PGRST116',
       })
+      mockSupabaseClient.from.mockReturnValue(mockBuilder as any)
 
       // Act & Assert
       await expect(service.getCourseById('invalid-id')).rejects.toThrow(
@@ -216,22 +261,16 @@ describe('CourseService', () => {
     it('should delete a course', async () => {
       // Arrange
       const service = new CourseService(mockCourseServiceOptions)
-      
-      const mockQuery = {
-        then: vi.fn((onResolve) => Promise.resolve({ data: null, error: null }).then(onResolve)),
-      }
-      
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.delete.mockReturnValue(mockSupabaseClient)
-      mockSupabaseClient.eq.mockReturnValue(mockQuery)
+      const mockBuilder = createQueryBuilderMock(null, null)
+      mockSupabaseClient.from.mockReturnValue(mockBuilder as any)
 
       // Act
       await service.deleteCourse('course-123')
 
       // Assert
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('courses')
-      expect(mockSupabaseClient.delete).toHaveBeenCalled()
-      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', 'course-123')
+      expect(mockBuilder.delete).toHaveBeenCalled()
+      expect(mockBuilder.eq).toHaveBeenCalledWith('id', 'course-123')
     })
   })
 })
