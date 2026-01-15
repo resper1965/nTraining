@@ -73,52 +73,54 @@ export async function updateLessonProgress(
     if (data.is_completed) {
       try {
         // Get course_id from lesson's module
-        const { data: lessonData } = await supabase
+        const { data: lessonData, error: lessonError } = await supabase
           .from('lessons')
           .select('module_id, modules!inner(course_id)')
           .eq('id', lessonId)
           .single()
         
-        if (!lessonData?.modules || typeof (lessonData.modules as any).course_id !== 'string') {
-          return // Can't determine course_id, skip certificate generation
-        }
-        
-        const courseId = (lessonData.modules as any).course_id
-        
-        const { getCourseById } = await import('./courses')
-        const courseResult = await getCourseById(courseId)
-        
-        // Handle ActionError
-        if ('message' in courseResult) {
-          return // Error fetching course, skip certificate generation
-        }
-        
-        const course = courseResult
-        
-        if (course.is_certifiable) {
-          // Check if all required lessons are completed
-          const { data: allRequiredLessons } = await supabase
-            .from('lessons')
-            .select('id, module_id, modules!inner(course_id)')
-            .eq('modules.course_id', course.id)
-            .eq('is_required', true)
+        if (lessonError || !lessonData?.modules || typeof (lessonData.modules as any).course_id !== 'string') {
+          // Can't determine course_id, skip certificate generation
+          // Continue to return result below
+        } else {
+          const courseId = (lessonData.modules as any).course_id
+          
+          const { getCourseById } = await import('./courses')
+          const courseResult = await getCourseById(courseId)
+          
+          // Handle ActionError
+          if ('message' in courseResult) {
+            // Error fetching course, skip certificate generation
+            // Continue to return result below
+          } else {
+            const course = courseResult
+            
+            if (course.is_certifiable) {
+              // Check if all required lessons are completed
+              const { data: allRequiredLessons } = await supabase
+                .from('lessons')
+                .select('id, module_id, modules!inner(course_id)')
+                .eq('modules.course_id', course.id)
+                .eq('is_required', true)
 
-          if (allRequiredLessons && allRequiredLessons.length > 0) {
-            const { data: completedLessons } = await supabase
-              .from('user_lesson_progress')
-              .select('lesson_id')
-              .eq('user_id', user.id)
-              .eq('is_completed', true)
-              .in('lesson_id', allRequiredLessons.map((l: any) => l.id))
+              if (allRequiredLessons && allRequiredLessons.length > 0) {
+                const { data: completedLessons } = await supabase
+                  .from('user_lesson_progress')
+                  .select('lesson_id')
+                  .eq('user_id', user.id)
+                  .eq('is_completed', true)
+                  .in('lesson_id', allRequiredLessons.map((l: any) => l.id))
 
-            // If all required lessons are completed, generate certificate
-            if (completedLessons?.length === allRequiredLessons.length) {
-              const { generateCertificate } = await import('./certificates')
-              try {
-                await generateCertificate(course.id)
-              } catch (certError) {
-                // Certificate generation failed, but don't fail the progress update
-                console.error('Error generating certificate:', certError)
+                // If all required lessons are completed, generate certificate
+                if (completedLessons?.length === allRequiredLessons.length) {
+                  const { generateCertificate } = await import('./certificates')
+                  try {
+                    await generateCertificate(course.id)
+                  } catch (certError) {
+                    // Certificate generation failed, but don't fail the progress update
+                    console.error('Error generating certificate:', certError)
+                  }
+                }
               }
             }
           }
