@@ -29,21 +29,58 @@ export function GoogleSignInButton({ redirectTo }: GoogleSignInButtonProps) {
     setIsLoading(true)
     
     try {
-      // Usar window.location.origin para garantir que usamos a origem correta
-      const currentOrigin = window.location.origin
+      // FORÇAR sempre usar o alias principal da Vercel em produção
+      // URLs de deployment específicas (como n-training-xxx-xxx.vercel.app) mudam a cada deploy
+      // Precisamos usar o alias estável (n-training.vercel.app) para que funcione sempre
+      let currentOrigin: string
+      
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname
+        
+        // Se estiver em localhost, usar localhost
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          currentOrigin = window.location.origin
+        }
+        // Se estiver no domínio customizado, usar esse domínio
+        else if (hostname.includes('ness.com.br')) {
+          // Sempre usar ntraining.ness.com.br (sem subdomínio específico)
+          currentOrigin = 'https://ntraining.ness.com.br'
+        }
+        // Se estiver em produção na Vercel, SEMPRE usar o alias principal
+        // Ignorar URLs de deployment específicas (que contêm hash/ID único)
+        else if (hostname.includes('vercel.app')) {
+          // Usar o alias principal, não a URL do deployment específico
+          currentOrigin = 'https://n-training.vercel.app'
+        }
+        // Caso contrário, usar o origin atual
+        else {
+          currentOrigin = window.location.origin
+        }
+      } else {
+        // Server-side fallback (nunca deve acontecer em client component)
+        // Usar o domínio customizado como padrão
+        currentOrigin = 'https://ntraining.ness.com.br'
+      }
       
       // O redirectUrl deve ser apenas o caminho (relativo), não a URL completa
-      // Isso evita problemas de redirecionamento para localhost em produção
       const redirectPath = redirectTo 
         ? (redirectTo.startsWith('/') ? redirectTo : `/${redirectTo}`)
         : '/dashboard'
 
+      // Construir a URL completa do callback
+      // IMPORTANTE: Esta URL DEVE estar autorizada no Supabase
+      const callbackUrl = `${currentOrigin}/auth/callback?next=${encodeURIComponent(redirectPath)}`
+      
+      // Log em produção também para debug (pode remover depois)
+      console.log('[GoogleSignIn] Origin:', currentOrigin)
+      console.log('[GoogleSignIn] RedirectTo:', callbackUrl)
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Passar apenas o caminho relativo, não a URL completa
-          // O callback route sempre usará o origin da requisição atual
-          redirectTo: `${currentOrigin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
+          // Passar a URL completa do callback
+          // O Supabase vai validar se esta URL está autorizada
+          redirectTo: callbackUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -55,11 +92,26 @@ export function GoogleSignInButton({ redirectTo }: GoogleSignInButtonProps) {
       if (!isMountedRef.current) return
 
       if (error) {
-        console.error('Error signing in with Google:', error)
+        console.error('[GoogleSignIn] Error details:', {
+          message: error.message,
+          status: error.status,
+          error: error,
+          redirectTo: callbackUrl,
+          origin: currentOrigin
+        })
         setIsLoading(false)
+        
+        // Construir mensagem de erro mais detalhada
+        let errorMessage = error.message || 'Erro ao autenticar com Google'
+        
+        // Adicionar informações de debug se for um erro de redirect
+        if (error.message?.includes('redirect') || error.message?.includes('URL')) {
+          errorMessage += `. URL usada: ${callbackUrl}`
+        }
+        
         // Usar setTimeout para garantir que o redirecionamento aconteça após o estado ser atualizado
         setTimeout(() => {
-          window.location.href = `/auth/login?error=${encodeURIComponent(error.message)}`
+          window.location.href = `/auth/login?error=${encodeURIComponent(errorMessage)}`
         }, 0)
         return
       }
