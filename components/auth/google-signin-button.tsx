@@ -71,9 +71,11 @@ export function GoogleSignInButton({ redirectTo }: GoogleSignInButtonProps) {
       // IMPORTANTE: Esta URL DEVE estar autorizada no Supabase
       const callbackUrl = `${currentOrigin}/auth/callback?next=${encodeURIComponent(redirectPath)}`
       
-      // Log em produção também para debug (pode remover depois)
-      console.log('[GoogleSignIn] Origin:', currentOrigin)
-      console.log('[GoogleSignIn] RedirectTo:', callbackUrl)
+      // Log apenas em desenvolvimento
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[GoogleSignIn] Origin:', currentOrigin)
+        console.log('[GoogleSignIn] RedirectTo:', callbackUrl)
+      }
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -110,8 +112,11 @@ export function GoogleSignInButton({ redirectTo }: GoogleSignInButtonProps) {
         }
         
         // Usar setTimeout para garantir que o redirecionamento aconteça após o estado ser atualizado
+        // Nota: Não armazenamos timeoutId pois o redirecionamento deve acontecer mesmo se componente desmontar
         setTimeout(() => {
-          window.location.href = `/auth/login?error=${encodeURIComponent(errorMessage)}`
+          if (isMountedRef.current) {
+            window.location.href = `/auth/login?error=${encodeURIComponent(errorMessage)}`
+          }
         }, 0)
         return
       }
@@ -124,7 +129,9 @@ export function GoogleSignInButton({ redirectTo }: GoogleSignInButtonProps) {
       console.error('Unexpected error:', error)
       setIsLoading(false)
       setTimeout(() => {
-        window.location.href = `/auth/login?error=${encodeURIComponent('Erro inesperado ao autenticar com Google')}`
+        if (isMountedRef.current) {
+          window.location.href = `/auth/login?error=${encodeURIComponent('Erro inesperado ao autenticar com Google')}`
+        }
       }, 0)
     }
   }

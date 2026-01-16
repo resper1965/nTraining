@@ -14,117 +14,198 @@ function OAuthCallbackProcessor() {
   const [errorMessage, setErrorMessage] = useState<string>('')
 
   useEffect(() => {
+    let isMounted = true
+    const timeoutIds: NodeJS.Timeout[] = []
+    let processingComplete = false
+
     const handleOAuthCallback = async () => {
+      if (!isMounted || processingComplete) return
+
+      // Verificar se já existe uma sessão ativa (cachear resultado para evitar múltiplas chamadas)
+      const { data: { session: existingSession } } = await supabase.auth.getSession()
+      const hasExistingSession = !!existingSession
+      
+      if (existingSession && isMounted && !processingComplete) {
+        // Se já está autenticado, redirecionar diretamente
+        const next = searchParams.get('next') || '/dashboard'
+        processingComplete = true
+        router.push(next)
+        return
+      }
+
       // Verificar se há 'code' na query string (fluxo padrão do Supabase)
       const code = searchParams.get('code')
-      if (code) {
+      if (code && !processingComplete) {
         try {
           // Trocar o código por uma sessão
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
           
+          if (!isMounted || processingComplete) return
+
           if (exchangeError) {
             console.error('[OAuth Callback] Error exchanging code:', exchangeError)
             setStatus('error')
             setErrorMessage(exchangeError.message)
-            setTimeout(() => {
-              router.push(`/auth/login?error=${encodeURIComponent(exchangeError.message)}`)
+            const timeoutId = setTimeout(() => {
+              if (isMounted) {
+                router.push(`/auth/login?error=${encodeURIComponent(exchangeError.message)}`)
+              }
             }, 2000)
+            timeoutIds.push(timeoutId)
             return
           }
 
-          if (data?.session) {
+          if (data?.session && isMounted && !processingComplete) {
             // Obter o parâmetro 'next' ou usar dashboard
             const next = searchParams.get('next') || '/dashboard'
+            processingComplete = true
             router.push(next)
             return
           }
         } catch (error) {
+          if (!isMounted || processingComplete) return
+          
           console.error('[OAuth Callback] Unexpected error exchanging code:', error)
           const errorMsg = error instanceof Error ? error.message : 'Erro ao processar código de autenticação'
           setStatus('error')
           setErrorMessage(errorMsg)
-          setTimeout(() => {
-            router.push(`/auth/login?error=${encodeURIComponent(errorMsg)}`)
+          const timeoutId = setTimeout(() => {
+            if (isMounted) {
+              router.push(`/auth/login?error=${encodeURIComponent(errorMsg)}`)
+            }
           }, 2000)
+          timeoutIds.push(timeoutId)
           return
         }
       }
 
-      // Verificar se há tokens no hash fragment (#access_token=...)
-      if (typeof window !== 'undefined' && window.location.hash) {
-        const hash = window.location.hash.substring(1) // Remove o #
-        const params = new URLSearchParams(hash)
-        
-        const accessToken = params.get('access_token')
-        const refreshToken = params.get('refresh_token')
-        const error = params.get('error')
-        const errorDescription = params.get('error_description')
+      // Se já processamos o code com sucesso, não processar hash
+      if (processingComplete) return
 
-        if (error) {
+      // Verificar se há tokens no hash fragment (#access_token=...)
+      // Usar função helper para ler hash de forma reativa
+      const getHashParams = () => {
+        if (typeof window === 'undefined') return null
+        const hash = window.location.hash.substring(1)
+        if (!hash) return null
+        return new URLSearchParams(hash)
+      }
+
+      const hashParams = getHashParams()
+      if (hashParams && !processingComplete) {
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        const error = hashParams.get('error')
+        const errorDescription = hashParams.get('error_description')
+
+        if (error && isMounted && !processingComplete) {
           // Se houver erro, redirecionar para login com mensagem
           const errorMsg = errorDescription || error
           setStatus('error')
           setErrorMessage(errorMsg)
-          setTimeout(() => {
-            router.push(`/auth/login?error=${encodeURIComponent(errorMsg)}`)
+          const timeoutId = setTimeout(() => {
+            if (isMounted) {
+              router.push(`/auth/login?error=${encodeURIComponent(errorMsg)}`)
+            }
           }, 2000)
+          timeoutIds.push(timeoutId)
           return
         }
 
-        if (accessToken && refreshToken) {
+        if (accessToken && refreshToken && isMounted && !processingComplete) {
           try {
+            // Usar resultado cacheado da verificação inicial (evita requisição duplicada)
+            // Se já verificamos no início e não havia sessão, não precisamos verificar novamente
+            // Apenas verificar novamente se passou tempo suficiente ou se não verificamos antes
+            if (hasExistingSession && isMounted && !processingComplete) {
+              // Sessão já existe (do cache), redirecionar
+              const next = searchParams.get('next') || '/dashboard'
+              processingComplete = true
+              router.push(next)
+              return
+            }
+
             // Configurar a sessão com os tokens recebidos
             const { error: sessionError } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
             })
 
+            if (!isMounted || processingComplete) return
+
             if (sessionError) {
               console.error('[OAuth Callback] Error setting session:', sessionError)
               setStatus('error')
               setErrorMessage(sessionError.message)
-              setTimeout(() => {
-                router.push(`/auth/login?error=${encodeURIComponent(sessionError.message)}`)
+              const timeoutId = setTimeout(() => {
+                if (isMounted) {
+                  router.push(`/auth/login?error=${encodeURIComponent(sessionError.message)}`)
+                }
               }, 2000)
+              timeoutIds.push(timeoutId)
               return
             }
 
-            // Obter o parâmetro 'next' da URL ou usar dashboard como padrão
-            const next = searchParams.get('next') || '/dashboard'
-            
-            // Limpar o hash da URL
-            window.history.replaceState({}, '', window.location.pathname + window.location.search)
-            
-            // Redirecionar para a página solicitada
-            router.push(next)
+            if (isMounted && !processingComplete) {
+              // Obter o parâmetro 'next' da URL ou usar dashboard como padrão
+              const next = searchParams.get('next') || '/dashboard'
+              
+              // Limpar o hash da URL
+              window.history.replaceState({}, '', window.location.pathname + window.location.search)
+              
+              // Marcar como completo antes de redirecionar
+              processingComplete = true
+              
+              // Redirecionar para a página solicitada
+              router.push(next)
+            }
           } catch (error) {
+            if (!isMounted || processingComplete) return
+            
             console.error('[OAuth Callback] Unexpected error:', error)
             const errorMsg = error instanceof Error ? error.message : 'Erro ao processar autenticação'
             setStatus('error')
             setErrorMessage(errorMsg)
-            setTimeout(() => {
-              router.push(`/auth/login?error=${encodeURIComponent(errorMsg)}`)
+            const timeoutId = setTimeout(() => {
+              if (isMounted) {
+                router.push(`/auth/login?error=${encodeURIComponent(errorMsg)}`)
+              }
             }, 2000)
+            timeoutIds.push(timeoutId)
           }
-        } else {
+        } else if (isMounted && !processingComplete && !code) {
           // Se não houver tokens nem code, algo está errado
           setStatus('error')
           setErrorMessage('Erro: tokens de autenticação não encontrados')
-          setTimeout(() => {
-            router.push('/auth/login?error=Erro%20ao%20autenticar%20com%20Google')
+          const timeoutId = setTimeout(() => {
+            if (isMounted) {
+              router.push('/auth/login?error=Erro%20ao%20autenticar%20com%20Google')
+            }
           }, 2000)
+          timeoutIds.push(timeoutId)
         }
-      } else {
+      } else if (isMounted && !processingComplete && !code) {
         // Se não houver hash nem code, redirecionar para login
         setStatus('error')
         setErrorMessage('Erro: nenhum dado de autenticação encontrado')
-        setTimeout(() => {
-          router.push('/auth/login?error=Erro%20ao%20autenticar%20com%20Google')
+        const timeoutId = setTimeout(() => {
+          if (isMounted) {
+            router.push('/auth/login?error=Erro%20ao%20autenticar%20com%20Google')
+          }
         }, 2000)
+        timeoutIds.push(timeoutId)
       }
     }
 
     handleOAuthCallback()
+
+    // Cleanup function
+    return () => {
+      isMounted = false
+      processingComplete = true
+      // Limpar todos os timeouts pendentes
+      timeoutIds.forEach(timeoutId => clearTimeout(timeoutId))
+    }
   }, [router, searchParams])
 
   if (status === 'error') {

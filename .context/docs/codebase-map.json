@@ -1,0 +1,2159 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-16T12:30:04.157Z",
+  "stack": {
+    "primaryLanguage": "typescript",
+    "languages": [
+      "javascript",
+      "typescript"
+    ],
+    "frameworks": [
+      "nextjs"
+    ],
+    "buildTools": [],
+    "testFrameworks": [
+      "vitest",
+      "playwright"
+    ],
+    "packageManager": "npm",
+    "isMonorepo": false,
+    "hasDocker": false,
+    "hasCI": false
+  },
+  "structure": {
+    "totalFiles": 360,
+    "topDirectories": [
+      {
+        "name": "ACCESSIBILITY.md",
+        "fileCount": 1
+      },
+      {
+        "name": "ADD_SERVICE_ROLE_KEY.md",
+        "fileCount": 1
+      },
+      {
+        "name": "AGENTES_DISPONIVEIS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "APLICAR_SCHEMA_NOVO_PROJETO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "app",
+        "fileCount": 96
+      },
+      {
+        "name": "AUDITORIA_AUTENTICACAO_COMPLETA.md",
+        "fileCount": 1
+      },
+      {
+        "name": "AUDITORIA_FINAL.md",
+        "fileCount": 1
+      },
+      {
+        "name": "AUDITORIA_SUPABASE.md",
+        "fileCount": 1
+      },
+      {
+        "name": "AUTH_SYSTEM.md",
+        "fileCount": 1
+      },
+      {
+        "name": "BUG_INVESTIGATION_REPORT.md",
+        "fileCount": 1
+      },
+      {
+        "name": "CERTIFICATES_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "CHECKLIST_ENTREGA.md",
+        "fileCount": 1
+      },
+      {
+        "name": "COMO_VERIFICAR_SUPERADMIN.md",
+        "fileCount": 1
+      },
+      {
+        "name": "components",
+        "fileCount": 89
+      },
+      {
+        "name": "components.json",
+        "fileCount": 1
+      },
+      {
+        "name": "CORRIGIR_OAUTH_URLS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "CORRIGIR_REDIRECT_LOCALHOST.md",
+        "fileCount": 1
+      },
+      {
+        "name": "CURSOR_MCP_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "data",
+        "fileCount": 1
+      },
+      {
+        "name": "DIAGNOSTICO_CRIACAO_USUARIOS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "DIAGNOSTICO_ERRO_GOOGLE_OAUTH.md",
+        "fileCount": 1
+      },
+      {
+        "name": "DIAGNOSTICO_LOGIN.md",
+        "fileCount": 1
+      },
+      {
+        "name": "DIAGNOSTICO_OAUTH_BLOQUEADO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "DIAGNOSTICO_OAUTH_PRODUCAO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "DOCUMENTACAO_TECNICA.md",
+        "fileCount": 1
+      },
+      {
+        "name": "env.example",
+        "fileCount": 1
+      },
+      {
+        "name": "ERROR_FLOW_ANALYSIS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "FLUXO_POS_AUTENTICACAO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "FORMATOS_UPLOAD.md",
+        "fileCount": 1
+      },
+      {
+        "name": "FUNCIONALIDADES_AVANCADAS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "GOOGLE_OAUTH_ATUALIZAR_URLS_NOVO_PROJETO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "GOOGLE_OAUTH_DIAGNOSTICO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "GOOGLE_OAUTH_RECRIAR_CLIENTE.md",
+        "fileCount": 1
+      },
+      {
+        "name": "GOOGLE_OAUTH_SETUP_COMPLETO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "GOOGLE_OAUTH_SETUP_SIMPLIFICADO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "GOOGLE_OAUTH_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "GOOGLE_OAUTH_URLS_CORRETAS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "GUIA_RECRIACAO_SUPABASE.md",
+        "fileCount": 1
+      },
+      {
+        "name": "hooks",
+        "fileCount": 1
+      },
+      {
+        "name": "I18N_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "IMAGE_OPTIMIZATION.md",
+        "fileCount": 1
+      },
+      {
+        "name": "lib",
+        "fileCount": 58
+      },
+      {
+        "name": "MIDDLEWARE_FIX.md",
+        "fileCount": 1
+      },
+      {
+        "name": "middleware.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "MIGRACOES_ESSENCIAIS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "MULTI_TENANCY_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "NEXT_STEPS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "next-env.d.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "next.config.js",
+        "fileCount": 1
+      },
+      {
+        "name": "package-lock.json",
+        "fileCount": 1
+      },
+      {
+        "name": "package.json",
+        "fileCount": 1
+      },
+      {
+        "name": "PERFORMANCE_OPTIMIZATIONS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "PLANEJAMENTO_ADMIN.md",
+        "fileCount": 1
+      },
+      {
+        "name": "PLANEJAMENTO_CURSOS_TENANT.md",
+        "fileCount": 1
+      },
+      {
+        "name": "PLANO_DESENVOLVIMENTO_TECNICO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "PLANO_FINALIZACAO_NESS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "PLANO_IMPLEMENTACAO_COMPLETO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "PLANO_LIMPEZA.md",
+        "fileCount": 1
+      },
+      {
+        "name": "playwright.config.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "postcss.config.js",
+        "fileCount": 1
+      },
+      {
+        "name": "public",
+        "fileCount": 1
+      },
+      {
+        "name": "QUERY_OPTIMIZATION_OPPORTUNITIES.md",
+        "fileCount": 1
+      },
+      {
+        "name": "README.md",
+        "fileCount": 1
+      },
+      {
+        "name": "RECRIAR_CONTA_USUARIO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "REFACTORING_AUTH.md",
+        "fileCount": 1
+      },
+      {
+        "name": "REFACTORING_IMPLEMENTATION.md",
+        "fileCount": 1
+      },
+      {
+        "name": "REFACTORING_PLAN.md",
+        "fileCount": 1
+      },
+      {
+        "name": "REFACTORING_STATUS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "REFACTORING_SUMMARY.md",
+        "fileCount": 1
+      },
+      {
+        "name": "REMOVE_AUTH.md",
+        "fileCount": 1
+      },
+      {
+        "name": "RESEND_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "RLS_RECURSION_FIX.md",
+        "fileCount": 1
+      },
+      {
+        "name": "scripts",
+        "fileCount": 20
+      },
+      {
+        "name": "SETUP_COMPLETE.md",
+        "fileCount": 1
+      },
+      {
+        "name": "SETUP_DATABASE.md",
+        "fileCount": 1
+      },
+      {
+        "name": "SETUP_NOVO_PROJETO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "SPEC_PLANNING_COMPLETO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "STATUS_DESENVOLVIMENTO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "STATUS_PROJETO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "tailwind.config.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "TESTING_CHECKLIST.md",
+        "fileCount": 1
+      },
+      {
+        "name": "TESTING_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "tests",
+        "fileCount": 7
+      },
+      {
+        "name": "TOAST_NOTIFICATIONS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "TROUBLESHOOTING_LOGIN_USUARIO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "TROUBLESHOOTING_LOGIN.md",
+        "fileCount": 1
+      },
+      {
+        "name": "tsconfig.json",
+        "fileCount": 1
+      },
+      {
+        "name": "tsconfig.tsbuildinfo",
+        "fileCount": 1
+      },
+      {
+        "name": "UX_UI_GUIDELINES.md",
+        "fileCount": 1
+      },
+      {
+        "name": "VERCEL_ENV_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "VERCEL_SETUP.md",
+        "fileCount": 1
+      },
+      {
+        "name": "VERIFICAR_OAUTH_CONSENT_SCREEN.md",
+        "fileCount": 1
+      },
+      {
+        "name": "VERIFICAR_REDIRECT_URL.md",
+        "fileCount": 1
+      },
+      {
+        "name": "vitest.config.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "vitest.setup.ts",
+        "fileCount": 1
+      }
+    ],
+    "languageDistribution": [
+      {
+        "extension": ".tsx",
+        "count": 159
+      },
+      {
+        "extension": ".ts",
+        "count": 87
+      },
+      {
+        "extension": ".md",
+        "count": 74
+      },
+      {
+        "extension": ".sql",
+        "count": 18
+      },
+      {
+        "extension": ".sh",
+        "count": 10
+      },
+      {
+        "extension": ".json",
+        "count": 5
+      },
+      {
+        "extension": ".js",
+        "count": 2
+      },
+      {
+        "extension": ".tsbuildinfo",
+        "count": 1
+      },
+      {
+        "extension": ".example",
+        "count": 1
+      },
+      {
+        "extension": ".ico",
+        "count": 1
+      }
+    ]
+  },
+  "architecture": {
+    "layers": [
+      {
+        "name": "Models",
+        "description": "Data structures and domain objects",
+        "directories": [
+          "scripts",
+          "lib/validators"
+        ],
+        "symbolCount": 44,
+        "dependsOn": []
+      },
+      {
+        "name": "Utils",
+        "description": "Shared utilities and helpers",
+        "directories": [
+          "lib",
+          "lib/utils",
+          "lib/types",
+          "lib/supabase",
+          "lib/notifications",
+          "lib/i18n",
+          "lib/email",
+          "lib/auth",
+          "lib/certificates"
+        ],
+        "symbolCount": 81,
+        "dependsOn": [
+          "Repositories"
+        ]
+      },
+      {
+        "name": "Repositories",
+        "description": "Data access and persistence",
+        "directories": [
+          "lib/types",
+          "lib/supabase"
+        ],
+        "symbolCount": 62,
+        "dependsOn": []
+      },
+      {
+        "name": "Services",
+        "description": "Business logic and orchestration",
+        "directories": [
+          "lib/services",
+          "tests/unit/services"
+        ],
+        "symbolCount": 33,
+        "dependsOn": []
+      },
+      {
+        "name": "Controllers",
+        "description": "Request handling and routing",
+        "directories": [
+          "app/api/profile/notifications"
+        ],
+        "symbolCount": 1,
+        "dependsOn": []
+      },
+      {
+        "name": "Components",
+        "description": "UI components and views",
+        "directories": [
+          "components",
+          "app",
+          "components/ui",
+          "components/quiz",
+          "components/profile",
+          "components/notifications",
+          "components/lesson-player",
+          "components/layout",
+          "components/editor",
+          "components/course",
+          "components/certificates",
+          "components/auth",
+          "components/admin",
+          "app/terms",
+          "app/privacy",
+          "app/landing",
+          "components/admin/ai",
+          "app/auth/waiting-room",
+          "app/auth/signup",
+          "app/auth/login",
+          "app/auth/callback",
+          "app/(main)/search",
+          "app/(main)/profile",
+          "app/(main)/paths",
+          "app/(main)/notifications",
+          "app/(main)/dashboard",
+          "app/(main)/courses",
+          "app/(main)/certificates",
+          "app/(admin)/admin",
+          "app/(main)/profile/notifications",
+          "app/(main)/paths/[slug]",
+          "app/(main)/courses/[slug]",
+          "app/(main)/certificates/[id]",
+          "app/(admin)/admin/users",
+          "app/(admin)/admin/tenants",
+          "app/(admin)/admin/reports",
+          "app/(admin)/admin/settings",
+          "app/(admin)/admin/quizzes",
+          "app/(admin)/admin/paths",
+          "app/(admin)/admin/organizations",
+          "app/(admin)/admin/licenses",
+          "app/(admin)/admin/courses",
+          "app/(admin)/admin/ai",
+          "app/(admin)/admin/activity",
+          "app/(main)/certificates/verify/[code]",
+          "app/(main)/certificates/[id]/download",
+          "app/(admin)/admin/users/new",
+          "app/(admin)/admin/users/pending",
+          "app/(admin)/admin/tenants/new",
+          "app/(admin)/admin/quizzes/new",
+          "app/(admin)/admin/quizzes/[id]",
+          "app/(admin)/admin/paths/new",
+          "app/(admin)/admin/paths/[id]",
+          "app/(admin)/admin/organizations/[id]",
+          "app/(admin)/admin/courses/new",
+          "app/(main)/courses/[slug]/quiz/[quizId]",
+          "app/(main)/courses/[slug]/[moduleId]/[lessonId]",
+          "app/(admin)/admin/tenants/[id]/edit",
+          "app/(admin)/admin/quizzes/[id]/questions",
+          "app/(admin)/admin/quizzes/[id]/edit",
+          "app/(admin)/admin/paths/[id]/edit",
+          "app/(admin)/admin/paths/[id]/assign",
+          "app/(admin)/admin/organizations/[id]/view",
+          "app/(admin)/admin/organizations/[id]/courses",
+          "app/(admin)/admin/courses/[id]/modules",
+          "app/(admin)/admin/courses/[id]/edit",
+          "app/(admin)/admin/courses/[id]/customize",
+          "app/(admin)/admin/quizzes/[id]/questions/new",
+          "app/(admin)/admin/organizations/[id]/users/assign-courses",
+          "app/(main)/courses/[slug]/quiz/[quizId]/result/[attemptId]",
+          "app/(main)/courses/[slug]/quiz/[quizId]/attempt/[attemptId]",
+          "app/(admin)/admin/quizzes/[id]/questions/[questionId]/edit",
+          "app/(admin)/admin/courses/[id]/modules/[moduleId]/lessons"
+        ],
+        "symbolCount": 136,
+        "dependsOn": []
+      },
+      {
+        "name": "Generators",
+        "description": "Content and object generation",
+        "directories": [
+          "components/branding"
+        ],
+        "symbolCount": 3,
+        "dependsOn": []
+      }
+    ],
+    "patterns": [
+      {
+        "name": "Service Layer",
+        "confidence": 0.85,
+        "description": "Encapsulates business logic in service classes",
+        "occurrences": 8
+      }
+    ],
+    "entryPoints": [
+      "lib/supabase/server.ts",
+      "lib/i18n/index.ts",
+      "lib/auth/index.ts"
+    ]
+  },
+  "symbols": {
+    "classes": [
+      {
+        "name": "AICourseService",
+        "kind": "class",
+        "file": "lib/services/ai-course.service.ts",
+        "line": 77,
+        "exported": true
+      },
+      {
+        "name": "AICourseServiceError",
+        "kind": "class",
+        "file": "lib/services/ai-course.service.ts",
+        "line": 33,
+        "exported": true
+      },
+      {
+        "name": "AuthService",
+        "kind": "class",
+        "file": "lib/services/auth.service.ts",
+        "line": 55,
+        "exported": true
+      },
+      {
+        "name": "AuthServiceError",
+        "kind": "class",
+        "file": "lib/services/auth.service.ts",
+        "line": 40,
+        "exported": true
+      },
+      {
+        "name": "ContentService",
+        "kind": "class",
+        "file": "lib/services/content.service.ts",
+        "line": 42,
+        "exported": true
+      },
+      {
+        "name": "ContentServiceError",
+        "kind": "class",
+        "file": "lib/services/content.service.ts",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "CourseService",
+        "kind": "class",
+        "file": "lib/services/course.service.ts",
+        "line": 51,
+        "exported": true
+      },
+      {
+        "name": "CourseServiceError",
+        "kind": "class",
+        "file": "lib/services/course.service.ts",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "KnowledgeService",
+        "kind": "class",
+        "file": "lib/services/knowledge.service.ts",
+        "line": 63,
+        "exported": true
+      },
+      {
+        "name": "KnowledgeServiceError",
+        "kind": "class",
+        "file": "lib/services/knowledge.service.ts",
+        "line": 40,
+        "exported": true
+      },
+      {
+        "name": "OrganizationService",
+        "kind": "class",
+        "file": "lib/services/organization.service.ts",
+        "line": 43,
+        "exported": true
+      },
+      {
+        "name": "OrganizationServiceError",
+        "kind": "class",
+        "file": "lib/services/organization.service.ts",
+        "line": 28,
+        "exported": true
+      },
+      {
+        "name": "QuizService",
+        "kind": "class",
+        "file": "lib/services/quiz.service.ts",
+        "line": 46,
+        "exported": true
+      },
+      {
+        "name": "QuizServiceError",
+        "kind": "class",
+        "file": "lib/services/quiz.service.ts",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "UserService",
+        "kind": "class",
+        "file": "lib/services/user.service.ts",
+        "line": 52,
+        "exported": true
+      },
+      {
+        "name": "UserServiceError",
+        "kind": "class",
+        "file": "lib/services/user.service.ts",
+        "line": 37,
+        "exported": true
+      }
+    ],
+    "interfaces": [
+      {
+        "name": "ActionError",
+        "kind": "interface",
+        "file": "app/actions/users.ts",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "ActionError",
+        "kind": "interface",
+        "file": "app/actions/quizzes.ts",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "ActionError",
+        "kind": "interface",
+        "file": "app/actions/quiz-attempts.ts",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "ActionError",
+        "kind": "interface",
+        "file": "app/actions/courses.ts",
+        "line": 32,
+        "exported": true
+      },
+      {
+        "name": "ActionError",
+        "kind": "interface",
+        "file": "app/actions/ai-admin.ts",
+        "line": 30,
+        "exported": true
+      },
+      {
+        "name": "ActivityLog",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 332,
+        "exported": true
+      },
+      {
+        "name": "ActivityLog",
+        "kind": "interface",
+        "file": "app/actions/activity-logs.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "ActivityLogFilters",
+        "kind": "interface",
+        "file": "app/actions/activity-logs.ts",
+        "line": 24,
+        "exported": true
+      },
+      {
+        "name": "ApiResponse",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 385,
+        "exported": true
+      },
+      {
+        "name": "AssignCourseConfig",
+        "kind": "interface",
+        "file": "app/actions/organization-courses.ts",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "AuthActionError",
+        "kind": "interface",
+        "file": "app/actions/auth.ts",
+        "line": 28,
+        "exported": true
+      },
+      {
+        "name": "AuthContext",
+        "kind": "interface",
+        "file": "lib/auth/types.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "AuthResult",
+        "kind": "interface",
+        "file": "lib/auth/types.ts",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "BadgeProps",
+        "kind": "interface",
+        "file": "components/ui/badge.tsx",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "ButtonProps",
+        "kind": "interface",
+        "file": "components/ui/button.tsx",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "Certificate",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 310,
+        "exported": true
+      },
+      {
+        "name": "CertificateTemplate",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 116,
+        "exported": true
+      },
+      {
+        "name": "Course",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 131,
+        "exported": true
+      },
+      {
+        "name": "CourseCompletionStat",
+        "kind": "interface",
+        "file": "app/actions/reports.ts",
+        "line": 89,
+        "exported": true
+      },
+      {
+        "name": "CourseCustomization",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 87,
+        "exported": true
+      },
+      {
+        "name": "CourseCustomizationData",
+        "kind": "interface",
+        "file": "app/actions/organization-courses.ts",
+        "line": 239,
+        "exported": true
+      },
+      {
+        "name": "CourseFilters",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 470,
+        "exported": true
+      },
+      {
+        "name": "CourseFormData",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 403,
+        "exported": true
+      },
+      {
+        "name": "CoursePopularityStat",
+        "kind": "interface",
+        "file": "app/actions/reports.ts",
+        "line": 175,
+        "exported": true
+      },
+      {
+        "name": "CourseServiceOptions",
+        "kind": "interface",
+        "file": "lib/services/course.service.ts",
+        "line": 29,
+        "exported": true
+      },
+      {
+        "name": "CourseWithModules",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 347,
+        "exported": true
+      },
+      {
+        "name": "CourseWithProgress",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 355,
+        "exported": true
+      },
+      {
+        "name": "CoverGeneratorProps",
+        "kind": "interface",
+        "file": "components/branding/cover-generator.tsx",
+        "line": 21,
+        "exported": true
+      },
+      {
+        "name": "CreateActivityLogParams",
+        "kind": "interface",
+        "file": "app/actions/activity-logs.ts",
+        "line": 132,
+        "exported": true
+      },
+      {
+        "name": "CreateNotificationData",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 540,
+        "exported": true
+      },
+      {
+        "name": "CreateUserResult",
+        "kind": "interface",
+        "file": "lib/services/auth.service.ts",
+        "line": 35,
+        "exported": true
+      },
+      {
+        "name": "DashboardMetrics",
+        "kind": "interface",
+        "file": "app/actions/admin.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "DocumentChunk",
+        "kind": "interface",
+        "file": "lib/services/knowledge.service.ts",
+        "line": 34,
+        "exported": true
+      },
+      {
+        "name": "EmailOptions",
+        "kind": "interface",
+        "file": "lib/email/resend.ts",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "EmailQueueItem",
+        "kind": "interface",
+        "file": "lib/email/queue.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "EmbeddingResponse",
+        "kind": "interface",
+        "file": "lib/services/ai-client.ts",
+        "line": 62,
+        "exported": true
+      },
+      {
+        "name": "EmptyStateProps",
+        "kind": "interface",
+        "file": "components/ui/empty-state.tsx",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "ExportDataRow",
+        "kind": "interface",
+        "file": "lib/utils/csv.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "GenerateCourseStructureInput",
+        "kind": "interface",
+        "file": "lib/services/ai-course.service.ts",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "GeneratedCourseStructure",
+        "kind": "interface",
+        "file": "lib/types/ai.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "GeneratedLesson",
+        "kind": "interface",
+        "file": "lib/types/ai.ts",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "GeneratedModule",
+        "kind": "interface",
+        "file": "lib/types/ai.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "GetUsersResult",
+        "kind": "interface",
+        "file": "lib/services/user.service.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "KnowledgeSource",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 554,
+        "exported": true
+      },
+      {
+        "name": "KnowledgeVector",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 569,
+        "exported": true
+      },
+      {
+        "name": "LearningPath",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 225,
+        "exported": true
+      },
+      {
+        "name": "LearningPathFormData",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 457,
+        "exported": true
+      },
+      {
+        "name": "LearningPathWithCourses",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 359,
+        "exported": true
+      },
+      {
+        "name": "Lesson",
+        "kind": "interface",
+        "file": "lib/types/database.ts",
+        "line": 166,
+        "exported": true
+      },
+      {
+        "name": "Lesson",
+        "kind": "interface",
+        "file": "components/course/lesson-player.tsx",
+        "line": 30,
+        "exported": true
+      }
+    ],
+    "functions": [
+      {
+        "name": "addCourseToPath",
+        "kind": "function",
+        "file": "app/actions/learning-paths.ts",
+        "line": 260,
+        "exported": true
+      },
+      {
+        "name": "addLicenses",
+        "kind": "function",
+        "file": "app/actions/license-management.ts",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "AddLicensesDialog",
+        "kind": "function",
+        "file": "components/admin/add-licenses-dialog.tsx",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "addUserToTenant",
+        "kind": "function",
+        "file": "lib/supabase/tenants.ts",
+        "line": 164,
+        "exported": true
+      },
+      {
+        "name": "AdminLayout",
+        "kind": "function",
+        "file": "app/(admin)/admin/layout.tsx",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "AdminSettingsPage",
+        "kind": "function",
+        "file": "app/(admin)/admin/settings/page.tsx",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "AIAdminPage",
+        "kind": "function",
+        "file": "app/(admin)/admin/ai/page.tsx",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "approveUser",
+        "kind": "function",
+        "file": "app/actions/users.ts",
+        "line": 154,
+        "exported": true
+      },
+      {
+        "name": "AssignCoursesToUsersPage",
+        "kind": "function",
+        "file": "app/(admin)/admin/organizations/[id]/users/assign-courses/page.tsx",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "assignCourseToOrganization",
+        "kind": "function",
+        "file": "app/actions/organization-courses.ts",
+        "line": 29,
+        "exported": true
+      },
+      {
+        "name": "assignCourseToUser",
+        "kind": "function",
+        "file": "app/actions/organization-courses.ts",
+        "line": 292,
+        "exported": true
+      },
+      {
+        "name": "AssignPathForm",
+        "kind": "function",
+        "file": "components/admin/assign-path-form.tsx",
+        "line": 21,
+        "exported": true
+      },
+      {
+        "name": "AssignPathPage",
+        "kind": "function",
+        "file": "app/(admin)/admin/paths/[id]/assign/page.tsx",
+        "line": 13,
+        "exported": true
+      },
+      {
+        "name": "assignPathToUser",
+        "kind": "function",
+        "file": "app/actions/path-assignments.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "assignPathToUsers",
+        "kind": "function",
+        "file": "app/actions/path-assignments.ts",
+        "line": 105,
+        "exported": true
+      },
+      {
+        "name": "changePassword",
+        "kind": "function",
+        "file": "app/actions/profile.ts",
+        "line": 74,
+        "exported": true
+      },
+      {
+        "name": "chat",
+        "kind": "function",
+        "file": "lib/services/ai-client.ts",
+        "line": 175,
+        "exported": true
+      },
+      {
+        "name": "chatWithStructuredOutput",
+        "kind": "function",
+        "file": "lib/services/ai-client.ts",
+        "line": 129,
+        "exported": true
+      },
+      {
+        "name": "checkAssetOrganization",
+        "kind": "function",
+        "file": "app/actions/scans.ts",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "checkLicenseAvailability",
+        "kind": "function",
+        "file": "app/actions/organization-courses.ts",
+        "line": 174,
+        "exported": true
+      },
+      {
+        "name": "checkPathCompletion",
+        "kind": "function",
+        "file": "app/actions/path-assignments.ts",
+        "line": 193,
+        "exported": true
+      },
+      {
+        "name": "checkRateLimit",
+        "kind": "function",
+        "file": "lib/notifications/intelligent.ts",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "checkUserRole",
+        "kind": "function",
+        "file": "lib/supabase/client.ts",
+        "line": 39,
+        "exported": true
+      },
+      {
+        "name": "clearAuthContext",
+        "kind": "function",
+        "file": "lib/auth/context.ts",
+        "line": 47,
+        "exported": true
+      },
+      {
+        "name": "ClientCourseForm",
+        "kind": "function",
+        "file": "app/(admin)/admin/courses/new/client-form.tsx",
+        "line": 30,
+        "exported": true
+      },
+      {
+        "name": "ClientEditForm",
+        "kind": "function",
+        "file": "app/(admin)/admin/courses/[id]/edit/client-form.tsx",
+        "line": 34,
+        "exported": true
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "lib/utils.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "CNPJDisplay",
+        "kind": "function",
+        "file": "components/cnpj-display.tsx",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "CNPJInput",
+        "kind": "function",
+        "file": "components/cnpj-input.tsx",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "convertToCSV",
+        "kind": "function",
+        "file": "lib/utils/csv.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "createActivityLog",
+        "kind": "function",
+        "file": "app/actions/activity-logs.ts",
+        "line": 141,
+        "exported": true
+      },
+      {
+        "name": "createClient",
+        "kind": "function",
+        "file": "lib/supabase/server.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "createCourse",
+        "kind": "function",
+        "file": "app/actions/courses.ts",
+        "line": 207,
+        "exported": true
+      },
+      {
+        "name": "createIntelligentNotification",
+        "kind": "function",
+        "file": "lib/notifications/intelligent.ts",
+        "line": 34,
+        "exported": true
+      },
+      {
+        "name": "createLearningPath",
+        "kind": "function",
+        "file": "app/actions/learning-paths.ts",
+        "line": 142,
+        "exported": true
+      },
+      {
+        "name": "createLesson",
+        "kind": "function",
+        "file": "app/actions/lessons.ts",
+        "line": 44,
+        "exported": true
+      },
+      {
+        "name": "createModule",
+        "kind": "function",
+        "file": "app/actions/modules.ts",
+        "line": 44,
+        "exported": true
+      },
+      {
+        "name": "createNotification",
+        "kind": "function",
+        "file": "app/actions/notifications.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "createNotificationForUsers",
+        "kind": "function",
+        "file": "app/actions/notifications.ts",
+        "line": 47,
+        "exported": true
+      },
+      {
+        "name": "createQuestion",
+        "kind": "function",
+        "file": "app/actions/quizzes.ts",
+        "line": 161,
+        "exported": true
+      },
+      {
+        "name": "createQuiz",
+        "kind": "function",
+        "file": "app/actions/quizzes.ts",
+        "line": 86,
+        "exported": true
+      },
+      {
+        "name": "createSupabaseClientMock",
+        "kind": "function",
+        "file": "tests/mocks/supabase.ts",
+        "line": 55,
+        "exported": true
+      },
+      {
+        "name": "createSupabaseQueryMock",
+        "kind": "function",
+        "file": "tests/mocks/supabase.ts",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "createTenant",
+        "kind": "function",
+        "file": "lib/supabase/tenants.ts",
+        "line": 98,
+        "exported": true
+      },
+      {
+        "name": "createTenantAction",
+        "kind": "function",
+        "file": "app/(admin)/admin/tenants/new/page.tsx",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "createUser",
+        "kind": "function",
+        "file": "app/actions/auth.ts",
+        "line": 150,
+        "exported": true
+      },
+      {
+        "name": "createUserAction",
+        "kind": "function",
+        "file": "app/(admin)/admin/users/new/page.tsx",
+        "line": 24,
+        "exported": true
+      },
+      {
+        "name": "customizeCourse",
+        "kind": "function",
+        "file": "app/actions/organization-courses.ts",
+        "line": 247,
+        "exported": true
+      },
+      {
+        "name": "CustomizeCoursePage",
+        "kind": "function",
+        "file": "app/(admin)/admin/courses/[id]/customize/page.tsx",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "deleteCourse",
+        "kind": "function",
+        "file": "app/actions/courses.ts",
+        "line": 409,
+        "exported": true
+      }
+    ],
+    "types": [
+      {
+        "name": "AssignmentStatus",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "AssignmentType",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 63,
+        "exported": true
+      },
+      {
+        "name": "ContentType",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "CourseAccessType",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 62,
+        "exported": true
+      },
+      {
+        "name": "CourseCreateInput",
+        "kind": "type",
+        "file": "lib/validators/course.schema.ts",
+        "line": 125,
+        "exported": true
+      },
+      {
+        "name": "CourseFiltersInput",
+        "kind": "type",
+        "file": "lib/validators/course.schema.ts",
+        "line": 127,
+        "exported": true
+      },
+      {
+        "name": "CourseLevel",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "CourseStatus",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "CourseUpdateInput",
+        "kind": "type",
+        "file": "lib/validators/course.schema.ts",
+        "line": 126,
+        "exported": true
+      },
+      {
+        "name": "CourseUpsertInput",
+        "kind": "type",
+        "file": "lib/validators/course.schema.ts",
+        "line": 124,
+        "exported": true
+      },
+      {
+        "name": "CoverCategory",
+        "kind": "type",
+        "file": "components/branding/cover-generator.tsx",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "CoverVariant",
+        "kind": "type",
+        "file": "components/branding/cover-generator.tsx",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "CreateUserInput",
+        "kind": "type",
+        "file": "lib/validators/auth.schema.ts",
+        "line": 118,
+        "exported": true
+      },
+      {
+        "name": "Database",
+        "kind": "type",
+        "file": "lib/supabase/database.types.ts",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "Json",
+        "kind": "type",
+        "file": "lib/supabase/database.types.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "KnowledgeSourceStatus",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "LessonCreateInput",
+        "kind": "type",
+        "file": "lib/validators/content.schema.ts",
+        "line": 111,
+        "exported": true
+      },
+      {
+        "name": "LessonUpdateInput",
+        "kind": "type",
+        "file": "lib/validators/content.schema.ts",
+        "line": 112,
+        "exported": true
+      },
+      {
+        "name": "Locale",
+        "kind": "type",
+        "file": "lib/i18n/translations.ts",
+        "line": 271,
+        "exported": true
+      },
+      {
+        "name": "ModuleCreateInput",
+        "kind": "type",
+        "file": "lib/validators/content.schema.ts",
+        "line": 108,
+        "exported": true
+      },
+      {
+        "name": "ModuleUpdateInput",
+        "kind": "type",
+        "file": "lib/validators/content.schema.ts",
+        "line": 109,
+        "exported": true
+      },
+      {
+        "name": "NotificationFrequency",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 524,
+        "exported": true
+      },
+      {
+        "name": "NotificationType",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 497,
+        "exported": true
+      },
+      {
+        "name": "OrganizationFiltersInput",
+        "kind": "type",
+        "file": "lib/validators/organization.schema.ts",
+        "line": 108,
+        "exported": true
+      },
+      {
+        "name": "OrganizationUpdateInput",
+        "kind": "type",
+        "file": "lib/validators/organization.schema.ts",
+        "line": 109,
+        "exported": true
+      },
+      {
+        "name": "QuestionCreateInput",
+        "kind": "type",
+        "file": "lib/validators/quiz.schema.ts",
+        "line": 157,
+        "exported": true
+      },
+      {
+        "name": "QuestionType",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "QuestionUpdateInput",
+        "kind": "type",
+        "file": "lib/validators/quiz.schema.ts",
+        "line": 158,
+        "exported": true
+      },
+      {
+        "name": "QuizCreateInput",
+        "kind": "type",
+        "file": "lib/validators/quiz.schema.ts",
+        "line": 155,
+        "exported": true
+      },
+      {
+        "name": "QuizUpdateInput",
+        "kind": "type",
+        "file": "lib/validators/quiz.schema.ts",
+        "line": 156,
+        "exported": true
+      },
+      {
+        "name": "ReorderLessonsInput",
+        "kind": "type",
+        "file": "lib/validators/content.schema.ts",
+        "line": 113,
+        "exported": true
+      },
+      {
+        "name": "ReorderModulesInput",
+        "kind": "type",
+        "file": "lib/validators/content.schema.ts",
+        "line": 110,
+        "exported": true
+      },
+      {
+        "name": "ReorderQuestionsInput",
+        "kind": "type",
+        "file": "lib/validators/quiz.schema.ts",
+        "line": 159,
+        "exported": true
+      },
+      {
+        "name": "SignInInput",
+        "kind": "type",
+        "file": "lib/validators/auth.schema.ts",
+        "line": 116,
+        "exported": true
+      },
+      {
+        "name": "SignUpInput",
+        "kind": "type",
+        "file": "lib/validators/auth.schema.ts",
+        "line": 117,
+        "exported": true
+      },
+      {
+        "name": "TranslationKey",
+        "kind": "type",
+        "file": "lib/i18n/translations.ts",
+        "line": 272,
+        "exported": true
+      },
+      {
+        "name": "UserFiltersInput",
+        "kind": "type",
+        "file": "lib/validators/user.schema.ts",
+        "line": 81,
+        "exported": true
+      },
+      {
+        "name": "UserIdInput",
+        "kind": "type",
+        "file": "lib/validators/user.schema.ts",
+        "line": 82,
+        "exported": true
+      },
+      {
+        "name": "UserRole",
+        "kind": "type",
+        "file": "lib/types/database.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "Step1FormData",
+        "kind": "type",
+        "file": "components/admin/ai/course-architect.tsx",
+        "line": 52,
+        "exported": false
+      }
+    ],
+    "enums": []
+  },
+  "publicAPI": [
+    {
+      "name": "ActionError",
+      "kind": "interface",
+      "file": "app/actions/users.ts",
+      "line": 26,
+      "exported": true
+    },
+    {
+      "name": "ActionError",
+      "kind": "interface",
+      "file": "app/actions/quizzes.ts",
+      "line": 31,
+      "exported": true
+    },
+    {
+      "name": "ActionError",
+      "kind": "interface",
+      "file": "app/actions/quiz-attempts.ts",
+      "line": 17,
+      "exported": true
+    },
+    {
+      "name": "ActionError",
+      "kind": "interface",
+      "file": "app/actions/courses.ts",
+      "line": 32,
+      "exported": true
+    },
+    {
+      "name": "ActionError",
+      "kind": "interface",
+      "file": "app/actions/ai-admin.ts",
+      "line": 30,
+      "exported": true
+    },
+    {
+      "name": "ActivityLog",
+      "kind": "interface",
+      "file": "lib/types/database.ts",
+      "line": 332,
+      "exported": true
+    },
+    {
+      "name": "ActivityLog",
+      "kind": "interface",
+      "file": "app/actions/activity-logs.ts",
+      "line": 9,
+      "exported": true
+    },
+    {
+      "name": "ActivityLogFilters",
+      "kind": "interface",
+      "file": "app/actions/activity-logs.ts",
+      "line": 24,
+      "exported": true
+    },
+    {
+      "name": "addCourseToPath",
+      "kind": "function",
+      "file": "app/actions/learning-paths.ts",
+      "line": 260,
+      "exported": true
+    },
+    {
+      "name": "addLicenses",
+      "kind": "function",
+      "file": "app/actions/license-management.ts",
+      "line": 10,
+      "exported": true
+    },
+    {
+      "name": "AddLicensesDialog",
+      "kind": "function",
+      "file": "components/admin/add-licenses-dialog.tsx",
+      "line": 27,
+      "exported": true
+    },
+    {
+      "name": "addUserToTenant",
+      "kind": "function",
+      "file": "lib/supabase/tenants.ts",
+      "line": 164,
+      "exported": true
+    },
+    {
+      "name": "AdminLayout",
+      "kind": "function",
+      "file": "app/(admin)/admin/layout.tsx",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "AdminSettingsPage",
+      "kind": "function",
+      "file": "app/(admin)/admin/settings/page.tsx",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "AIAdminPage",
+      "kind": "function",
+      "file": "app/(admin)/admin/ai/page.tsx",
+      "line": 9,
+      "exported": true
+    },
+    {
+      "name": "AICourseService",
+      "kind": "class",
+      "file": "lib/services/ai-course.service.ts",
+      "line": 77,
+      "exported": true
+    },
+    {
+      "name": "AICourseServiceError",
+      "kind": "class",
+      "file": "lib/services/ai-course.service.ts",
+      "line": 33,
+      "exported": true
+    },
+    {
+      "name": "ApiResponse",
+      "kind": "interface",
+      "file": "lib/types/database.ts",
+      "line": 385,
+      "exported": true
+    },
+    {
+      "name": "approveUser",
+      "kind": "function",
+      "file": "app/actions/users.ts",
+      "line": 154,
+      "exported": true
+    },
+    {
+      "name": "AssignCourseConfig",
+      "kind": "interface",
+      "file": "app/actions/organization-courses.ts",
+      "line": 17,
+      "exported": true
+    },
+    {
+      "name": "AssignCoursesToUsersPage",
+      "kind": "function",
+      "file": "app/(admin)/admin/organizations/[id]/users/assign-courses/page.tsx",
+      "line": 19,
+      "exported": true
+    },
+    {
+      "name": "assignCourseToOrganization",
+      "kind": "function",
+      "file": "app/actions/organization-courses.ts",
+      "line": 29,
+      "exported": true
+    },
+    {
+      "name": "assignCourseToUser",
+      "kind": "function",
+      "file": "app/actions/organization-courses.ts",
+      "line": 292,
+      "exported": true
+    },
+    {
+      "name": "AssignmentStatus",
+      "kind": "type",
+      "file": "lib/types/database.ts",
+      "line": 9,
+      "exported": true
+    },
+    {
+      "name": "AssignmentType",
+      "kind": "type",
+      "file": "lib/types/database.ts",
+      "line": 63,
+      "exported": true
+    },
+    {
+      "name": "AssignPathForm",
+      "kind": "function",
+      "file": "components/admin/assign-path-form.tsx",
+      "line": 21,
+      "exported": true
+    },
+    {
+      "name": "AssignPathPage",
+      "kind": "function",
+      "file": "app/(admin)/admin/paths/[id]/assign/page.tsx",
+      "line": 13,
+      "exported": true
+    },
+    {
+      "name": "assignPathToUser",
+      "kind": "function",
+      "file": "app/actions/path-assignments.ts",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "assignPathToUsers",
+      "kind": "function",
+      "file": "app/actions/path-assignments.ts",
+      "line": 105,
+      "exported": true
+    },
+    {
+      "name": "AuthActionError",
+      "kind": "interface",
+      "file": "app/actions/auth.ts",
+      "line": 28,
+      "exported": true
+    },
+    {
+      "name": "AuthContext",
+      "kind": "interface",
+      "file": "lib/auth/types.ts",
+      "line": 6,
+      "exported": true
+    },
+    {
+      "name": "AuthResult",
+      "kind": "interface",
+      "file": "lib/auth/types.ts",
+      "line": 14,
+      "exported": true
+    },
+    {
+      "name": "AuthService",
+      "kind": "class",
+      "file": "lib/services/auth.service.ts",
+      "line": 55,
+      "exported": true
+    },
+    {
+      "name": "AuthServiceError",
+      "kind": "class",
+      "file": "lib/services/auth.service.ts",
+      "line": 40,
+      "exported": true
+    },
+    {
+      "name": "BadgeProps",
+      "kind": "interface",
+      "file": "components/ui/badge.tsx",
+      "line": 26,
+      "exported": true
+    },
+    {
+      "name": "ButtonProps",
+      "kind": "interface",
+      "file": "components/ui/button.tsx",
+      "line": 36,
+      "exported": true
+    },
+    {
+      "name": "Certificate",
+      "kind": "interface",
+      "file": "lib/types/database.ts",
+      "line": 310,
+      "exported": true
+    },
+    {
+      "name": "CertificateTemplate",
+      "kind": "interface",
+      "file": "lib/types/database.ts",
+      "line": 116,
+      "exported": true
+    },
+    {
+      "name": "changePassword",
+      "kind": "function",
+      "file": "app/actions/profile.ts",
+      "line": 74,
+      "exported": true
+    },
+    {
+      "name": "chat",
+      "kind": "function",
+      "file": "lib/services/ai-client.ts",
+      "line": 175,
+      "exported": true
+    },
+    {
+      "name": "chatWithStructuredOutput",
+      "kind": "function",
+      "file": "lib/services/ai-client.ts",
+      "line": 129,
+      "exported": true
+    },
+    {
+      "name": "checkAssetOrganization",
+      "kind": "function",
+      "file": "app/actions/scans.ts",
+      "line": 23,
+      "exported": true
+    },
+    {
+      "name": "checkLicenseAvailability",
+      "kind": "function",
+      "file": "app/actions/organization-courses.ts",
+      "line": 174,
+      "exported": true
+    },
+    {
+      "name": "checkPathCompletion",
+      "kind": "function",
+      "file": "app/actions/path-assignments.ts",
+      "line": 193,
+      "exported": true
+    },
+    {
+      "name": "checkRateLimit",
+      "kind": "function",
+      "file": "lib/notifications/intelligent.ts",
+      "line": 10,
+      "exported": true
+    },
+    {
+      "name": "checkUserRole",
+      "kind": "function",
+      "file": "lib/supabase/client.ts",
+      "line": 39,
+      "exported": true
+    },
+    {
+      "name": "clearAuthContext",
+      "kind": "function",
+      "file": "lib/auth/context.ts",
+      "line": 47,
+      "exported": true
+    },
+    {
+      "name": "ClientCourseForm",
+      "kind": "function",
+      "file": "app/(admin)/admin/courses/new/client-form.tsx",
+      "line": 30,
+      "exported": true
+    },
+    {
+      "name": "ClientEditForm",
+      "kind": "function",
+      "file": "app/(admin)/admin/courses/[id]/edit/client-form.tsx",
+      "line": 34,
+      "exported": true
+    },
+    {
+      "name": "cn",
+      "kind": "function",
+      "file": "lib/utils.ts",
+      "line": 4,
+      "exported": true
+    }
+  ],
+  "dependencies": {
+    "mostImported": [
+      {
+        "file": "/home/resper/nTraining/lib/supabase/database.types.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/resper/nTraining/lib/services/ai-client.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/resper/nTraining/lib/email/resend.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/resper/nTraining/app/actions/courses.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/resper/nTraining/app/actions/progress.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/resper/nTraining/lib/supabase/server.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/lib/i18n/translations.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/lib/auth/context.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/lib/auth/types.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/app/actions/storage.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/app/actions/learning-paths.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/app/actions/course-progress.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/components/lesson-player/video-player.tsx",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/components/lesson-player/pdf-viewer.tsx",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/components/lesson-player/text-viewer.tsx",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/app/globals.css",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/components/ui/loading.tsx",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/components/ui/skeleton.tsx",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/components/notifications/notification-item.tsx",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nTraining/components/admin/edit-module-dialog.tsx",
+        "importedBy": 1
+      }
+    ]
+  },
+  "stats": {
+    "totalSymbols": 543,
+    "exportedSymbols": 425,
+    "analysisTimeMs": 1333
+  }
+}
