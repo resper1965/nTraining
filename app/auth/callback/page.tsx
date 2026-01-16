@@ -45,7 +45,14 @@ function OAuthCallbackProcessor() {
           next = '/admin'
         }
         
+        // IMPORTANTE: Aguardar um pouco antes de redirecionar para garantir que o perfil está disponível
+        console.log('[OAuth Callback] ✅ Sessão existente. Aguardando 500ms antes de redirecionar...')
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        if (!isMounted || processingComplete) return
+        
         processingComplete = true
+        console.log('[OAuth Callback] 🚀 Redirecionando para:', next, 'User ID:', userId)
         router.push(next)
         return
       }
@@ -176,7 +183,14 @@ function OAuthCallbackProcessor() {
                   next = '/auth/waiting-room'
                 }
                 
+                // IMPORTANTE: Aguardar um pouco mais antes de redirecionar
+                console.log('[OAuth Callback] ✅ Perfil encontrado após segunda tentativa. Aguardando 500ms...')
+                await new Promise(resolve => setTimeout(resolve, 500))
+                
+                if (!isMounted || processingComplete) return
+                
                 processingComplete = true
+                console.log('[OAuth Callback] 🚀 Redirecionando para:', next, 'User ID:', userId)
                 if (isMounted) {
                   router.push(next)
                 }
@@ -199,7 +213,14 @@ function OAuthCallbackProcessor() {
                 next = '/auth/waiting-room'
               }
               
+              // IMPORTANTE: Aguardar um pouco mais antes de redirecionar
+              console.log('[OAuth Callback] ✅ Perfil encontrado após segunda tentativa (finalProfile). Aguardando 500ms...')
+              await new Promise(resolve => setTimeout(resolve, 500))
+              
+              if (!isMounted || processingComplete) return
+              
               processingComplete = true
+              console.log('[OAuth Callback] 🚀 Redirecionando para:', next, 'User ID:', userId)
               if (isMounted) {
                 router.push(next)
               }
@@ -220,7 +241,16 @@ function OAuthCallbackProcessor() {
               next = '/auth/waiting-room'
             }
             
+            // IMPORTANTE: Aguardar um pouco mais antes de redirecionar
+            // para garantir que o perfil está completamente criado e disponível
+            console.log('[OAuth Callback] ✅ Perfil encontrado. Aguardando 500ms antes de redirecionar para garantir disponibilidade...')
+            await new Promise(resolve => setTimeout(resolve, 500))
+            
+            // Verificar uma última vez se componente ainda está montado
+            if (!isMounted || processingComplete) return
+            
             processingComplete = true
+            console.log('[OAuth Callback] 🚀 Redirecionando para:', next, 'User ID:', userId)
             if (isMounted) {
               router.push(next)
             }
@@ -434,7 +464,14 @@ function OAuthCallbackProcessor() {
                     next = '/auth/waiting-room'
                   }
                   
+                  // IMPORTANTE: Aguardar um pouco mais antes de redirecionar
+                  console.log('[OAuth Callback] ✅ Perfil encontrado na última tentativa. Aguardando 500ms...')
+                  await new Promise(resolve => setTimeout(resolve, 500))
+                  
+                  if (!isMounted || processingComplete) return
+                  
                   processingComplete = true
+                  console.log('[OAuth Callback] 🚀 Redirecionando para:', next, 'User ID:', userId)
                   if (isMounted) {
                     router.push(next)
                   }
@@ -498,15 +535,21 @@ function OAuthCallbackProcessor() {
               next = '/auth/waiting-room'
             }
             
+            // IMPORTANTE: Aguardar um pouco mais antes de redirecionar
+            // para garantir que o perfil está completamente criado e disponível
+            console.log('[OAuth Callback] ✅ Perfil encontrado (hash flow). Aguardando 500ms antes de redirecionar...')
+            await new Promise(resolve => setTimeout(resolve, 500))
+            
             // Limpar o hash da URL
             window.history.replaceState({}, '', window.location.pathname + window.location.search)
+            
+            // Verificar uma última vez antes de redirecionar
+            if (!isMounted || processingComplete) return
             
             // Marcar como completo antes de redirecionar
             processingComplete = true
             
-            // Verificar uma última vez antes de redirecionar
-            if (!isMounted) return
-            
+            console.log('[OAuth Callback] 🚀 Redirecionando para:', next, 'User ID:', userId)
             // Redirecionar para a página solicitada
             router.push(next)
             }
