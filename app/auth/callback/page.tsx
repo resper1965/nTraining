@@ -129,12 +129,56 @@ function OAuthCallbackProcessor() {
                 .maybeSingle()
               
               if (!finalProfile) {
-                console.error('[OAuth Callback] Perfil ainda não existe após aguardar. Redirecionando para waiting-room.')
-                // Se ainda não existir, pode ser um problema - redirecionar para waiting-room
-                // O waiting-room vai verificar e redirecionar apropriadamente
+                console.error('[OAuth Callback] Perfil ainda não existe após aguardar. Aguardando mais 2 segundos antes de redirecionar.')
+                // Aguardar mais 2 segundos - pode ser que o trigger esteja muito lento
+                await new Promise(resolve => setTimeout(resolve, 2000))
+                const { data: lastAttemptProfile } = await supabase
+                  .from('users')
+                  .select('is_superadmin, is_active')
+                  .eq('id', userId)
+                  .maybeSingle()
+                
+                if (!lastAttemptProfile) {
+                  console.error('[OAuth Callback] Perfil AINDA não existe após 3.5s de espera. Isso pode indicar problema no trigger.')
+                  console.error('[OAuth Callback] User ID:', userId)
+                  console.error('[OAuth Callback] Vamos forçar redirecionamento para /dashboard - o layout vai lidar com isso.')
+                  // Em vez de redirecionar para waiting-room (que também precisa do perfil),
+                  // vamos redirecionar para dashboard e deixar o layout lidar
+                  // Mas isso pode causar loop - melhor mostrar erro
+                  setStatus('error')
+                  setErrorMessage('Erro: perfil de usuário não foi criado automaticamente. Por favor, entre em contato com o suporte.')
+                  const timeoutId = setTimeout(() => {
+                    if (isMounted) {
+                      // Tentar fazer logout e voltar para login
+                      supabase.auth.signOut().then(() => {
+                        router.push('/auth/login?error=Perfil%20não%20criado%20automaticamente')
+                      })
+                    }
+                  }, 3000)
+                  timeoutIds.push(timeoutId)
+                  processingComplete = true
+                  return
+                }
+                
+                // Usar perfil encontrado na última tentativa
+                const finalUserProfile = lastAttemptProfile
+                
+                // Verificar novamente se componente ainda está montado antes de redirecionar
+                if (!isMounted || processingComplete) return
+                
+                let next = searchParams.get('next') || '/dashboard'
+                
+                // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
+                if (finalUserProfile.is_superadmin === true && !searchParams.get('next')) {
+                  next = '/admin'
+                } else if (!finalUserProfile.is_active && !finalUserProfile.is_superadmin) {
+                  // Se não está ativo e não é superadmin, ir para waiting-room
+                  next = '/auth/waiting-room'
+                }
+                
                 processingComplete = true
                 if (isMounted) {
-                  router.push('/auth/waiting-room')
+                  router.push(next)
                 }
                 return
               }
@@ -327,28 +371,91 @@ function OAuthCallbackProcessor() {
                 console.error('[OAuth Callback] Error fetching user profile:', profileError)
               }
               
-              // Se perfil ainda não existe após retry, pode ser que o trigger ainda não processou
-              // Neste caso, aguardar mais um pouco ou redirecionar para uma página que não dependa do perfil
-              if (!userProfile && !profileExists) {
-                console.warn('[OAuth Callback] Perfil não encontrado após retry loop. Aguardando mais...')
-                // Aguardar mais 1 segundo e tentar novamente
-                await new Promise(resolve => setTimeout(resolve, 1000))
-                const { data: finalProfile } = await supabase
+            // Se perfil ainda não existe após retry, pode ser que o trigger ainda não processou
+            // Neste caso, aguardar mais um pouco ou tentar criar manualmente
+            if (!userProfile && !profileExists) {
+              console.warn('[OAuth Callback] Perfil não encontrado após retry loop. Aguardando mais...')
+              console.warn('[OAuth Callback] User ID:', userId)
+              // Aguardar mais 2 segundos (totalizando até 4.5s de espera)
+              await new Promise(resolve => setTimeout(resolve, 2000))
+              const { data: finalProfile, error: finalError } = await supabase
+                .from('users')
+                .select('is_superadmin, is_active')
+                .eq('id', userId)
+                .maybeSingle()
+              
+              if (finalError) {
+                console.error('[OAuth Callback] Erro ao buscar perfil na segunda tentativa:', finalError)
+                console.error('[OAuth Callback] Erro pode ser RLS ou perfil realmente não existe')
+              }
+              
+              if (!finalProfile) {
+                console.error('[OAuth Callback] ⚠️ PERFIL NÃO ENCONTRADO após 4.5s de espera')
+                console.error('[OAuth Callback] User ID:', userId)
+                console.error('[OAuth Callback] Isso pode indicar:')
+                console.error('[OAuth Callback] 1. Trigger handle_new_user() não está funcionando')
+                console.error('[OAuth Callback] 2. RLS está bloqueando a query SELECT')
+                console.error('[OAuth Callback] 3. Problema de timing/sincronização')
+                console.error('[OAuth Callback] 4. Usuário não foi inserido em auth.users corretamente')
+                
+                // Verificar se o usuário existe no auth.users
+                const { data: authUser } = await supabase.auth.getUser()
+                console.log('[OAuth Callback] Auth user existe?', !!authUser?.user)
+                console.log('[OAuth Callback] Auth user ID:', authUser?.user?.id)
+                
+                // Mostrar erro informativo ao usuário
+                setStatus('error')
+                setErrorMessage('Erro ao criar perfil de usuário. Isso pode levar alguns segundos. Por favor, recarregue a página ou tente fazer login novamente.')
+                
+                // Aguardar mais 3 segundos e tentar uma última vez antes de desistir
+                await new Promise(resolve => setTimeout(resolve, 3000))
+                
+                const { data: lastChanceProfile, error: lastError } = await supabase
                   .from('users')
                   .select('is_superadmin, is_active')
                   .eq('id', userId)
                   .maybeSingle()
                 
-                if (!finalProfile) {
-                  console.error('[OAuth Callback] Perfil ainda não existe após aguardar. Redirecionando para waiting-room.')
-                  // Se ainda não existir, pode ser um problema - redirecionar para waiting-room
-                  // O waiting-room vai verificar e redirecionar apropriadamente
+                if (lastError) {
+                  console.error('[OAuth Callback] Erro na última tentativa:', lastError)
+                  console.error('[OAuth Callback] Código do erro:', lastError.code)
+                  console.error('[OAuth Callback] Mensagem:', lastError.message)
+                }
+                
+                if (lastChanceProfile) {
+                  console.log('[OAuth Callback] ✅ Perfil encontrado na última tentativa!')
+                  const finalUserProfile = lastChanceProfile
+                  if (!isMounted || processingComplete) return
+                  
+                  let next = searchParams.get('next') || '/dashboard'
+                  if (finalUserProfile.is_superadmin === true && !searchParams.get('next')) {
+                    next = '/admin'
+                  } else if (!finalUserProfile.is_active && !finalUserProfile.is_superadmin) {
+                    next = '/auth/waiting-room'
+                  }
+                  
                   processingComplete = true
                   if (isMounted) {
-                    router.push('/auth/waiting-room')
+                    router.push(next)
                   }
                   return
                 }
+                
+                // Se ainda não existir após 7.5s total, mostrar erro e redirecionar
+                console.error('[OAuth Callback] ❌ PERFIL AINDA NÃO EXISTE após 7.5s. Redirecionando para login.')
+                setErrorMessage('Erro: perfil de usuário não foi criado automaticamente após vários segundos. Por favor, entre em contato com o suporte ou tente fazer login novamente.')
+                const timeoutId = setTimeout(() => {
+                  if (isMounted) {
+                    // Fazer logout e voltar para login
+                    supabase.auth.signOut().then(() => {
+                      router.push('/auth/login?error=Perfil%20não%20criado%20automaticamente')
+                    })
+                  }
+                }, 5000)
+                timeoutIds.push(timeoutId)
+                processingComplete = true
+                return
+              }
                 
                 // Usar perfil encontrado na segunda tentativa
                 const finalUserProfile = finalProfile
