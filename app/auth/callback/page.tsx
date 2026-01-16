@@ -26,8 +26,25 @@ function OAuthCallbackProcessor() {
       const hasExistingSession = !!existingSession
       
       if (existingSession && isMounted && !processingComplete) {
-        // Se já está autenticado, redirecionar diretamente
-        const next = searchParams.get('next') || '/dashboard'
+        // Se já está autenticado, verificar se é superadmin antes de redirecionar
+        const userId = existingSession.user.id
+        const { data: userProfile, error: profileError } = await supabase
+          .from('users')
+          .select('is_superadmin')
+          .eq('id', userId)
+          .maybeSingle()
+        
+        if (profileError) {
+          console.error('[OAuth Callback] Error fetching user profile:', profileError)
+        }
+        
+        let next = searchParams.get('next') || '/dashboard'
+        
+        // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
+        if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
+          next = '/admin'
+        }
+        
         processingComplete = true
         router.push(next)
         return
@@ -56,8 +73,61 @@ function OAuthCallbackProcessor() {
           }
 
           if (data?.session && isMounted && !processingComplete) {
-            // Obter o parâmetro 'next' ou usar dashboard
-            const next = searchParams.get('next') || '/dashboard'
+            // Aguardar criação do perfil pelo trigger (para novos usuários OAuth)
+            // Tentar até 5 vezes com delay de 500ms cada
+            const userId = data.session.user.id
+            let retries = 0
+            const maxRetries = 5
+            let profileExists = false
+            
+            while (retries < maxRetries && !profileExists && isMounted) {
+              const { data: userProfile, error: profileError } = await supabase
+                .from('users')
+                .select('id')
+                .eq('id', userId)
+                .maybeSingle()
+              
+              if (profileError) {
+                console.error('[OAuth Callback] Error checking profile existence:', profileError)
+              }
+              
+              if (userProfile) {
+                profileExists = true
+                break
+              }
+              
+              // Aguardar 500ms antes da próxima tentativa
+              await new Promise(resolve => setTimeout(resolve, 500))
+              retries++
+            }
+            
+            // Verificar se componente ainda está montado após o retry loop
+            if (!isMounted || processingComplete) return
+            
+            // Verificar se usuário é superadmin e redirecionar para /admin se for
+            const { data: userProfile, error: profileError } = await supabase
+              .from('users')
+              .select('is_superadmin')
+              .eq('id', userId)
+              .maybeSingle()
+            
+            if (profileError) {
+              console.error('[OAuth Callback] Error fetching user profile:', profileError)
+              // Se não conseguir buscar perfil após retry, usar dashboard como fallback seguro
+              // Mas isso é um estado inválido - o perfil deveria existir após o retry
+            }
+            
+            // Verificar novamente se componente ainda está montado antes de redirecionar
+            if (!isMounted || processingComplete) return
+            
+            let next = searchParams.get('next') || '/dashboard'
+            
+            // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
+            // Verificar explicitamente que userProfile existe e is_superadmin é true
+            if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
+              next = '/admin'
+            }
+            
             processingComplete = true
             router.push(next)
             return
@@ -147,14 +217,86 @@ function OAuthCallbackProcessor() {
             }
 
             if (isMounted && !processingComplete) {
-              // Obter o parâmetro 'next' da URL ou usar dashboard como padrão
-              const next = searchParams.get('next') || '/dashboard'
+              // Obter user ID uma vez fora do loop (evita múltiplas chamadas)
+              const { data: userData, error: userError } = await supabase.auth.getUser()
+              
+              if (userError || !userData?.user?.id) {
+                console.error('[OAuth Callback] Error getting user:', userError)
+                setStatus('error')
+                setErrorMessage(userError?.message || 'Erro ao obter dados do usuário')
+                const timeoutId = setTimeout(() => {
+                  if (isMounted) {
+                    router.push(`/auth/login?error=${encodeURIComponent(userError?.message || 'Erro ao autenticar')}`)
+                  }
+                }, 2000)
+                timeoutIds.push(timeoutId)
+                return
+              }
+              
+              const userId = userData.user.id
+              
+              // Aguardar criação do perfil pelo trigger (para novos usuários OAuth)
+              // Tentar até 5 vezes com delay de 500ms cada
+              let retries = 0
+              const maxRetries = 5
+              let profileExists = false
+              
+              while (retries < maxRetries && !profileExists && isMounted) {
+                const { data: userProfile, error: profileError } = await supabase
+                  .from('users')
+                  .select('id')
+                  .eq('id', userId)
+                  .maybeSingle()
+                
+                if (profileError) {
+                  console.error('[OAuth Callback] Error checking profile existence:', profileError)
+                }
+                
+                if (userProfile) {
+                  profileExists = true
+                  break
+                }
+                
+                // Aguardar 500ms antes da próxima tentativa
+                await new Promise(resolve => setTimeout(resolve, 500))
+                retries++
+              }
+              
+              // Verificar se componente ainda está montado após o retry loop
+              if (!isMounted || processingComplete) return
+              
+              // Verificar se usuário é superadmin e redirecionar para /admin se for
+              const { data: userProfile, error: profileError } = await supabase
+                .from('users')
+                .select('is_superadmin')
+                .eq('id', userId)
+                .maybeSingle()
+              
+              if (profileError) {
+                console.error('[OAuth Callback] Error fetching user profile:', profileError)
+                // Se não conseguir buscar perfil após retry, usar dashboard como fallback seguro
+                // Mas isso é um estado inválido - o perfil deveria existir após o retry
+              }
+              
+              // Verificar novamente se componente ainda está montado antes de redirecionar
+              if (!isMounted || processingComplete) return
+              
+              let next = searchParams.get('next') || '/dashboard'
+              
+              // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
+              // Verificar explicitamente que userProfile existe e is_superadmin é true
+              if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
+                next = '/admin'
+              }
               
               // Limpar o hash da URL
               window.history.replaceState({}, '', window.location.pathname + window.location.search)
               
               // Marcar como completo antes de redirecionar
               processingComplete = true
+              
+              // Verificar uma última vez antes de redirecionar
+              if (!isMounted) return
               
               // Redirecionar para a página solicitada
               router.push(next)

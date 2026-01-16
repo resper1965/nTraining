@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { getUserNotifications, getUnreadNotificationCount, markNotificationAsRead } from '@/app/actions/notifications'
 import type { Notification } from '@/lib/types/database'
 import Link from 'next/link'
@@ -18,19 +18,7 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false)
   const isMountedRef = useRef(true)
 
-  useEffect(() => {
-    isMountedRef.current = true
-    
-    loadNotifications()
-    const interval = setInterval(loadNotifications, 30000)
-    
-    return () => {
-      isMountedRef.current = false
-      clearInterval(interval)
-    }
-  }, [])
-
-  async function loadNotifications() {
+  const loadNotifications = useCallback(async () => {
     // Verificar se ainda está montado antes de fazer a requisição
     if (!isMountedRef.current) return
     
@@ -53,7 +41,19 @@ export function NotificationBell() {
       setUnreadCount(0)
       setNotifications([])
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    
+    loadNotifications()
+    const interval = setInterval(loadNotifications, 30000)
+    
+    return () => {
+      isMountedRef.current = false
+      clearInterval(interval)
+    }
+  }, [loadNotifications])
 
   async function handleMarkAsRead(notificationId: string) {
     try {

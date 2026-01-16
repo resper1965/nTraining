@@ -20,10 +20,6 @@ function NotificationListComponent({ onNotificationClick }: NotificationListProp
   const [loading, setLoading] = useState(true)
   const [markingAll, setMarkingAll] = useState(false)
 
-  useEffect(() => {
-    loadNotifications()
-  }, [])
-
   const loadNotifications = useCallback(async () => {
     try {
       setLoading(true)
@@ -38,6 +34,10 @@ function NotificationListComponent({ onNotificationClick }: NotificationListProp
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    loadNotifications()
+  }, [loadNotifications])
 
   const handleMarkAllAsRead = useCallback(async () => {
     try {
