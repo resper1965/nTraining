@@ -456,32 +456,9 @@ function OAuthCallbackProcessor() {
                 processingComplete = true
                 return
               }
-                
-                // Usar perfil encontrado na segunda tentativa
-                const finalUserProfile = finalProfile
-                
-                // Verificar novamente se componente ainda está montado antes de redirecionar
-                if (!isMounted || processingComplete) return
-                
-                let next = searchParams.get('next') || '/dashboard'
-                
-                // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
-                if (finalUserProfile.is_superadmin === true && !searchParams.get('next')) {
-                  next = '/admin'
-                } else if (!finalUserProfile.is_active && !finalUserProfile.is_superadmin) {
-                  // Se não está ativo e não é superadmin, ir para waiting-room
-                  next = '/auth/waiting-room'
-                }
-                
-                // Limpar o hash da URL
-                window.history.replaceState({}, '', window.location.pathname + window.location.search)
-                
-                processingComplete = true
-                if (isMounted) {
-                  router.push(next)
-                }
-                return
-              }
+              
+              // Usar perfil encontrado na segunda tentativa
+              const finalUserProfile = finalProfile
               
               // Verificar novamente se componente ainda está montado antes de redirecionar
               if (!isMounted || processingComplete) return
@@ -489,10 +466,9 @@ function OAuthCallbackProcessor() {
               let next = searchParams.get('next') || '/dashboard'
               
               // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
-              // Verificar explicitamente que userProfile existe e is_superadmin é true
-              if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
+              if (finalUserProfile.is_superadmin === true && !searchParams.get('next')) {
                 next = '/admin'
-              } else if (userProfile && !userProfile.is_active && !userProfile.is_superadmin) {
+              } else if (!finalUserProfile.is_active && !finalUserProfile.is_superadmin) {
                 // Se não está ativo e não é superadmin, ir para waiting-room
                 next = '/auth/waiting-room'
               }
@@ -500,14 +476,39 @@ function OAuthCallbackProcessor() {
               // Limpar o hash da URL
               window.history.replaceState({}, '', window.location.pathname + window.location.search)
               
-              // Marcar como completo antes de redirecionar
               processingComplete = true
-              
-              // Verificar uma última vez antes de redirecionar
-              if (!isMounted) return
-              
-              // Redirecionar para a página solicitada
-              router.push(next)
+              if (isMounted) {
+                router.push(next)
+              }
+              return
+            }
+            
+            // Se chegou aqui, o perfil existe após o retry loop ou segunda tentativa
+            // Verificar novamente se componente ainda está montado antes de redirecionar
+            if (!isMounted || processingComplete) return
+            
+            let next = searchParams.get('next') || '/dashboard'
+            
+            // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
+            // Verificar explicitamente que userProfile existe e is_superadmin é true
+            if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
+              next = '/admin'
+            } else if (userProfile && !userProfile.is_active && !userProfile.is_superadmin) {
+              // Se não está ativo e não é superadmin, ir para waiting-room
+              next = '/auth/waiting-room'
+            }
+            
+            // Limpar o hash da URL
+            window.history.replaceState({}, '', window.location.pathname + window.location.search)
+            
+            // Marcar como completo antes de redirecionar
+            processingComplete = true
+            
+            // Verificar uma última vez antes de redirecionar
+            if (!isMounted) return
+            
+            // Redirecionar para a página solicitada
+            router.push(next)
             }
           } catch (error) {
             if (!isMounted || processingComplete) return
@@ -544,6 +545,23 @@ function OAuthCallbackProcessor() {
           }
         }, 2000)
         timeoutIds.push(timeoutId)
+        processingComplete = true
+      }
+      
+      // FALLBACK: Se chegou aqui e ainda não processou nada, garantir redirecionamento
+      // Isso evita que o callback não redirecione e o usuário fique preso
+      if (!processingComplete && isMounted) {
+        console.warn('[OAuth Callback] ⚠️ Callback não processou nada após todas as verificações')
+        console.warn('[OAuth Callback] Redirecionando para login por segurança')
+        setStatus('error')
+        setErrorMessage('Erro ao processar autenticação. Redirecionando...')
+        const fallbackTimeout = setTimeout(() => {
+          if (isMounted) {
+            router.push('/auth/login?error=Nenhum%20dado%20de%20autenticação%20encontrado')
+          }
+        }, 3000)
+        timeoutIds.push(fallbackTimeout)
+        processingComplete = true
       }
     }
 
