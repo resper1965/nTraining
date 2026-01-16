@@ -303,23 +303,8 @@ function OAuthCallbackProcessor() {
 
         if (accessToken && refreshToken && isMounted && !processingComplete) {
           try {
-            // Usar resultado cacheado da verificação inicial (evita requisição duplicada)
-            // Se já verificamos no início e não havia sessão, não precisamos verificar novamente
-            // Apenas verificar novamente se passou tempo suficiente ou se não verificamos antes
-            if (hasExistingSession && isMounted && !processingComplete) {
-              // Sessão já existe (do cache), aguardar um pouco antes de redirecionar
-              const next = searchParams.get('next') || '/dashboard'
-              console.log('[OAuth Callback] ✅ Sessão existente (hash flow). Aguardando 500ms...')
-              await new Promise(resolve => setTimeout(resolve, 500))
-              
-              if (!isMounted || processingComplete) return
-              
-              processingComplete = true
-              console.log('[OAuth Callback] 🚀 Redirecionando para:', next)
-              router.push(next)
-              return
-            }
-
+            // IMPORTANTE: Sempre processar tokens do hash, mesmo se houver sessão existente
+            // Isso garante que a sessão está corretamente configurada e o perfil está pronto
             // Configurar a sessão com os tokens recebidos
             const { error: sessionError } = await supabase.auth.setSession({
               access_token: accessToken,
