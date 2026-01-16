@@ -19,11 +19,27 @@ function OAuthCallbackProcessor() {
     let processingComplete = false
 
     const handleOAuthCallback = async () => {
-      if (!isMounted || processingComplete) return
+      // LOG INICIAL: Debug do que está acontecendo
+      console.log('[OAuth Callback] 🔍 INÍCIO - Debug completo do callback')
+      console.log('[OAuth Callback] URL completa:', window.location.href)
+      console.log('[OAuth Callback] Pathname:', window.location.pathname)
+      console.log('[OAuth Callback] Search:', window.location.search)
+      console.log('[OAuth Callback] Hash:', window.location.hash)
+      console.log('[OAuth Callback] SearchParams:', searchParams.toString())
+      console.log('[OAuth Callback] Code param:', searchParams.get('code'))
+      console.log('[OAuth Callback] Next param:', searchParams.get('next'))
+      console.log('[OAuth Callback] isMounted:', isMounted, 'processingComplete:', processingComplete)
+      
+      if (!isMounted || processingComplete) {
+        console.log('[OAuth Callback] ⚠️ Abortando: componente desmontado ou processamento completo')
+        return
+      }
 
       // Verificar se já existe uma sessão ativa (cachear resultado para evitar múltiplas chamadas)
+      console.log('[OAuth Callback] 🔍 Verificando sessão existente...')
       const { data: { session: existingSession } } = await supabase.auth.getSession()
       const hasExistingSession = !!existingSession
+      console.log('[OAuth Callback] Sessão existente?', hasExistingSession, 'User ID:', existingSession?.user?.id)
       
       if (existingSession && isMounted && !processingComplete) {
         // Se já está autenticado, verificar se é superadmin antes de redirecionar
