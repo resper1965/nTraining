@@ -105,16 +105,61 @@ function OAuthCallbackProcessor() {
             if (!isMounted || processingComplete) return
             
             // Verificar se usuário é superadmin e redirecionar para /admin se for
+            // IMPORTANTE: Se perfil não existir após retry, aguardar mais um pouco ou redirecionar para waiting-room
             const { data: userProfile, error: profileError } = await supabase
               .from('users')
-              .select('is_superadmin')
+              .select('is_superadmin, is_active')
               .eq('id', userId)
               .maybeSingle()
             
             if (profileError) {
               console.error('[OAuth Callback] Error fetching user profile:', profileError)
-              // Se não conseguir buscar perfil após retry, usar dashboard como fallback seguro
-              // Mas isso é um estado inválido - o perfil deveria existir após o retry
+            }
+            
+            // Se perfil ainda não existe após retry, pode ser que o trigger ainda não processou
+            // Neste caso, aguardar mais um pouco ou redirecionar para uma página que não dependa do perfil
+            if (!userProfile && !profileExists) {
+              console.warn('[OAuth Callback] Perfil não encontrado após retry loop. Aguardando mais...')
+              // Aguardar mais 1 segundo e tentar novamente
+              await new Promise(resolve => setTimeout(resolve, 1000))
+              const { data: finalProfile } = await supabase
+                .from('users')
+                .select('is_superadmin, is_active')
+                .eq('id', userId)
+                .maybeSingle()
+              
+              if (!finalProfile) {
+                console.error('[OAuth Callback] Perfil ainda não existe após aguardar. Redirecionando para waiting-room.')
+                // Se ainda não existir, pode ser um problema - redirecionar para waiting-room
+                // O waiting-room vai verificar e redirecionar apropriadamente
+                processingComplete = true
+                if (isMounted) {
+                  router.push('/auth/waiting-room')
+                }
+                return
+              }
+              
+              // Usar perfil encontrado na segunda tentativa
+              const finalUserProfile = finalProfile
+              
+              // Verificar novamente se componente ainda está montado antes de redirecionar
+              if (!isMounted || processingComplete) return
+              
+              let next = searchParams.get('next') || '/dashboard'
+              
+              // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
+              if (finalUserProfile.is_superadmin === true && !searchParams.get('next')) {
+                next = '/admin'
+              } else if (!finalUserProfile.is_active && !finalUserProfile.is_superadmin) {
+                // Se não está ativo e não é superadmin, ir para waiting-room
+                next = '/auth/waiting-room'
+              }
+              
+              processingComplete = true
+              if (isMounted) {
+                router.push(next)
+              }
+              return
             }
             
             // Verificar novamente se componente ainda está montado antes de redirecionar
@@ -126,10 +171,15 @@ function OAuthCallbackProcessor() {
             // Verificar explicitamente que userProfile existe e is_superadmin é true
             if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
               next = '/admin'
+            } else if (userProfile && !userProfile.is_active && !userProfile.is_superadmin) {
+              // Se não está ativo e não é superadmin, ir para waiting-room
+              next = '/auth/waiting-room'
             }
             
             processingComplete = true
-            router.push(next)
+            if (isMounted) {
+              router.push(next)
+            }
             return
           }
         } catch (error) {
@@ -266,16 +316,64 @@ function OAuthCallbackProcessor() {
               if (!isMounted || processingComplete) return
               
               // Verificar se usuário é superadmin e redirecionar para /admin se for
+              // IMPORTANTE: Se perfil não existir após retry, aguardar mais um pouco ou redirecionar para waiting-room
               const { data: userProfile, error: profileError } = await supabase
                 .from('users')
-                .select('is_superadmin')
+                .select('is_superadmin, is_active')
                 .eq('id', userId)
                 .maybeSingle()
               
               if (profileError) {
                 console.error('[OAuth Callback] Error fetching user profile:', profileError)
-                // Se não conseguir buscar perfil após retry, usar dashboard como fallback seguro
-                // Mas isso é um estado inválido - o perfil deveria existir após o retry
+              }
+              
+              // Se perfil ainda não existe após retry, pode ser que o trigger ainda não processou
+              // Neste caso, aguardar mais um pouco ou redirecionar para uma página que não dependa do perfil
+              if (!userProfile && !profileExists) {
+                console.warn('[OAuth Callback] Perfil não encontrado após retry loop. Aguardando mais...')
+                // Aguardar mais 1 segundo e tentar novamente
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                const { data: finalProfile } = await supabase
+                  .from('users')
+                  .select('is_superadmin, is_active')
+                  .eq('id', userId)
+                  .maybeSingle()
+                
+                if (!finalProfile) {
+                  console.error('[OAuth Callback] Perfil ainda não existe após aguardar. Redirecionando para waiting-room.')
+                  // Se ainda não existir, pode ser um problema - redirecionar para waiting-room
+                  // O waiting-room vai verificar e redirecionar apropriadamente
+                  processingComplete = true
+                  if (isMounted) {
+                    router.push('/auth/waiting-room')
+                  }
+                  return
+                }
+                
+                // Usar perfil encontrado na segunda tentativa
+                const finalUserProfile = finalProfile
+                
+                // Verificar novamente se componente ainda está montado antes de redirecionar
+                if (!isMounted || processingComplete) return
+                
+                let next = searchParams.get('next') || '/dashboard'
+                
+                // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
+                if (finalUserProfile.is_superadmin === true && !searchParams.get('next')) {
+                  next = '/admin'
+                } else if (!finalUserProfile.is_active && !finalUserProfile.is_superadmin) {
+                  // Se não está ativo e não é superadmin, ir para waiting-room
+                  next = '/auth/waiting-room'
+                }
+                
+                // Limpar o hash da URL
+                window.history.replaceState({}, '', window.location.pathname + window.location.search)
+                
+                processingComplete = true
+                if (isMounted) {
+                  router.push(next)
+                }
+                return
               }
               
               // Verificar novamente se componente ainda está montado antes de redirecionar
@@ -287,6 +385,9 @@ function OAuthCallbackProcessor() {
               // Verificar explicitamente que userProfile existe e is_superadmin é true
               if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
                 next = '/admin'
+              } else if (userProfile && !userProfile.is_active && !userProfile.is_superadmin) {
+                // Se não está ativo e não é superadmin, ir para waiting-room
+                next = '/auth/waiting-room'
               }
               
               // Limpar o hash da URL
