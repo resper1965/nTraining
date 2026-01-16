@@ -89,25 +89,31 @@ export function AssignCourseDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="bg-slate-900 border-slate-800 max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="bg-slate-900 border-slate-800 max-w-2xl max-h-[90vh] overflow-y-auto"
+        aria-labelledby="assign-course-title"
+        aria-describedby="assign-course-description"
+      >
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-white">
+          <DialogTitle id="assign-course-title" className="font-display text-xl text-white">
             Atribuir Curso à Organização
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="assign-course-description">
             Configure o acesso e as licenças para este curso
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" aria-label="Formulário de atribuição de curso">
           {/* Course Selection */}
           <div className="space-y-2">
-            <Label htmlFor="course_id">Curso *</Label>
+            <Label htmlFor="course_id">
+              Curso <span className="text-red-400" aria-label="obrigatório">*</span>
+            </Label>
             <Select
               value={formData.course_id}
               onValueChange={(value) => setFormData({ ...formData, course_id: value })}
               required
             >
-              <SelectTrigger>
+              <SelectTrigger id="course_id" aria-required="true" aria-describedby="course_id-description">
                 <SelectValue placeholder="Selecione um curso" />
               </SelectTrigger>
               <SelectContent>
@@ -134,18 +140,23 @@ export function AssignCourseDialog({
                   .filter((item): item is JSX.Element => item !== null)}
               </SelectContent>
             </Select>
+            <p id="course_id-description" className="sr-only">
+              Selecione o curso que deseja atribuir à organização
+            </p>
           </div>
 
           {/* Access Type */}
           <div className="space-y-2">
-            <Label htmlFor="access_type">Tipo de Acesso *</Label>
+            <Label htmlFor="access_type">
+              Tipo de Acesso <span className="text-red-400" aria-label="obrigatório">*</span>
+            </Label>
             <Select
               value={formData.access_type}
               onValueChange={(value: any) => setFormData({ ...formData, access_type: value })}
               required
             >
-              <SelectTrigger>
-                <SelectValue />
+              <SelectTrigger id="access_type" aria-required="true" aria-describedby="access_type-description">
+                <SelectValue placeholder="Selecione o tipo de acesso" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="licensed">Licenciado (com limite)</SelectItem>
@@ -153,21 +164,32 @@ export function AssignCourseDialog({
                 <SelectItem value="trial">Trial</SelectItem>
               </SelectContent>
             </Select>
+            <p id="access_type-description" className="sr-only">
+              Escolha o tipo de acesso: Licenciado (com limite), Ilimitado ou Trial
+            </p>
           </div>
 
           {/* Total Licenses (only for licensed) */}
           {formData.access_type === 'licensed' && (
             <div className="space-y-2">
-              <Label htmlFor="total_licenses">Total de Licenças *</Label>
+              <Label htmlFor="total_licenses">
+                Total de Licenças <span className="text-red-400" aria-label="obrigatório">*</span>
+              </Label>
               <Input
                 id="total_licenses"
+                name="total_licenses"
                 type="number"
                 min="1"
                 value={formData.total_licenses}
                 onChange={(e) => setFormData({ ...formData, total_licenses: e.target.value })}
                 placeholder="Ex: 50"
                 required
+                aria-required="true"
+                aria-describedby="total_licenses-description"
               />
+              <p id="total_licenses-description" className="sr-only">
+                Digite o número total de licenças disponíveis para este curso
+              </p>
             </div>
           )}
 
@@ -223,10 +245,17 @@ export function AssignCourseDialog({
               variant="outline"
               onClick={() => setOpen(false)}
               className="flex-1"
+              aria-label="Cancelar atribuição de curso"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
+            <Button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="flex-1"
+              aria-busy={isSubmitting}
+              aria-label={isSubmitting ? 'Atribuindo curso...' : 'Confirmar atribuição de curso'}
+            >
               {isSubmitting ? 'Atribuindo...' : 'Atribuir Curso'}
             </Button>
           </div>

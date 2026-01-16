@@ -67,19 +67,29 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative">
-          <Bell className="h-5 w-5" />
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="relative"
+          aria-label={`Notificações${unreadCount > 0 ? `, ${unreadCount} não lidas` : ''}`}
+          aria-expanded={open}
+          aria-haspopup="true"
+        >
+          <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            <span 
+              className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"
+              aria-label={`${unreadCount} notificação${unreadCount > 1 ? 'ões' : ''} não lida${unreadCount > 1 ? 's' : ''}`}
+            >
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-80 p-0" align="end" role="dialog" aria-label="Notificações">
         <div className="bg-slate-900 border-slate-800">
           <div className="p-4 border-b border-slate-800">
-            <h3 className="font-semibold text-white">Notificações</h3>
+            <h3 className="font-semibold text-white" id="notifications-heading">Notificações</h3>
           </div>
           <div className="max-h-[400px] overflow-y-auto">
             {notifications.length === 0 ? (
@@ -96,6 +106,15 @@ export function NotificationBell() {
                       !notification.read ? 'bg-slate-800/30' : ''
                     }`}
                     onClick={() => handleMarkAsRead(notification.id)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${notification.title}. ${notification.message}. ${!notification.read ? 'Não lida' : 'Lida'}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleMarkAsRead(notification.id)
+                      }
+                    }}
                   >
                     <div className="flex items-start gap-3">
                       <div className="flex-1 min-w-0">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -22,21 +22,21 @@ interface ModuleListProps {
   modules: Module[]
 }
 
-export function ModuleList({ courseId, modules }: ModuleListProps) {
+function ModuleListComponent({ courseId, modules }: ModuleListProps) {
   const router = useRouter()
   const [isReordering, setIsReordering] = useState(false)
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/html', index.toString())
-  }
+  }, [])
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
-  }
+  }, [])
 
-  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+  const handleDrop = useCallback(async (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault()
     const dragIndex = parseInt(e.dataTransfer.getData('text/html'))
     
@@ -58,7 +58,7 @@ export function ModuleList({ courseId, modules }: ModuleListProps) {
     } finally {
       setIsReordering(false)
     }
-  }
+  }, [modules, courseId, router])
 
   return (
     <div className="space-y-3">
@@ -114,3 +114,15 @@ export function ModuleList({ courseId, modules }: ModuleListProps) {
   )
 }
 
+// Memoizar componente para evitar re-renders desnecessários
+export const ModuleList = memo(ModuleListComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.courseId === nextProps.courseId &&
+    prevProps.modules.length === nextProps.modules.length &&
+    prevProps.modules.every((module, index) => 
+      module.id === nextProps.modules[index]?.id &&
+      module.order_index === nextProps.modules[index]?.order_index
+    )
+  )
+})
+ModuleList.displayName = 'ModuleList'

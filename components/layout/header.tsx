@@ -9,6 +9,7 @@ import { Search, User, LogOut, Menu } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
 import { usePathname } from 'next/navigation'
 import { NotificationBell } from '@/components/notifications/notification-bell'
+import { SkipLink } from '@/components/ui/skip-link'
 
 function HeaderContent() {
   const router = useRouter()
@@ -33,8 +34,10 @@ function HeaderContent() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur supports-[backdrop-filter]:bg-slate-950/60">
-      <div className="container mx-auto px-4">
+    <>
+      <SkipLink />
+      <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur supports-[backdrop-filter]:bg-slate-950/60">
+        <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
@@ -55,6 +58,8 @@ function HeaderContent() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="pl-10 bg-slate-900 border-slate-800 text-white placeholder:text-slate-500 focus-visible:ring-primary"
+                  aria-label="Buscar cursos"
+                  role="searchbox"
                 />
               </div>
             </form>
@@ -66,6 +71,9 @@ function HeaderContent() {
               variant="ghost"
               size="icon"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
+              aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"}
+              aria-expanded={isSearchOpen}
+              aria-controls="mobile-search"
             >
               <Search className="h-5 w-5" />
             </Button>
@@ -75,12 +83,22 @@ function HeaderContent() {
           <div className="flex items-center gap-2">
             <NotificationBell />
             <Link href="/profile">
-              <Button variant="ghost" size="icon" className="hidden sm:flex">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hidden sm:flex"
+                aria-label="Acessar perfil"
+              >
                 <User className="h-5 w-5" />
               </Button>
             </Link>
             <form action={signOut}>
-              <Button variant="ghost" size="icon" type="submit">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                type="submit"
+                aria-label="Sair da conta"
+              >
                 <LogOut className="h-5 w-5" />
               </Button>
             </form>
@@ -89,10 +107,10 @@ function HeaderContent() {
 
         {/* Mobile Search Bar */}
         {isSearchOpen && (
-          <div className="md:hidden pb-4">
+          <div className="md:hidden pb-4" id="mobile-search" role="search">
             <form onSubmit={handleSearch}>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
                 <Input
                   type="text"
                   placeholder="Buscar cursos..."
@@ -101,6 +119,8 @@ function HeaderContent() {
                   onKeyDown={handleKeyDown}
                   className="pl-10 bg-slate-900 border-slate-800 text-white placeholder:text-slate-500 focus-visible:ring-primary"
                   autoFocus
+                  aria-label="Buscar cursos"
+                  role="searchbox"
                 />
               </div>
             </form>
@@ -108,6 +128,7 @@ function HeaderContent() {
         )}
       </div>
     </header>
+    </>
   )
 }
 

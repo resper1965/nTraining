@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { getCoursesWithProgress, getCourseAreas } from '@/app/actions/courses'
 import { requireAuth } from '@/lib/supabase/server'
 import { CourseCard } from '@/components/course-card'
 import { CourseFilters } from '@/components/course-filters'
+import { CourseCardSkeleton } from '@/components/ui/course-card-skeleton'
 import type { CourseLevel } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -51,26 +53,34 @@ export default async function CoursesPage({
 
           {/* Courses Grid */}
           <div className="lg:col-span-3">
-            {courses.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-slate-400 text-lg mb-4">
-                  No courses found
-                </p>
-                <p className="text-slate-500 text-sm">
-                  Try adjusting your filters or check back later
-                </p>
-              </div>
-            ) : (
+            <Suspense fallback={
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {courses.map((course) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    showProgress={true}
-                  />
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CourseCardSkeleton key={i} />
                 ))}
               </div>
-            )}
+            }>
+              {courses.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-slate-400 text-lg mb-4">
+                    Nenhum curso encontrado
+                  </p>
+                  <p className="text-slate-500 text-sm">
+                    Tente ajustar seus filtros ou volte mais tarde
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {courses.map((course) => (
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      showProgress={true}
+                    />
+                  ))}
+                </div>
+              )}
+            </Suspense>
           </div>
         </div>
       </div>

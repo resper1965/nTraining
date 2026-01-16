@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import { getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/app/actions/notifications'
 import { prioritizeNotifications } from '@/lib/notifications/utils'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ interface NotificationListProps {
   onNotificationClick?: () => void
 }
 
-export function NotificationList({ onNotificationClick }: NotificationListProps) {
+function NotificationListComponent({ onNotificationClick }: NotificationListProps) {
   const [notifications, setNotifications] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [markingAll, setMarkingAll] = useState(false)
@@ -24,7 +24,7 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
     loadNotifications()
   }, [])
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       setLoading(true)
       const data = await getUserNotifications({ limit: 20 })
@@ -37,9 +37,9 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     try {
       setMarkingAll(true)
       await markAllNotificationsAsRead()
@@ -51,9 +51,9 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
     } finally {
       setMarkingAll(false)
     }
-  }
+  }, [loadNotifications])
 
-  const handleNotificationClick = async (notificationId: string, isRead: boolean) => {
+  const handleNotificationClick = useCallback(async (notificationId: string, isRead: boolean) => {
     if (!isRead) {
       try {
         await markNotificationAsRead(notificationId)
@@ -67,7 +67,7 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
     if (onNotificationClick) {
       onNotificationClick()
     }
-  }
+  }, [onNotificationClick])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -138,3 +138,6 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
   )
 }
 
+// Memoizar componente para evitar re-renders desnecessários
+export const NotificationList = memo(NotificationListComponent)
+NotificationList.displayName = 'NotificationList'

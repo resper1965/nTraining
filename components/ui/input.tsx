@@ -12,6 +12,9 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className
         )}
         ref={ref}
+        aria-invalid={props['aria-invalid']}
+        aria-describedby={props['aria-describedby']}
+        aria-required={props.required ? 'true' : undefined}
         {...props}
       />
     )

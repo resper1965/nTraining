@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, memo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { useSearchParams, useRouter } from 'next/navigation'
 import type { CourseLevel } from '@/lib/types/database'
@@ -24,7 +24,7 @@ function CourseFiltersContent({ areas = [] }: CourseFiltersProps) {
   const currentArea = searchParams.get('area') || 'all'
   const currentSearch = searchParams.get('search') || ''
 
-  const updateFilter = (key: string, value: string) => {
+  const updateFilter = useCallback((key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (value === 'all' || value === '') {
       params.delete(key)
@@ -33,7 +33,7 @@ function CourseFiltersContent({ areas = [] }: CourseFiltersProps) {
     }
     params.delete('page') // Reset pagination
     router.push(`/courses?${params.toString()}`)
-  }
+  }, [searchParams, router])
 
   return (
     <div className="space-y-6">
@@ -106,6 +106,8 @@ function CourseFiltersContent({ areas = [] }: CourseFiltersProps) {
   )
 }
 
+const CourseFiltersContentMemo = memo(CourseFiltersContent)
+
 export function CourseFilters({ areas = [] }: CourseFiltersProps) {
   return (
     <Suspense fallback={
@@ -120,7 +122,7 @@ export function CourseFilters({ areas = [] }: CourseFiltersProps) {
         </div>
       </div>
     }>
-      <CourseFiltersContent areas={areas} />
+      <CourseFiltersContentMemo areas={areas} />
     </Suspense>
   )
 }

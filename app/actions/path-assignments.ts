@@ -220,9 +220,10 @@ export async function checkPathCompletion(pathId: string, userId: string) {
         })
         .eq('id', assignment.id)
 
-      // Criar notificação de conclusão
+      // Buscar dados da trilha
       const path = await getLearningPathWithCourses(pathId).catch(() => null)
       if (path) {
+        // Criar notificação de conclusão
         const { createNotification } = await import('./notifications')
         await createNotification({
           user_id: userId,
@@ -236,6 +237,15 @@ export async function checkPathCompletion(pathId: string, userId: string) {
           action_url: `/paths/${path.slug}`,
           action_label: 'Ver Trilha',
         })
+
+        // Gerar certificado da trilha
+        try {
+          const { generatePathCertificate } = await import('./certificates')
+          await generatePathCertificate(pathId, userId)
+        } catch (certError) {
+          // Não falhar se a geração de certificado falhar
+          console.error('Error generating path certificate:', certError)
+        }
       }
     }
   }
@@ -244,3 +254,57 @@ export async function checkPathCompletion(pathId: string, userId: string) {
   revalidatePath('/dashboard')
 }
 
+/**
+ * Atribuir trilha a uma organização inteira
+ * Todos os usuários ativos da organização receberão a trilha
+ */
+export async function assignPathToOrganization(
+  organizationId: string,
+  pathId: string,
+  options?: {
+    deadline?: Date
+    isMandatory?: boolean
+    autoEnrollFirstCourse?: boolean
+  }
+) {
+  await requireSuperAdmin()
+  const supabase = createClient()
+
+  // Buscar todos os usuários ativos da organização
+  const { data: users, error: usersError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+
+  if (usersError || !users || users.length === 0) {
+    throw new Error(`Failed to fetch organization users: ${usersError?.message || 'No active users found'}`)
+  }
+
+  const userIds = users.map((u: { id: string }) => u.id)
+
+  // Atribuir trilha a todos os usuários
+  const result = await assignPathToUsers(userIds, pathId, options)
+
+  // Atualizar organization_id na trilha (se ainda não estiver definido)
+  const { data: path } = await supabase
+    .from('learning_paths')
+    .select('organization_id')
+    .eq('id', pathId)
+    .single()
+
+  if (path && !path.organization_id) {
+    await supabase
+      .from('learning_paths')
+      .update({ organization_id: organizationId })
+      .eq('id', pathId)
+  }
+
+  revalidatePath('/admin/paths')
+  revalidatePath(`/admin/organizations/${organizationId}`)
+
+  return {
+    ...result,
+    organizationId,
+  }
+}

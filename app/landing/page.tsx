@@ -23,6 +23,13 @@ import {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-950">
+      {/* Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:shadow-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-950"
+      >
+        Pular para o conteúdo principal
+      </a>
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur supports-[backdrop-filter]:bg-slate-950/60">
         <div className="container mx-auto px-4">
@@ -55,7 +62,8 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-24 md:py-32 text-center">
+      <main id="main-content">
+        <section className="container mx-auto px-4 py-24 md:py-32 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-medium text-white mb-6 leading-tight">
             Plataforma de Treinamento em
@@ -227,7 +235,8 @@ export default function LandingPage() {
             </Link>
           </CardContent>
         </Card>
-      </section>
+        </section>
+      </main>
 
       {/* Footer */}
       <footer className="border-t border-slate-800 mt-20">

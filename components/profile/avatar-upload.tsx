@@ -65,10 +65,13 @@ export function AvatarUpload({ currentAvatarUrl }: AvatarUploadProps) {
           {preview ? (
             <Image
               src={preview}
-              alt="Avatar"
+              alt="Foto de perfil do usuário"
               width={96}
               height={96}
               className="object-cover"
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzExRjE4MjciLz48L3N2Zz4="
             />
           ) : (
             <div className="text-4xl text-slate-500 font-medium">

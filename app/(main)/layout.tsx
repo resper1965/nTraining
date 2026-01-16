@@ -40,7 +40,9 @@ export default async function MainLayout({
     <>
       <Header />
       <ErrorBoundary>
-        {children}
+        <main id="main-content" className="min-h-screen">
+          {children}
+        </main>
       </ErrorBoundary>
     </>
   )

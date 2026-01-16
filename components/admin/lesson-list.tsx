@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -30,21 +30,21 @@ const contentTypeIcons = {
   embed: LinkIcon,
 }
 
-export function LessonList({ courseId, moduleId, lessons }: LessonListProps) {
+function LessonListComponent({ courseId, moduleId, lessons }: LessonListProps) {
   const router = useRouter()
   const [isReordering, setIsReordering] = useState(false)
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/html', index.toString())
-  }
+  }, [])
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
-  }
+  }, [])
 
-  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+  const handleDrop = useCallback(async (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault()
     const dragIndex = parseInt(e.dataTransfer.getData('text/html'))
     
@@ -66,7 +66,7 @@ export function LessonList({ courseId, moduleId, lessons }: LessonListProps) {
     } finally {
       setIsReordering(false)
     }
-  }
+  }, [lessons, moduleId, router])
 
   return (
     <div className="space-y-3">
@@ -133,3 +133,16 @@ export function LessonList({ courseId, moduleId, lessons }: LessonListProps) {
   )
 }
 
+// Memoizar componente para evitar re-renders desnecessários
+export const LessonList = memo(LessonListComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.courseId === nextProps.courseId &&
+    prevProps.moduleId === nextProps.moduleId &&
+    prevProps.lessons.length === nextProps.lessons.length &&
+    prevProps.lessons.every((lesson, index) => 
+      lesson.id === nextProps.lessons[index]?.id &&
+      lesson.order_index === nextProps.lessons[index]?.order_index
+    )
+  )
+})
+LessonList.displayName = 'LessonList'

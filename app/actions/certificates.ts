@@ -268,3 +268,91 @@ export async function getCertificateById(certificateId: string) {
   return data as Certificate & { courses: any }
 }
 
+/**
+ * Generate certificate for completed learning path
+ * Uses metadata to store path information since certificates table only has course_id
+ */
+export async function generatePathCertificate(pathId: string, userId: string) {
+  const supabase = createClient()
+  const user = await requireAuth()
+  
+  if (user.id !== userId) {
+    throw new Error('Unauthorized')
+  }
+
+  // Check if certificate already exists for this path
+  const { data: existing } = await supabase
+    .from('certificates')
+    .select('*')
+    .eq('user_id', userId)
+    .is('course_id', null)
+    .eq('metadata->>path_id', pathId)
+    .single()
+
+  if (existing) {
+    return existing as Certificate
+  }
+
+  // Get path details
+  const { getLearningPathWithCourses } = await import('./learning-paths')
+  const path = await getLearningPathWithCourses(pathId).catch(() => null)
+
+  if (!path) {
+    throw new Error('Trilha não encontrada')
+  }
+
+  // Verify path is completed
+  const { getPathProgress } = await import('./path-progress')
+  const progress = await getPathProgress(pathId)
+
+  if (!progress.is_completed) {
+    throw new Error('Você ainda não completou a trilha')
+  }
+
+  // Generate verification code
+  const verificationCode = generateVerificationCode()
+
+  // Create certificate record with path info in metadata
+  // Using course_id as null and storing path_id in metadata
+  const { data: certificate, error } = await supabase
+    .from('certificates')
+    .insert({
+      user_id: userId,
+      course_id: null, // No course_id for path certificates
+      organization_id: user.organization_id || null,
+      verification_code: verificationCode,
+      issued_at: new Date().toISOString(),
+      metadata: {
+        type: 'learning_path',
+        path_id: pathId,
+        path_title: path.title,
+        path_slug: path.slug,
+        completed_courses: progress.completed_courses,
+        total_courses: progress.total_courses,
+      },
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Erro ao gerar certificado da trilha: ${error.message}`)
+  }
+
+  // Create notification
+  try {
+    const { notifyCertificateAvailable } = await import('@/lib/notifications/triggers')
+    await notifyCertificateAvailable(
+      userId,
+      path.title,
+      certificate.id,
+      verificationCode
+    )
+  } catch (notifError) {
+    console.error('Error creating path certificate notification:', notifError)
+  }
+
+  revalidatePath('/certificates')
+  revalidatePath(`/paths/${path.slug}`)
+
+  return certificate as Certificate
+}

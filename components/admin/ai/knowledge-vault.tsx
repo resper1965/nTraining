@@ -7,7 +7,7 @@
 // Design minimalista seguindo branding "ness."
 // ============================================================================
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, memo } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
@@ -38,7 +38,7 @@ import type { KnowledgeSource } from '@/lib/types/database'
 // Component
 // ============================================================================
 
-export function KnowledgeVault() {
+function KnowledgeVaultComponent() {
   const [sources, setSources] = useState<KnowledgeSource[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [uploadingFiles, setUploadingFiles] = useState<Map<string, number>>(new Map())
@@ -385,3 +385,7 @@ export function KnowledgeVault() {
     </div>
   )
 }
+
+// Memoizar componente para evitar re-renders desnecessários
+export const KnowledgeVault = memo(KnowledgeVaultComponent)
+KnowledgeVault.displayName = 'KnowledgeVault'

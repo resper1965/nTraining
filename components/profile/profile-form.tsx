@@ -39,34 +39,48 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" aria-label="Formulário de perfil">
       <div className="space-y-2">
         <Label htmlFor="full_name">Nome Completo</Label>
         <Input
           id="full_name"
+          name="full_name"
           value={formData.full_name}
           onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
           placeholder="Seu nome completo"
           required
+          aria-required="true"
+          aria-describedby="full_name-description"
         />
+        <p id="full_name-description" className="sr-only">
+          Digite seu nome completo
+        </p>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
+          name="email"
           type="email"
           value={formData.email}
           disabled
           className="bg-slate-800 text-slate-400 cursor-not-allowed"
+          aria-disabled="true"
+          aria-describedby="email-description"
         />
-        <p className="text-xs text-slate-500">
+        <p id="email-description" className="text-xs text-slate-500">
           O email não pode ser alterado. Entre em contato com o administrador se necessário.
         </p>
       </div>
 
       <div className="flex justify-end pt-4">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          aria-label={isSubmitting ? 'Salvando alterações do perfil' : 'Salvar alterações do perfil'}
+        >
           {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
         </Button>
       </div>

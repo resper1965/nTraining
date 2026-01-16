@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Suspense } from 'react'
 
 // Use revalidate instead of force-dynamic to allow caching and prevent flickering
 export const revalidate = 30 // Revalidate every 30 seconds
@@ -298,13 +297,5 @@ export default async function AdminDashboardPage() {
   // User verification is already done in layout - skip to prevent duplicate queries
   // This prevents the "piscar" (flickering) issue
   
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-slate-400">Carregando dashboard...</div>
-      </div>
-    }>
-      <DashboardContent />
-    </Suspense>
-  )
+  return <DashboardContent />
 }

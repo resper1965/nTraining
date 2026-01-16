@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { memo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { Course, CourseWithProgress } from '@/lib/types/database'
@@ -9,7 +10,7 @@ interface CourseCardProps {
   showProgress?: boolean
 }
 
-export function CourseCard({ course, showProgress = false }: CourseCardProps) {
+function CourseCardComponent({ course, showProgress = false }: CourseCardProps) {
   const progress = 'progress' in course ? course.progress : null
   const completionPercentage = progress?.completion_percentage || 0
 
@@ -23,6 +24,9 @@ export function CourseCard({ course, showProgress = false }: CourseCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMTFGMTgyNyIvPjwvc3ZnPg=="
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
         </div>
@@ -83,3 +87,16 @@ export function CourseCard({ course, showProgress = false }: CourseCardProps) {
   )
 }
 
+// Memoizar componente para evitar re-renders desnecessários
+export const CourseCard = memo(CourseCardComponent, (prevProps, nextProps) => {
+  // Comparação customizada para evitar re-renders quando apenas progress muda
+  return (
+    prevProps.course.id === nextProps.course.id &&
+    prevProps.course.thumbnail_url === nextProps.course.thumbnail_url &&
+    prevProps.showProgress === nextProps.showProgress &&
+    (!prevProps.showProgress || 
+     (prevProps.course as CourseWithProgress).progress?.completion_percentage === 
+     (nextProps.course as CourseWithProgress).progress?.completion_percentage)
+  )
+})
+CourseCard.displayName = 'CourseCard'

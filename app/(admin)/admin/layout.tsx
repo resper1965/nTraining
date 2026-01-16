@@ -61,42 +61,50 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
-      <ErrorLogger />
-      <AdminSidebar />
+    <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:shadow-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-950"
+      >
+        Pular para o conteúdo principal
+      </a>
+      <div className="min-h-screen bg-slate-950 flex">
+        <ErrorLogger />
+        <AdminSidebar />
 
-      <div className="flex-1 flex flex-col">
-        {/* Admin Header */}
-        <header className="border-b border-slate-800 bg-slate-900">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="font-display text-lg font-medium text-white">
-                  Painel Administrativo
-                </h1>
-                <p className="text-sm text-slate-400">
-                  {userProfile?.full_name || authUser.email}
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <form action={signOut}>
-                  <Button type="submit" variant="outline" size="sm">
-                    Sair
-                  </Button>
-                </form>
+        <div className="flex-1 flex flex-col">
+          {/* Admin Header */}
+          <header className="border-b border-slate-800 bg-slate-900">
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="font-display text-lg font-medium text-white">
+                    Painel Administrativo
+                  </h1>
+                  <p className="text-sm text-slate-400">
+                    {userProfile?.full_name || authUser.email}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <form action={signOut}>
+                    <Button type="submit" variant="outline" size="sm">
+                      Sair
+                    </Button>
+                  </form>
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-slate-950">
-          <div className="p-6 min-h-full">
-            <AdminBreadcrumbs />
-            {children}
-          </div>
-        </main>
+          {/* Main Content */}
+          <main id="main-content" className="flex-1 overflow-auto bg-slate-950">
+            <div className="p-6 min-h-full">
+              <AdminBreadcrumbs />
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

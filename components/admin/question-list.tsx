@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,11 +19,11 @@ interface QuestionListProps {
   questions: (QuizQuestion & { question_options: QuestionOption[] })[]
 }
 
-export function QuestionList({ quizId, questions }: QuestionListProps) {
+function QuestionListComponent({ quizId, questions }: QuestionListProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
-  const handleDelete = async (questionId: string) => {
+  const handleDelete = useCallback(async (questionId: string) => {
     if (!confirm('Tem certeza que deseja deletar esta questão?')) {
       return
     }
@@ -38,7 +38,7 @@ export function QuestionList({ quizId, questions }: QuestionListProps) {
     } finally {
       setIsDeleting(null)
     }
-  }
+  }, [router])
 
   const getQuestionTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -136,3 +136,14 @@ export function QuestionList({ quizId, questions }: QuestionListProps) {
   )
 }
 
+// Memoizar componente para evitar re-renders desnecessários
+export const QuestionList = memo(QuestionListComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.quizId === nextProps.quizId &&
+    prevProps.questions.length === nextProps.questions.length &&
+    prevProps.questions.every((question, index) => 
+      question.id === nextProps.questions[index]?.id
+    )
+  )
+})
+QuestionList.displayName = 'QuestionList'

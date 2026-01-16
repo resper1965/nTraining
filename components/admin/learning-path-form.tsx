@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Card,
@@ -53,7 +53,7 @@ interface SortableCourseItemProps {
   onRemove: () => void
 }
 
-function SortableCourseItem({ course, onRemove }: SortableCourseItemProps) {
+function SortableCourseItemComponent({ course, onRemove }: SortableCourseItemProps) {
   const {
     attributes,
     listeners,
@@ -95,6 +95,9 @@ function SortableCourseItem({ course, onRemove }: SortableCourseItemProps) {
     </div>
   )
 }
+
+const SortableCourseItem = memo(SortableCourseItemComponent)
+SortableCourseItem.displayName = 'SortableCourseItem'
 
 export function LearningPathForm({ courses, initialData }: LearningPathFormProps) {
   const router = useRouter()
