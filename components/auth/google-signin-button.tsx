@@ -71,11 +71,10 @@ export function GoogleSignInButton({ redirectTo }: GoogleSignInButtonProps) {
       // IMPORTANTE: Esta URL DEVE estar autorizada no Supabase
       const callbackUrl = `${currentOrigin}/auth/callback?next=${encodeURIComponent(redirectPath)}`
       
-      // Log apenas em desenvolvimento
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[GoogleSignIn] Origin:', currentOrigin)
-        console.log('[GoogleSignIn] RedirectTo:', callbackUrl)
-      }
+      // Log sempre (também em produção para debug)
+      console.log('[GoogleSignIn] Origin:', currentOrigin)
+      console.log('[GoogleSignIn] RedirectTo:', callbackUrl)
+      console.log('[GoogleSignIn] RedirectPath:', redirectPath)
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
