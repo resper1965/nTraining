@@ -312,9 +312,15 @@ function OAuthCallbackProcessor() {
             // Se já verificamos no início e não havia sessão, não precisamos verificar novamente
             // Apenas verificar novamente se passou tempo suficiente ou se não verificamos antes
             if (hasExistingSession && isMounted && !processingComplete) {
-              // Sessão já existe (do cache), redirecionar
+              // Sessão já existe (do cache), aguardar um pouco antes de redirecionar
               const next = searchParams.get('next') || '/dashboard'
+              console.log('[OAuth Callback] ✅ Sessão existente (hash flow). Aguardando 500ms...')
+              await new Promise(resolve => setTimeout(resolve, 500))
+              
+              if (!isMounted || processingComplete) return
+              
               processingComplete = true
+              console.log('[OAuth Callback] 🚀 Redirecionando para:', next)
               router.push(next)
               return
             }
