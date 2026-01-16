@@ -4,6 +4,9 @@ import { cn } from "@/lib/utils"
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
+    // Extract ARIA attributes from props to prevent override
+    const { 'aria-invalid': ariaInvalid, 'aria-describedby': ariaDescribedBy, required, ...restProps } = props
+    
     return (
       <input
         type={type}
@@ -12,10 +15,10 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className
         )}
         ref={ref}
-        aria-invalid={props['aria-invalid']}
-        aria-describedby={props['aria-describedby']}
-        aria-required={props.required ? 'true' : undefined}
-        {...props}
+        {...restProps}
+        aria-invalid={ariaInvalid}
+        aria-describedby={ariaDescribedBy}
+        aria-required={required ? 'true' : undefined}
       />
     )
   }
