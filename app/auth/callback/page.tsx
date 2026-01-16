@@ -35,45 +35,24 @@ function OAuthCallbackProcessor() {
         return
       }
 
-      // Verificar se já existe uma sessão ativa (cachear resultado para evitar múltiplas chamadas)
-      console.log('[OAuth Callback] 🔍 Verificando sessão existente...')
-      const { data: { session: existingSession } } = await supabase.auth.getSession()
-      const hasExistingSession = !!existingSession
-      console.log('[OAuth Callback] Sessão existente?', hasExistingSession, 'User ID:', existingSession?.user?.id)
-      
-      if (existingSession && isMounted && !processingComplete) {
-        // Se já está autenticado, verificar se é superadmin antes de redirecionar
-        const userId = existingSession.user.id
-        const { data: userProfile, error: profileError } = await supabase
-          .from('users')
-          .select('is_superadmin')
-          .eq('id', userId)
-          .maybeSingle()
-        
-        if (profileError) {
-          console.error('[OAuth Callback] Error fetching user profile:', profileError)
-        }
-        
-        let next = searchParams.get('next') || '/dashboard'
-        
-        // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
-        if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
-          next = '/admin'
-        }
-        
-        // IMPORTANTE: Aguardar um pouco antes de redirecionar para garantir que o perfil está disponível
-        console.log('[OAuth Callback] ✅ Sessão existente. Aguardando 500ms antes de redirecionar...')
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        if (!isMounted || processingComplete) return
-        
-        processingComplete = true
-        console.log('[OAuth Callback] 🚀 Redirecionando para:', next, 'User ID:', userId)
-        router.push(next)
-        return
+      // IMPORTANTE: Processar hash/code ANTES de verificar sessão existente
+      // Se há tokens no hash ou code, precisamos processá-los primeiro
+      const getHashParams = () => {
+        if (typeof window === 'undefined') return null
+        const hash = window.location.hash.substring(1)
+        if (!hash) return null
+        return new URLSearchParams(hash)
       }
 
-      // Verificar se há 'code' na query string (fluxo padrão do Supabase)
+      const hashParams = getHashParams()
+      const hasHashTokens = hashParams && (hashParams.get('access_token') || hashParams.get('code'))
+      console.log('[OAuth Callback] 🔍 Hash presente?', !!hashParams, 'Tokens no hash?', hasHashTokens)
+
+      // Se há tokens no hash, NÃO verificar sessão existente ainda - processar hash primeiro
+      // O Supabase pode ter criado uma sessão automaticamente ao carregar a URL com hash,
+      // mas precisamos garantir que está processada corretamente e que o perfil está pronto
+      
+      // Verificar se há 'code' na query string (fluxo padrão do Supabase) - prioridade 1
       const code = searchParams.get('code')
       if (code && !processingComplete) {
         try {
@@ -600,8 +579,49 @@ function OAuthCallbackProcessor() {
           }, 2000)
           timeoutIds.push(timeoutId)
         }
-      } else if (isMounted && !processingComplete && !code) {
-        // Se não houver hash nem code, redirecionar para login
+      } else if (isMounted && !processingComplete && !code && !hasHashTokens) {
+        // Se não houver hash nem code, verificar se há sessão existente
+        console.log('[OAuth Callback] 🔍 Nenhum code/hash encontrado. Verificando sessão existente...')
+        const { data: { session: existingSession } } = await supabase.auth.getSession()
+        const hasExistingSession = !!existingSession
+        console.log('[OAuth Callback] Sessão existente?', hasExistingSession, 'User ID:', existingSession?.user?.id)
+        
+        if (existingSession && isMounted && !processingComplete) {
+          // Se já está autenticado, verificar perfil e redirecionar
+          const userId = existingSession.user.id
+          const { data: userProfile, error: profileError } = await supabase
+            .from('users')
+            .select('is_superadmin, is_active')
+            .eq('id', userId)
+            .maybeSingle()
+          
+          if (profileError) {
+            console.error('[OAuth Callback] Error fetching user profile:', profileError)
+          }
+          
+          let next = searchParams.get('next') || '/dashboard'
+          
+          // Se for superadmin e não houver 'next' customizado, redirecionar para /admin
+          if (userProfile && userProfile.is_superadmin === true && !searchParams.get('next')) {
+            next = '/admin'
+          } else if (userProfile && !userProfile.is_active && !userProfile.is_superadmin) {
+            next = '/auth/waiting-room'
+          }
+          
+          // IMPORTANTE: Aguardar um pouco antes de redirecionar
+          console.log('[OAuth Callback] ✅ Sessão existente (sem code/hash). Aguardando 500ms...')
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          if (!isMounted || processingComplete) return
+          
+          processingComplete = true
+          console.log('[OAuth Callback] 🚀 Redirecionando para:', next, 'User ID:', userId)
+          router.push(next)
+          return
+        }
+        
+        // Se não há code, hash nem sessão, redirecionar para login
+        console.warn('[OAuth Callback] ⚠️ Nenhum code, hash ou sessão encontrado. Redirecionando para login.')
         setStatus('error')
         setErrorMessage('Erro: nenhum dado de autenticação encontrado')
         const timeoutId = setTimeout(() => {
